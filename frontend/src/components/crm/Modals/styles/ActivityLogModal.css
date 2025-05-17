@@ -1,0 +1,178 @@
+/* ActivityLogModal.css */
+
+.activitylog-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 30, 30, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.activitylog-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 900px;
+  width: 100%;
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: 90vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.activitylog-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.activitylog-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.activitylog-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.activitylog-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #34495e;
+}
+
+.activitylog-select,
+.activitylog-date-input {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: border-color 0.3s;
+}
+
+.activitylog-select:focus,
+.activitylog-date-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.activitylog-date-range {
+  display: flex;
+  gap: 16px;
+}
+
+.activitylog-date-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.activitylog-modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.activitylog-fetch-btn,
+.activitylog-close-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+  font-weight: 500;
+}
+
+.activitylog-fetch-btn {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.activitylog-fetch-btn:hover {
+  background-color: #2980b9;
+}
+
+.activitylog-close-btn {
+  background-color: #bdc3c7;
+  color: #2c3e50;
+}
+
+.activitylog-close-btn:hover {
+  background-color: #95a5a6;
+}
+
+.activitylog-results {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.activitylog-activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #f9f9f9;
+}
+
+.activitylog-th,
+.activitylog-td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.activitylog-th {
+  background-color: #ecf0f1;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.activitylog-details-btn {
+  background-color: #2ecc71;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.activitylog-details-btn:hover {
+  background-color: #27ae60;
+}
+
+.activitylog-details-row {
+  background-color: #f0f9f5;
+}
+
+.activitylog-details-td {
+  padding: 16px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  background-color: #f4f6f6;
+  border-top: none;
+  border-bottom: 1px solid #dcdcdc;
+  color: #2d3436;
+}
+
+.activitylog-log-details {
+  margin: 0;
+  font-size: 13px;
+}
+
+.activitylog-no-logs {
+  font-style: italic;
+  color: #7f8c8d;
+  text-align: center;
+  margin-top: 20px;
+}

@@ -1,0 +1,227 @@
+/* Overlay background */
+/* Overlay background: fixed full screen, centers modal */
+.filter-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Allow scrolling inside the overlay on small screens */
+  overflow-y: auto;
+  padding: 20px; /* avoid content touching edges */
+}
+
+/* Modal container with max height and scroll */
+.filter-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+
+  /* Set max height relative to viewport */
+  max-height: 80vh;
+
+  /* Enable vertical scroll inside modal if content is too tall */
+  overflow-y: auto;
+
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Modal header */
+.filter-header {
+   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 20px;
+ 
+}
+
+.filter-title{
+  font-size: 22px;
+  font-weight: 500;  
+}
+/* Close button */
+.btn-close-filter {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.3s;
+    margin: 0 10px 15px 0;
+}
+
+.btn-close-filter:hover {
+    color: #000;
+}
+
+/* Filter group layout */
+.filter-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Field container */
+.filter-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label */
+.filter-field label {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Buttons */
+.filter-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-apply {
+  padding: 8px 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.btn-cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-apply {
+  background-color: #2f80ed;
+  color: white;
+}
+
+.btn-apply:hover {
+  background-color: #1c6dd0;
+}
+
+.filter-footer-btn {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.filter-footer-1 {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  /* margin-bottom: 4px; */
+}
+
+.assign-leads {
+  padding: 8px 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-family: 'Poppins', sans-serif;
+  background-color: #2bbc67;
+  color: white;
+  
+}
+
+.assign-leads:hover {
+  background-color: #219150;
+}
+
+.delete-btn-all {
+  padding: 8px 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #eb5757;
+  color: #fff;
+  transition: background 0.3s;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delete-btn-all:hover {
+  background-color: #c0392b;
+}
+
+.permissions-section {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 20px 18px;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+}
+
+.permissions-section h4 {
+
+  margin-bottom: 10px;
+   font-size: 18px;
+  font-weight: 500;
+}
+
+.permission-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.permission-group label {
+  font-size: 15px;
+  font-weight: 500;
+  margin-right: 8px;
+  color: #333;
+}
+
+.permission-group input[type="radio"] {
+  margin-right: 4px;
+  accent-color: #2f80ed;
+}
+
+.btn-remove-permissions {
+  padding: 8px 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #eb5757;
+  color: #fff;
+  transition: background 0.3s;
+  font-family: 'Poppins', sans-serif;
+  
+}
+
+.btn-remove-permissions:hover {
+  background-color: #c0392b;
+}
+
+.permissions-section button {
+  margin-top: 14px;
+  margin-right: 8px;
+}

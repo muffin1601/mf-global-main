@@ -1,0 +1,115 @@
+/* UserTable.css */
+
+.user-table-mgmt-container-unique {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-family: 'Poppins', sans-serif;
+}
+.user-table-title-head{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+.user-table-title-unique {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  margin-left: 8px;
+  color: #333333;
+}
+
+.user-table-actions-unique {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  justify-content: flex-end;
+  margin-right: 150px;
+}
+
+.user-table-register-btn-unique,
+.user-table-change-password-btn-unique {
+  margin-left: 10px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.user-table-register-btn-unique {
+  background-color: #4caf50;
+}
+
+.user-table-change-password-btn-unique {
+  background-color: #3498db;
+}
+
+.user-table-table-unique {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+
+.user-table-thead-unique {
+  background-color: #f9f9f9;
+}
+
+.user-table-tr-head-unique {
+  font-weight: 600;
+  color: #555555;
+}
+
+.user-table-th-unique {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+
+.user-table-tr-body-unique:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.user-table-tr-body-unique:hover {
+  background-color: #f1f7ff;
+}
+
+.user-table-td-unique {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eeeeee;
+  color: #333333;
+}
+
+.user-table-td-actions-unique {
+  display: flex;
+  gap: 8px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.user-table-toggle-btn-unique,
+.user-table-track-btn-unique {
+  margin-left: 10px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.user-table-toggle-btn-unique {
+  background-color: #f39c12;
+  color: white;
+}
+
+.user-table-track-btn-unique {
+  background-color: #8e44ad;
+  color: white;
+}

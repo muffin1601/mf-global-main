@@ -1,0 +1,162 @@
+.dashboard-container {
+    display: flex;
+    gap: 20px;
+    /* padding: 20px; */
+    flex-wrap: wrap;
+    max-width: 100%;
+   
+    margin-left: 18px;
+}
+
+.sales-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 20px;
+    width: 48%;
+    min-width: 300px;
+}
+
+.tasks-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 20px;
+    width: 49%;
+    min-width: 300px;
+}
+/* --- Sales Card --- */
+.sales-card-header {
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sales-dropdown {
+    font-size: 14px;
+    color: #555;
+    background: #f4f4f4;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sales-header-sno,
+.sales-header-representative,
+.sales-header-deals,
+.sales-header-leads,
+.sales-header-rate {
+    text-align: left;
+    font-size: 14px;
+    color: #555;
+    padding: 10px 5px;
+}
+
+.sales-row td {
+    padding: 8px 5px;
+    font-size: 14px;
+    color: #333;
+}
+
+.sales-change-icon {
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+.sales-up {
+    color: green;
+}
+
+.sales-down {
+    color: red;
+}
+
+/* --- Tasks Card --- */
+.tasks-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.tasks-tab {
+    padding: 6px 12px;
+    margin-left: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    background: #f4f4f4;
+    border: none;
+}
+
+.tasks-tab-active {
+    background: #fbbb80;
+    color: #000;
+    border: none;
+}
+
+
+.tasks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fefefe;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.task-status-icon {
+    font-size: 18px;
+    margin-right: 10px;
+    color: orange;
+}
+
+.task-details {
+    flex-grow: 1;
+}
+
+.task-title {
+    font-weight: 500;
+    color: #333;
+}
+
+.task-description {
+    font-size: 13px;
+    color: #888;
+}
+
+.task-actions button {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform 0.2s ease;
+}
+
+.task-edit-button {
+    color: #00aaff;
+}
+
+.task-delete-button {
+    color: #ff5555;
+}
+
+.task-actions button:hover {
+    transform: scale(1.2);
+}

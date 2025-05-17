@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+.login-page {
+  display: flex;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+.login-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  box-shadow: inset -1px 0 0 #535252;
+}
+
+.login-card form {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.divider {
+  text-align: center;
+  margin: 10px 0;
+  color: #aaa;
+  font-weight: 500;
+}
+
+.login-input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+}
+
+.login-label {
+  font-size: 13px;
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+.password-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.password-row a {
+  color: #7e7e7d;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.password-row a:hover {
+  color: #f57c00;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.signin-btn {
+  background-color: #f57c00;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  font-size: 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+.signin-btn:hover{
+  background-color: #d96d01;
+}
+
+.signup-msg {
+  font-size: 13px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.signup-msg a {
+  color: #f57c00;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.social-icons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.social-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-weight: bold;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.fb {
+  background: #3b5998;
+}
+
+.pink {
+  background: #f06292;
+}
+
+.ig {
+  background: #e91e63;
+}
+
+.login-side {
+  flex: 1;
+  background:  url("https://images.pexels.com/photos/1293120/pexels-photo-1293120.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2") no-repeat center center;
+  background-size: cover;
+  color: #ffffff;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.login-side img {
+  width: 100px;
+  margin-bottom: 35px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.login-side h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.login-side h4 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 25px;
+  color: #fff5e6;
+}
+
+.login-side p {
+  font-size: 15px;
+  max-width: 450px;
+  line-height: 1.7;
+  color: #ffecd2;
+  text-align: left;
+}

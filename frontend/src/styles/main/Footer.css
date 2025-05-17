@@ -1,0 +1,158 @@
+.footer {
+  background-color: #1e1d1d;
+  color: #ffffff;
+  padding: 60px 20px 20px;
+  /* font-family: 'Segoe UI', sans-serif; */
+}
+
+.footer-top {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 30px;
+}
+
+.footer-logo-section {
+  /* flex: 1; */
+  min-width: 250px;
+  margin-left: 0px;
+}
+
+.footer-logo-img {
+  height: 50px;
+  margin-bottom: 15px;
+}
+
+.footer-tagline {
+  font-size: 1rem;
+  color: #ccc;
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+.footer-links {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer-links h4,
+.footer-social h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #c52d12;
+}
+
+.footer-social {
+  
+  min-width: 200px;
+}
+
+.social-icons-footer {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  margin-left: 35px;
+}
+
+.social-icons-footer a {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  border-radius: 50%;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 transparent;
+}
+
+.social-icons-footer a:hover {
+  background-color: #c52d12;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(197, 45, 18, 0.4);
+  transform: scale(1.1);
+}
+
+.footer-bottom {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .footer-logo-section,
+  .footer-links,
+  .footer-social {
+    min-width: 100%;
+    text-align: center;
+  }
+
+  .social-icons-footer {
+    justify-content: center;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 40px 15px 15px;
+  }
+
+  .footer-tagline {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .footer-links h4,
+  .footer-social h4 {
+    font-size: 1rem;
+  }
+
+  .footer-links a {
+    font-size: 0.85rem;
+  }
+
+  .social-icons-footer a {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .footer-bottom {
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,83 @@
+.chip-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.chip-select label {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.chip-placeholder {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  background: #e0f0ff;
+  color: #0073e6;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.chip-remove {
+  margin-left: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #0073e6;
+}
+
+.chip-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chip-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chip-option:hover {
+  background: #f0f0f0;
+}
+
+.chip-option.selected {
+  background: #eaf4ff;
+  font-weight: 600;
+}
+
+.checkmark {
+  color: #2f80ed;
+}

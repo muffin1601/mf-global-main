@@ -3,23 +3,31 @@ import './styles/FormModal.css';
 import axios from "axios";
 import { logActivity } from "../../../utils/logActivity"; 
 import CsvUploadModal from './CsvUploadModal';
+import { toast } from 'react-toastify';
 
-const FormModal = ({ isOpen, onClose }) => {
-    const [formData, setFormData] = useState({
-      name: "",
-      company: "",
-      email: "",
-      contact: "",
-      location: "",
-      phone: "",
-      datatype: "",
-      category: "",
-      quantity: "",
-      requirements: "",
-    });
-  
+const FormModal = ({
+  isOpen,
+  onClose,
+  editedLead = {},
+  userRole = 'admin',
+  dropdownFields = {}
+}) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    company: "",
+    email: "",
+    contact: "",
+    location: "",
+    phone: "",
+    datatype: "",
+    category: "",
+    quantity: "",
+    requirements: "",
+    assignedTo: [],
+  });
+
+  const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
-  // const [Datatype, setDatatype] = useState([]);
   const [phoneError, setPhoneError] = useState('');
   const [existingPhoneUser, setExistingPhoneUser] = useState(null);
   const [contactError, setContactError] = useState('');
@@ -29,44 +37,67 @@ const FormModal = ({ isOpen, onClose }) => {
   const [showCsvModal, setShowCsvModal] = useState(false);
 
   useEffect(() => {
+    fetchUsers();
     axios.get(`${import.meta.env.VITE_API_URL}/clients/meta`).then((res) => {
       setCategories(res.data.categories);
     });
   }, []);
 
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
+      setUsers(res.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const setField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const phoneChange = (e) => {
     const value = e.target.value;
-    setFormData({ ...formData, phone: value });
+    setField("phone", value);
 
-    if (value.match(/^[6-9][0-9]{9}$/)) {
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/check-duplicate-phone`, {
-          params: { phone: value },
-        })
-        .then((res) => {
-          if (res.data.exists) {
-            setPhoneError('This phone number already exists.');
-            setExistingPhoneUser(res.data.user);
-          }
-        })
-        .catch((error) => {
-          console.error("Error checking phone duplicacy:", error);
-        });
+    if (!value.match(/^[6-9][0-9]{9}$/)) {
+      setPhoneError('');
+      return;
     }
-  }
+
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/check-duplicate-phone`, {
+        params: { phone: value },
+      })
+      .then((res) => {
+        if (res.data.exists) {
+          setPhoneError('This phone number already exists.');
+          setExistingPhoneUser(res.data.user);
+        } else {
+          setPhoneError('');
+          setExistingPhoneUser(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking phone duplicacy:", error);
+      });
+  };
 
   const contactChange = (e) => {
     const rawValue = e.target.value;
-
-    // Remove leading/trailing spaces and collapse internal spaces
     const sanitizedValue = rawValue.trim().replace(/\s+/g, '');
 
-    setFormData({ ...formData, contact: sanitizedValue });
+    setField("contact", sanitizedValue);
+
+    if (!sanitizedValue) {
+      setContactError('');
+      return;
+    }
 
     axios
       .get(`${import.meta.env.VITE_API_URL}/check-duplicate-contact`, {
@@ -86,14 +117,18 @@ const FormModal = ({ isOpen, onClose }) => {
       });
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (phoneError || contactError) {
+      alert("Please resolve errors before submitting.");
+      return;
+    }
+
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/add-client`, formData);
-      alert("Data Submitted!");
+      toast.success("Data Submitted!");
 
-      // ✅ Log activity
       await logActivity("Submitted Data Entry", {
         name: formData.name,
         company: formData.company,
@@ -112,6 +147,7 @@ const FormModal = ({ isOpen, onClose }) => {
         category: "",
         quantity: "",
         requirements: "",
+        assignedTo: [],
       });
     } catch (error) {
       console.error("Error submitting data:", error);
@@ -128,54 +164,34 @@ const FormModal = ({ isOpen, onClose }) => {
   return (
     <div className="form-modal-overlay" onClick={onClose}>
       <div className="form-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className='form-modal-header'>
-          <h2 className='form-modal-title'>Add New Lead</h2>
+        <div className="form-modal-header">
+          <h2 className="form-modal-title">Add New Lead</h2>
           <button className="btn-close-form" onClick={onClose}>✖</button>
         </div>
         <form onSubmit={handleSubmit} className="form-grid">
-          <div className="form-group">
-            <label>Name:</label>
-            <input
-              className="form-modal-input"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Company:</label>
-            <input
-              className="form-modal-input"
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              placeholder="Company"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Email:</label>
-            <input
-              className="form-modal-input"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-            />
-          </div>
+          {[
+            { label: "Name", name: "name" },
+            { label: "Company", name: "company" },
+            { label: "Email", name: "email", type: "email" },
+            { label: "Location", name: "location" },
+            { label: "Quantity", name: "quantity" },
+          ].map(({ label, name, type = "text" }) => (
+            <div className="form-group" key={name}>
+              <label>{label}:</label>
+              <input
+                className="form-modal-input"
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                placeholder={label}
+              />
+            </div>
+          ))}
 
           <div className="form-group">
             <label>Datatype:</label>
-            <select
-              name="datatype"
-              value={formData.datatype}
-              onChange={handleChange}
-            >
+            <select name="datatype" value={formData.datatype} onChange={handleChange}>
               <option value="" disabled>Select Datatype</option>
               <option value="🌐 IndiaMart">🌐 IndiaMart</option>
               <option value="🏢 Offline">🏢 Offline</option>
@@ -185,6 +201,70 @@ const FormModal = ({ isOpen, onClose }) => {
               <option value="🔍 Other">🔍 Other</option>
             </select>
           </div>
+
+          <div className="form-group">
+            <label>Assigned To</label>
+            <select
+              value={formData.assignedTo?.[0]?.user?._id || ""}
+              disabled={userRole !== "admin"}
+              onChange={(e) => {
+                const selectedUser = users.find(u => u._id === e.target.value);
+                if (selectedUser) {
+                  setField("assignedTo", [
+                    {
+                      user: {
+                        _id: selectedUser._id,
+                        name: selectedUser.name,
+                      },
+                      permissions: { view: true, update: false, delete: false },
+                    },
+                  ]);
+                } else {
+                  setField("assignedTo", []);
+                }
+              }}
+            >
+              <option value="">Select User</option>
+              {users.map(user => (
+                <option key={user._id} value={user._id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {Object.entries(dropdownFields).map(([field, options]) => (
+            <div className="form-group" key={field}>
+              <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
+              <select
+                value={formData[field] || ""}
+                onChange={(e) => setField(field, e.target.value)}
+              >
+                <option value="">Select {field}</option>
+                {options.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+
+          <div className="form-group">
+            <label>Category:</label>
+            <select
+              className="form-modal-input"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option value={cat} key={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="form-group">
             <label>Contact:</label>
             <input
@@ -203,11 +283,7 @@ const FormModal = ({ isOpen, onClose }) => {
             {contactError && (
               <div className="error-message">
                 {contactError}
-                <button
-                  type="button"
-                  className="toggle-details-btn"
-                  onClick={() => setShowContactDetails(!showContactDetails)}
-                >
+                <button type="button" className="toggle-details-btn" onClick={() => setShowContactDetails(!showContactDetails)}>
                   {showContactDetails ? "Hide Details" : "Show Details"}
                 </button>
               </div>
@@ -221,6 +297,7 @@ const FormModal = ({ isOpen, onClose }) => {
               </div>
             )}
           </div>
+
           <div className="form-group">
             <label>Phone:</label>
             <input
@@ -240,11 +317,7 @@ const FormModal = ({ isOpen, onClose }) => {
             {phoneError && (
               <div className="error-message">
                 {phoneError}
-                <button
-                  type="button"
-                  className="toggle-details-btn"
-                  onClick={() => setShowPhoneDetails(!showPhoneDetails)}
-                >
+                <button type="button" className="toggle-details-btn" onClick={() => setShowPhoneDetails(!showPhoneDetails)}>
                   {showPhoneDetails ? "Hide Details" : "Show Details"}
                 </button>
               </div>
@@ -258,46 +331,6 @@ const FormModal = ({ isOpen, onClose }) => {
               </div>
             )}
           </div>
-          <div className="form-group">
-            <label>Location:</label>
-            <input
-              className="form-modal-input"
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="Location"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Category:</label>
-            <select
-              className="form-modal-input"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option value={cat} key={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Quantity:</label>
-            <input
-              className="form-modal-input"
-              type="text"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              placeholder="Quantity"
-            />
-          </div>
 
           <div className="form-group">
             <label>Requirement:</label>
@@ -307,26 +340,22 @@ const FormModal = ({ isOpen, onClose }) => {
               value={formData.requirements}
               onChange={handleChange}
               placeholder="Requirements"
-            ></textarea>
+            />
           </div>
+
           <div className="form-actions">
-            <button
-              type="button"
-              className="additional-action-btn"
-              onClick={() => setShowCsvModal(true)} // Keep the modal open without closing the form modal
-            >
+            <button type="button" className="additional-action-btn" onClick={() => setShowCsvModal(true)}>
               Upload CSV
             </button>
-          <div className='form-action-buttons'>
-            <button type="submit" className='submit-form-btn'>Submit</button>
-            <button type="button" className='close-form-btn'onClick={onClose}>Close</button>
-          </div>
+            <div className="form-action-buttons">
+              <button type="submit" className="submit-form-btn">Submit</button>
+              <button type="button" className="close-form-btn" onClick={onClose}>Close</button>
+            </div>
           </div>
         </form>
+
         {showCsvModal && (
-          <CsvUploadModal
-            onClose={() => setShowCsvModal(false)} // Pass the function to close the modal
-          />
+          <CsvUploadModal onClose={() => setShowCsvModal(false)} />
         )}
       </div>
     </div>

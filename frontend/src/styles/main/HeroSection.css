@@ -30,6 +30,7 @@
   .hero-text, .hero-cta {
     position: relative;
     z-index: 2; /* Ensure content is above the overlay */
+    text-align: center;
   }
   .hero-text {
     background: transparent; 
@@ -44,12 +45,14 @@
     font-size: 3rem;
     margin-bottom: 1rem;
     font-weight: 700;
+    text-align: center;
   }
   
   .hero-text p {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
     color: #f0f0f0;
+    text-align: center;
   }
   
   .hero-cta {

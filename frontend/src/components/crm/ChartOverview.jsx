@@ -86,7 +86,7 @@ const ChartOverview = () => {
                         ))}
                     </div>
                 </div>
-                <ResponsiveContainer width={600} height={300} marginTop={50}>
+                <ResponsiveContainer width={800} height={300} marginTop={50}>
                     <AreaChart data={salesData}>
                         <XAxis dataKey="month" />
                         <YAxis />

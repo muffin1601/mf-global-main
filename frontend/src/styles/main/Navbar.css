@@ -24,6 +24,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    left: 0;
   }
   
   .navbar-logo-img {
@@ -43,7 +44,7 @@
     align-items: left;
     justify-content: flex-start;
     gap: 30px;
-    margin-right: 500px;
+    margin-right: 800px;
   }
   
   .nav-link {

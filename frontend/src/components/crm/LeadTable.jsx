@@ -173,7 +173,7 @@ const handleDeleteFilteredLeads = async (filterSet) => {
         <h5>Leads Report</h5>
         <div className="lead-btn-group">
           <button className="btn-add" onClick={handleAddLead}>+ Add</button>
-          <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button>
+          {user.role == 'admin' && (<button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button>)}
           <button className="btn-download" onClick={() => setShowModal(true)}>Download</button>
           <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button>
         </div>

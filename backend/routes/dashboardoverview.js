@@ -30,7 +30,7 @@ router.get("/get-details-clients", async (req, res) => {
     const totalClients = await Client.countDocuments();
 
     // Clients with callStatus = "Converted"
-    const convertedClients = await Client.find({ callStatus: "✅ Converted" });
+    const convertedClients = await Client.find({ callStatus: "Converted" });
 
     // Clients where assignedTo contains at least one user with a valid _id
     const assignedClients = await Client.find({
@@ -92,6 +92,48 @@ router.get("/new-clients", async (req, res) => {
         console.error("Error fetching new clients:", error);
         res.status(500).json({ error: "Failed to fetch new clients" });
     }
+});
+
+// GET /api/user-dashboard-stats/:username
+router.get('/user-dashboard-stats/:username', async (req, res) => {
+  const username = decodeURIComponent(req.params.username);
+
+  try {
+    // All leads assigned to the user
+    const myLeads = await Client.find({ "assignedTo.user.name": username });
+
+    // My Conversions
+    const myConversions = myLeads.filter(client => client.callStatus === "Converted");
+
+    // Today's Follow-ups
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todaysFollowUps = myLeads.filter(client =>
+      client.followUpDate &&
+      new Date(client.followUpDate) >= today &&
+      new Date(client.followUpDate) < tomorrow
+    );
+
+    // Upcoming Follow-ups (after today)
+    const upcomingFollowUps = myLeads.filter(client =>
+      client.followUpDate &&
+      new Date(client.followUpDate) > tomorrow
+    );
+
+    res.json({
+      myLeads,
+      myConversions,
+      todaysFollowUps,
+      upcomingFollowUps
+    });
+
+  } catch (error) {
+    console.error('Error fetching user dashboard stats:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 module.exports = router;

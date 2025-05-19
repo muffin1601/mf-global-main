@@ -10,12 +10,20 @@ router.post("/add-client", async (req, res) => {
   try {
     const { contact, phone } = req.body;
 
-    // Only check for duplicacy if contact or phone is not null or empty
+    // Remove icons from specific fields before checking or saving
+    const removeIcons = (value) =>
+      typeof value === "string" ? value.replace(/^[^\w\s]*\s*/, "").trim() : value;
+
+    req.body.datatype = removeIcons(req.body.datatype);
+    req.body.status = removeIcons(req.body.status);
+    req.body.callStatus = removeIcons(req.body.callStatus);
+
+    // Check for duplicate client using contact or phone
     const existingClient = await Client.findOne({
       $or: [
-        contact && { contact }, // Only check if contact is provided
-        phone && { phone }        // Only check if phone is provided
-      ].filter(Boolean) // Filter out any falsy values (null, undefined, or empty strings)
+        contact && { contact },
+        phone && { phone }
+      ].filter(Boolean)
     });
 
     if (existingClient) {
@@ -24,6 +32,7 @@ router.post("/add-client", async (req, res) => {
 
     const client = new Client(req.body);
     await client.save();
+
     res.status(201).json({ message: "Client added successfully" });
   } catch (error) {
     console.error("Error saving client:", error);
@@ -128,7 +137,19 @@ function buildFollowUpDateFields(client, newFollowUpDate) {
 router.post("/save-all-updates", async (req, res) => {
   try {
     const { updates } = req.body;
+    // Clean icons from datatype, status, callStatus before saving
+    const removeIcons = (options) =>
+      Array.isArray(options)
+      ? options.map(opt => typeof opt === "string" ? opt.replace(/^[^\w]*\s*/, "").trim() : opt)
+      : typeof options === "string"
+        ? options.replace(/^[^\w]*\s*/, "").trim()
+        : options;
 
+    updates.forEach(update => {
+      if (update.datatype) update.datatype = removeIcons(update.datatype);
+      if (update.status) update.status = removeIcons(update.status);
+      if (update.callStatus) update.callStatus = removeIcons(update.callStatus);
+    });
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "No updates to apply" });
     }

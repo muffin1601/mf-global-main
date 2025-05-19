@@ -57,6 +57,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   };
 
   const saveEditedLead = async () => {
+
     const updates = {
       id: editedLead._id,
       name: editedLead.name,
@@ -172,6 +173,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
             <label>Assigned To</label>
             <select
               value={editedLead.assignedTo?.[0]?.user?._id || ""}
+              disabled={userRole !== "admin"}
               onChange={(e) => {
                 const selectedUser = users.find(u => u._id === e.target.value);
                 if (selectedUser) {

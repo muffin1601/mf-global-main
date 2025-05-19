@@ -38,6 +38,9 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
     callStatus: ["Not Called", "📞 Ring", "❌ Not Interested", "⏳ Available After One Month", "✅ Converted", "📆 Follow-up Required", "🚫 Wrong Number"]
   };
 
+  
+  const user = JSON.parse(localStorage.getItem('user'));
+
   const handleChipChange = (field, values) => {
     setModalFilters(prev => ({ ...prev, [field]: values }));
   };
@@ -176,10 +179,11 @@ const Openassignblock = () =>{
         </div>
 
         <div className='filter-footer-btn'>
+          {user.role == 'admin' && (
           <div className="filter-footer-1">
             <button className="assign-leads" onClick={Openassignblock}>Assign</button>
             <button className="delete-btn-all" onClick={handleDeleteAll}><FaTrash /></button>
-          </div>
+          </div>)}
           <div className="filter-footer">
             <button className="btn-cancel" onClick={onClose}>Cancel</button>
             <button className="btn-apply" onClick={handleApply}>Apply Filters</button>

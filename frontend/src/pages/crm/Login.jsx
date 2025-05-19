@@ -20,7 +20,7 @@ const Login = () => {
     });
 
     const data = await res.json();
-    if (!res.ok || !data.token) return alert(data.message || "Login failed.");
+    if (!res.ok || !data.token) return toast.error(data.message || "Login failed.");
     if (data.user && data.user.enabled === false)
       return toast.error("Your account is disabled. Please contact support.");
 

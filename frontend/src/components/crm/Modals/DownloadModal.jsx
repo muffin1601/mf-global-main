@@ -9,6 +9,8 @@ const DownloadReportModal = ({ onClose, leads }) => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
+   const user = JSON.parse(localStorage.getItem('user'));
+   
   const handleDownload = () => {
     if (!fromDate || !toDate) {
       toast.warning("Please select both From and To dates.");
@@ -79,7 +81,7 @@ const DownloadReportModal = ({ onClose, leads }) => {
 
         <div className="download-form-group">
           <label>Date Type:</label>
-          <select className='downlaod-select' value={dateType} onChange={(e) => setDateType(e.target.value)}>
+          <select className='downlaod-select' value={dateType} onChange={(e) => setDateType(e.target.value)} disabled = {user.role == 'user'}>
             <option value="followUpDate">Follow-up Date</option>
             <option value="createdAt">Created Date</option>
           </select>

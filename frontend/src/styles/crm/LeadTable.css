@@ -1,0 +1,230 @@
+/* LeadTable.css */
+
+.lead-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-family: 'Poppins', sans-serif;
+}
+
+.lead-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.lead-header h5 {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.lead-btn-group button {
+  margin-left: 10px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-add {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-update {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-download {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.btn-filter {
+  background-color: #e67e22;
+  color: white;
+}
+
+.btn-add:hover {
+  background-color: #45a049;
+  cursor: pointer;
+}
+
+.btn-update:hover {
+  background-color: #2980b9;
+  cursor: pointer;
+}
+
+.btn-download:hover {
+  background-color: #8e44ad;
+  cursor: pointer;
+}
+
+.btn-filter:hover {
+  background-color: #d35400;
+  cursor: pointer;
+}
+
+.lead-table-wrapper {
+  overflow-x: auto;
+}
+
+.lead-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.lead-table thead {
+  background-color: #f9f9f9;
+}
+
+.lead-table th,
+.lead-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.lead-info {
+  display: flex;
+  align-items: center;
+}
+
+.lead-details {
+  margin-left: 5px;
+}
+
+.lead-name {
+  font-weight: 600;
+  display: block;
+  color: #333;
+}
+
+.lead-email {
+  color: #888;
+  font-size: 13px;
+}
+
+.lead-status {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status-won {
+  background-color: #e0f9f1;
+  color: #27ae60;
+}
+
+.status-new {
+  background-color: #fff0e1;
+  color: #e67e22;
+}
+
+.status-lost {
+  background-color: #ffe5e5;
+  color: #e74c3c;
+}
+
+.status-in-progress {
+  background-color: #e6f7ff;
+  color: #3498db;
+}
+
+.lead-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+}
+
+.btn-view {
+  background-color: #ffe6cc;
+  border-radius: 50%;
+  padding: 8px;
+  border: none;
+  height: 35px;
+  color: #2e86de;
+  font-size: 20px;
+}
+
+.btn-edit {
+  background-color: #e6f2ff;
+  border-radius: 50%;
+  padding: 8px;
+  border: none;
+   height: 35px;
+   color: #f39c12;
+    font-size: 20px;
+}
+
+.btn-delete {
+  background-color: #ffe6ec;
+  border-radius: 50%;
+  padding: 8px;
+  border: none;
+   height: 35px;
+   color: #e74c3c;
+    font-size: 20px;
+}
+
+.btn-view:hover {
+    background-color: #fb7f04;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background-color: #0477fb;
+    color: white;
+     cursor: pointer;
+}
+
+.btn-delete:hover {
+    background-color: #ff0230;
+    color: white;
+     cursor: pointer;
+}
+
+.lead-pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.lead-pagination {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+}
+
+.page-item button {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+.page-item.active button {
+  background-color: #f39c12;
+  color: white;
+}
+
+.page-item.disabled button {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

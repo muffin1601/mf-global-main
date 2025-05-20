@@ -1,0 +1,158 @@
+.acm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.acm-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 450px;
+    max-width: 95vw;
+    max-height: 90vh;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    animation: acm-fade-in 0.2s;
+    overflow: hidden;
+}
+
+@keyframes acm-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.acm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 12px 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.acm-header h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.acm-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+}
+
+.acm-close-btn:hover {
+    color: #d32f2f;
+}
+
+.acm-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.acm-contact-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.acm-contact-group input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+}
+
+.acm-contact-group input:focus {
+    border-color: #1976d2;
+}
+
+.acm-add-contact-btn {
+    align-self: flex-start;
+    padding: 8px 16px;
+    background-color: #ff7b00;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.acm-add-contact-btn:hover {
+    background: #125ea8;
+}
+
+.acm-footer {
+    padding: 14px 24px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.acm-cancel-btn {
+    background: #d4d3d3;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.acm-cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+.acm-contact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.acm-delete-contact-btn {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 2px;
+    transition: color 0.2s;
+}
+
+.acm-delete-contact-btn:hover {
+    color: #ff0000;
+}

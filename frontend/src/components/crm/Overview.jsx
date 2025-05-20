@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaChartBar, FaPercentage, FaTasks, FaProjectDiagram, FaUserPlus, FaUserCheck,
-  FaHandshake, FaBellSlash, FaCalendarAlt
+  FaHandshake, FaBellSlash, FaCalendarAlt, FaFire
 } from 'react-icons/fa';
 
 import '../../styles/crm/Overview.css';
@@ -20,6 +20,8 @@ const Overview = () => {
   const [totalConversions, setTotalconversions] = useState([]);
   const [todayFollowUps, setTodayFollowups] = useState([]);
   const [upcomingFollowUps, setUpcomingFollowups] = useState([]);
+  const [trendingLeads, settrendingLeads] = useState([]);
+  const [myTrendingLeads, setMyTrendingLeads] = useState([]);
 
   const user = JSON.parse(localStorage.getItem('user')) || {
     name: "Mr.Henry",
@@ -40,12 +42,14 @@ const Overview = () => {
         setConversionRate(conversionRes.data.conversionRate);
         setAssignedLeads(conversionRes.data.assignedCount);
         setUnassignedLeads(conversionRes.data.unassignedCount);
+        settrendingLeads(conversionRes.data.trendingLeads.length);
 
         const UserRes = await axios.get (`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
         setMyLeads(UserRes.data.myLeads.length);
         setTotalconversions(UserRes.data.myConversions.length);
         setTodayFollowups(UserRes.data.todaysFollowUps.length);
         setUpcomingFollowups(UserRes.data.upcomingFollowUps.length);
+        setMyTrendingLeads (UserRes.data.myTrendingLeads.length);
         
       } catch (error) {
         console.error('Error fetching leads or conversion rate:', error);
@@ -56,102 +60,122 @@ const Overview = () => {
   }, []);
 
   const cards = [
-    // Admin cards
-    {
-      title: 'Total Leads',
-      value: leads || '0',
-      icon: <FaChartBar />,
-      change: '+2.5%',
-      color: 'white',
-      bg: '#ff9e3b',
-      route: '/crm/lead-management',
-      role: 'both'
-    },
-    {
-      title: 'Conversion Rate',
-      value: conversionRate || '0%',
-      icon: <FaPercentage />,
-      change: '-2.5%',
-      color: 'white',
-      bg: '#d85ed7',
-      negative: true,
-      route: '#',
-      role: 'admin'
-    },
-    {
-      title: 'Assigned Leads',
-      value: assignedLeads || '0',
-      icon: <FaTasks />,
-      change: '+2.5%',
-      color: 'white',
-      bg: '#f36d95',
-      route: '/crm/assigned-leads',
-      role: 'admin'
-    },
-    {
-      title: 'Unassigned Leads',
-      value: unassignedLeads || '0',
-      icon: <FaProjectDiagram />,
-      change: '+2.5%',
-      color: 'white',
-      bg: '#ff8c62',
-      route: '/crm/unassigned-leads',
-      role: 'admin'
-    },
-    {
-      title: 'New Leads',
-      value: newLeads || '0',
-      icon: <FaUserPlus />,
-      change: '-2.5%',
-      color: 'white',
-      bg: '#d18ade',
-      negative: true,
-      route: '/crm/new-leads',
-      role: 'admin'
-    },
+  // Admin cards
+  {
+    title: 'Total Leads',
+    value: leads || '0',
+    icon: <FaChartBar />,
+    change: '+2.5%',
+    color: 'white',
+    bg: '#ff9e3b',
+    route: '/crm/lead-management',
+    role: 'both'
+  },
+  {
+    title: 'Conversion Rate',
+    value: conversionRate || '0%',
+    icon: <FaPercentage />,
+    change: '-2.5%',
+    color: 'white',
+    bg: '#d85ed7',
+    negative: true,
+    route: '/crm/won-leads',
+    role: 'admin'
+  },
+  {
+    title: 'Assigned Leads',
+    value: assignedLeads || '0',
+    icon: <FaTasks />,
+    change: '+2.5%',
+    color: 'white',
+    bg: '#f36d95',
+    route: '/crm/assigned-leads',
+    role: 'admin'
+  },
+  {
+    title: 'Unassigned Leads',
+    value: unassignedLeads || '0',
+    icon: <FaProjectDiagram />,
+    change: '+2.5%',
+    color: 'white',
+    bg: '#ff8c62',
+    route: '/crm/unassigned-leads',
+    role: 'admin'
+  },
+  {
+    title: 'New Leads',
+    value: newLeads || '0',
+    icon: <FaUserPlus />,
+    change: '-2.5%',
+    color: 'white',
+    bg: '#d18ade',
+    negative: true,
+    route: '/crm/new-leads',
+    role: 'admin'
+  },
+  {
+    title: 'Trending Leads',
+    value: trendingLeads || '0',
+    icon: <FaFire />,
+    change: '+6.3%',
+    color: 'white',
+    bg: '#ff7043',
+    route: '/crm/trending-leads',
+    role: 'admin'
+  },
 
-    // User cards
-    {
-      title: 'My Leads',
-      value: myLeads || '0',
-      icon: <FaUserCheck />,
-      change: '+1.8%',
-      color: 'white',
-      bg: '#64b5f6',
-      route: '/crm/my-leads',
-      role: 'user'
-    },
-    {
-      title: 'My Conversions',
-      value: totalConversions || '0',
-      icon: <FaHandshake />,
-      change: '+3.2%',
-      color: 'white',
-      bg: '#81c784',
-      route: '/crm/conversions',
-      role: 'user'
-    },
-    {
-      title: "Today's Follow-ups",
-      value: todayFollowUps || '0',
-      icon: <FaBellSlash />,
-      change: '+0.5%',
-      color: 'white',
-      bg: '#ffd54f',
-      route: '/crm/today-followups',
-      role: 'user'
-    },
-    {
-      title: 'Upcoming Follow-ups',
-      value: upcomingFollowUps || '0',
-      icon: <FaCalendarAlt />,
-      change: '+4.0%',
-      color: 'white',
-      bg: '#4db6ac',
-      route: '/crm/upcoming-followups',
-      role: 'user'
-    }
-  ];
+  // User cards
+  {
+    title: 'My Leads',
+    value: myLeads || '0',
+    icon: <FaUserCheck />,
+    change: '+1.8%',
+    color: 'white',
+    bg: '#64b5f6',
+    route: '/crm/my-leads',
+    role: 'user'
+  },
+  {
+    title: 'My Conversions',
+    value: totalConversions || '0',
+    icon: <FaHandshake />,
+    change: '+3.2%',
+    color: 'white',
+    bg: '#81c784',
+    route: '/crm/conversions',
+    role: 'user'
+  },
+  {
+    title: "Today's Follow-ups",
+    value: todayFollowUps || '0',
+    icon: <FaBellSlash />,
+    change: '+0.5%',
+    color: 'white',
+    bg: '#ffd54f',
+    route: '/crm/today-followups',
+    role: 'user'
+  },
+  {
+    title: 'Upcoming Follow-ups',
+    value: upcomingFollowUps || '0',
+    icon: <FaCalendarAlt />,
+    change: '+4.0%',
+    color: 'white',
+    bg: '#4db6ac',
+    route: '/crm/upcoming-followups',
+    role: 'user'
+  },
+  {
+    title: 'My Trending Leads',
+    value: myTrendingLeads || '0',
+    icon: <FaFire />,
+    change: '+5.0%',
+    color: 'white',
+    bg: '#ff8a65',
+    route: '/crm/my-trending-leads',
+    role: 'user'
+  }
+];
 
   // 🔍 Filter cards based on user role
   const filteredCards = cards.filter(card => card.role === user.role || card.role === 'both');

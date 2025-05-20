@@ -17,8 +17,11 @@
   border-radius: 8px;
   width: 600px;
   max-width: 90%;
+  max-height: 90vh;            /* 👈 limits height to 90% of viewport */
+  overflow-y: auto;            /* 👈 enables vertical scrolling */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Modal header */
 .form-header {

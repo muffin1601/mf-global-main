@@ -56,53 +56,53 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
     return new Date(dateString).toISOString().split("T")[0];
   };
 
-  const saveEditedLead = async () => {
-
-    const updates = {
-      id: editedLead._id,
-      name: editedLead.name,
-      email: editedLead.email,
-      phone: editedLead.phone,
-      contact: editedLead.contact,
-      remarks: editedLead.remarks,
-      requirements: editedLead.requirements,
-      location: editedLead.location,
-      category: editedLead.category,
-      datatype: editedLead.datatype,
-      callStatus: editedLead.callStatus,
-      followUpDate: editedLead.followUpDate,
-      additionalContacts,
-      assignedTo: editedLead.assignedTo,
-    };
-
-    try {
-      // Save the lead details
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, {
-        updates: [updates],
-      });
-
-      // Assign user if assignedTo exists
-      if (editedLead.assignedTo && editedLead.assignedTo.length > 0) {
-        await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
-          Leads: [editedLead._id],
-          userIds: [editedLead.assignedTo[0].user],
-          permissions: editedLead.assignedTo[0].permissions || {
-            view: true,
-            update: false,
-            delete: false,
-          },
-        });
-      }
-
-      toast.success("Lead updated successfully!");
-      await logActivity("Edited Lead", { leadId: editedLead._id });
-      onSave(res.data);
-      onClose();
-    } catch (error) {
-      console.error("Error updating lead:", error.response || error.message);
-      toast.warning(`Error: ${error.response?.data?.message || error.message}`);
-    }
+ const saveEditedLead = async () => {
+  const updates = {
+    id: editedLead._id,
+    name: editedLead.name,
+    email: editedLead.email,
+    phone: editedLead.phone,
+    contact: editedLead.contact,
+    remarks: editedLead.remarks,
+    requirements: editedLead.requirements,
+    location: editedLead.location,
+    category: editedLead.category,
+    datatype: editedLead.datatype,
+    callStatus: editedLead.callStatus,
+    followUpDate: editedLead.followUpDate,
+    additionalContacts,
+    assignedTo: editedLead.assignedTo,
   };
+
+  try {
+    // Save the lead details
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, {
+      updates: [updates],
+    });
+
+    // ✅ Only assign if there's a valid user ID
+    const assignedUser = editedLead.assignedTo?.[0]?.user;
+    if (assignedUser && assignedUser._id) {
+      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+        Leads: [editedLead._id],
+        userIds: [assignedUser._id],
+        permissions: editedLead.assignedTo[0].permissions || {
+          view: true,
+          update: false,
+          delete: false,
+        },
+      });
+    }
+
+    toast.success("Lead updated successfully!");
+    await logActivity("Edited Lead", { leadId: editedLead._id });
+    onSave(res.data);
+    onClose();
+  } catch (error) {
+    console.error("Error updating lead:", error.response || error.message);
+    toast.warning(`Error: ${error.response?.data?.message || error.message}`);
+  }
+};
 
   const dropdownFields = {
     callStatus: [

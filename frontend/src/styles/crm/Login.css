@@ -16,9 +16,20 @@
   box-shadow: inset -1px 0 0 #535252;
 }
 
+.login-box{
+  background-color: #fdf9f6;
+  width: 100%;
+  padding: 30px;
+  max-width: 400px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
 .login-card form {
   width: 100%;
-  max-width: 350px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
 }

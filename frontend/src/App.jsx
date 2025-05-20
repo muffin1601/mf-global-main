@@ -16,6 +16,7 @@ import MyLeads from "./pages/crm/MyLeads";
 import MyConversions from "./pages/crm/MyConversions";
 import TodayFollowups from "./pages/crm/TodayFollowups";
 import UpcomingFollowups from "./pages/crm/UpcomingFollowups"
+import ConvertedLeads from "./pages/crm/ConvertedLeads"
 
 const App = () => {
 
@@ -35,6 +36,7 @@ const App = () => {
           <Route path="/crm/conversions"  element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>}/>
           <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />
           <Route path="/crm/upcoming-followups" element={<ProtectedRoute role={["user", "admin"]}><UpcomingFollowups /></ProtectedRoute>} />
+          <Route path="/crm/won-leads"  element={<ProtectedRoute role="admin"><ConvertedLeads /></ProtectedRoute>}/>
         </Routes>
         <ToastContainer position="top-center" autoClose={3000} />
     </>

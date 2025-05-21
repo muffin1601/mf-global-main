@@ -4,7 +4,6 @@ const Client = require("../models/ClientData");
 const ClientPermission = require("../models/ClientPermission"); // Correct model import
 
 // POST /add-client
-
 router.get("/all-clients", async (req, res) => {
   try {
     const clients = await Client.find().lean(); // get all clients
@@ -31,6 +30,7 @@ router.get("/get-details-clients", async (req, res) => {
 
     // Clients with callStatus = "Converted"
     const convertedClients = await Client.find({ callStatus: "Converted" });
+    const trendingLeads = await Client.find ({status: "In Progress" });
 
     // Clients where assignedTo contains at least one user with a valid _id
     const assignedClients = await Client.find({
@@ -74,6 +74,8 @@ router.get("/get-details-clients", async (req, res) => {
       assignedCount,
       unassignedCount,
       totalClients,
+      convertedClients,
+      trendingLeads,
       conversionRate: `${conversionRate}%`
     });
   } catch (error) {
@@ -104,6 +106,7 @@ router.get('/user-dashboard-stats/:username', async (req, res) => {
 
     // My Conversions
     const myConversions = myLeads.filter(client => client.callStatus === "Converted");
+    const myTrendingLeads = myLeads.filter(client => client.status === "In Progress");
 
     // Today's Follow-ups
     const today = new Date();
@@ -127,7 +130,8 @@ router.get('/user-dashboard-stats/:username', async (req, res) => {
       myLeads,
       myConversions,
       todaysFollowUps,
-      upcomingFollowUps
+      upcomingFollowUps,
+      myTrendingLeads
     });
 
   } catch (error) {

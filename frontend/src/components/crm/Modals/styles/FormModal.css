@@ -17,12 +17,18 @@
   border-radius: 8px;
   width: 600px;
   max-width: 90%;
+<<<<<<< HEAD
   max-height: 90vh;            /* 👈 limits height to 90% of viewport */
   overflow-y: auto;            /* 👈 enables vertical scrolling */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 
+=======
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
 /* Modal header */
 .form-header {
     display: flex;

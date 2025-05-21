@@ -9,8 +9,13 @@ const Sidebar = () => {
 
   const dashboards = [
     { label: "Lead Management", path: "/crm/entrydashboard" },
+<<<<<<< HEAD
     // { label: "Client Overview", path: "/" },
     // { label: "User Roles", path: "/" }
+=======
+    { label: "Client Overview", path: "#" },
+    { label: "User Roles", path: "#" }
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
   ];
 
   return (

@@ -33,7 +33,10 @@ const Login = () => {
   return (
     <div className="login-page">
       <div className="login-card">
+<<<<<<< HEAD
         <div className="login-box">
+=======
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
         <h2 className="login-title">Sign In</h2>
         <p className="login-subtitle">Welcome back !</p>
         {/* <button className="google-btn">
@@ -75,7 +78,11 @@ const Login = () => {
           <button className="social-btn pink">X</button>
           <button className="social-btn ig">i</button>
         </div>
+<<<<<<< HEAD
       </div></div>
+=======
+      </div>
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
 
       <div className="login-side">
         <img src="/assets/logo.png" alt="logo" />

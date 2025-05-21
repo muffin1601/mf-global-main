@@ -16,6 +16,7 @@
   box-shadow: inset -1px 0 0 #535252;
 }
 
+<<<<<<< HEAD
 .login-box{
   background-color: #fdf9f6;
   width: 100%;
@@ -30,6 +31,11 @@
 .login-card form {
   width: 100%;
   max-width: 500px;
+=======
+.login-card form {
+  width: 100%;
+  max-width: 350px;
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
   display: flex;
   flex-direction: column;
 }

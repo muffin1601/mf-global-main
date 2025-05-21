@@ -28,6 +28,7 @@
   overflow-y: auto;
   font-family: 'Poppins', sans-serif;
 }
+<<<<<<< HEAD
 .loading-wrapper {
   height: 100vh;
   display: flex;
@@ -53,3 +54,5 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+=======
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973

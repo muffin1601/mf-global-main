@@ -96,6 +96,7 @@ router.post("/clients/delete", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 
 // Utility: clean icons from strings
 const removeIcons = (value) => {
@@ -129,15 +130,71 @@ const buildFollowUpDateFields = (client, newFollowUpDate) => {
     return { followUpDate: dateObj, followUpDateThree: dateObj };
   }
 };
+=======
+// Helper function: builds follow-up date history logic
+function buildFollowUpDateFields(client, newFollowUpDate) {
+  if (!newFollowUpDate) return {};
+
+  const dateObj = new Date(newFollowUpDate);
+  const history = {};
+
+  const { followUpDateOne, followUpDateTwo, followUpDateThree } = client;
+
+  if (!followUpDateOne) {
+    history.followUpDateOne = dateObj;
+  } else if (!followUpDateTwo) {
+    history.followUpDateTwo = dateObj;
+  } else if (!followUpDateThree) {
+    history.followUpDateThree = dateObj;
+  } else {
+    // All are filled — overwrite the oldest
+    const oldest = Math.min(
+      new Date(followUpDateOne).getTime(),
+      new Date(followUpDateTwo).getTime(),
+      new Date(followUpDateThree).getTime()
+    );
+
+    if (new Date(followUpDateOne).getTime() === oldest) {
+      history.followUpDateOne = dateObj;
+    } else if (new Date(followUpDateTwo).getTime() === oldest) {
+      history.followUpDateTwo = dateObj;
+    } else {
+      history.followUpDateThree = dateObj;
+    }
+  }
+
+  return {
+    followUpDate: dateObj,
+    ...history
+  };
+}
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
 
 router.post("/save-all-updates", async (req, res) => {
   try {
     const { updates } = req.body;
+<<<<<<< HEAD
 
+=======
+    // Clean icons from datatype, status, callStatus before saving
+    const removeIcons = (options) =>
+      Array.isArray(options)
+      ? options.map(opt => typeof opt === "string" ? opt.replace(/^[^\w]*\s*/, "").trim() : opt)
+      : typeof options === "string"
+        ? options.replace(/^[^\w]*\s*/, "").trim()
+        : options;
+
+    updates.forEach(update => {
+      if (update.datatype) update.datatype = removeIcons(update.datatype);
+      if (update.status) update.status = removeIcons(update.status);
+      if (update.callStatus) update.callStatus = removeIcons(update.callStatus);
+    });
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "No updates to apply" });
     }
 
+<<<<<<< HEAD
     const updatePromises = updates.map(async (update) => {
       try {
         const {
@@ -244,6 +301,79 @@ router.post("/save-all-updates", async (req, res) => {
         console.error("Failed to process individual update:", innerErr.message);
         return null;
       }
+=======
+    // Validate assignedTo fields for all updates before starting DB operations
+    for (const update of updates) {
+      if (Array.isArray(update.assignedTo)) {
+        for (const a of update.assignedTo) {
+          if (!a.user || !a.user._id || !a.user.name) {
+            return res.status(400).json({ error: "assignedTo user._id and user.name are required" });
+          }
+        }
+      }
+    }
+
+    const updatePromises = updates.map(async (update) => {
+      const {
+        id,
+        name,
+        email,
+        phone,
+        contact,
+        remarks,
+        requirements,
+        location,
+        category,
+        datatype,
+        callStatus,
+        followUpDate,
+        assignedTo,
+        additionalContacts
+      } = update;
+
+      const query = id ? { _id: new ObjectId(id) } : (phone || contact) ? { $or: [{ phone }, { contact }] } : null;
+      if (!query) return null;
+
+      const client = await Client.findOne(query);
+      if (!client) return null;
+
+      const followUpFields = buildFollowUpDateFields(client, followUpDate);
+
+      // Transform assignedTo
+      let assignedToTransformed = client.assignedTo || [];
+      if (Array.isArray(assignedTo)) {
+        assignedToTransformed = assignedTo.map((a) => ({
+          user: {
+            _id: new ObjectId(a.user._id),
+            name: a.user.name,
+          },
+          permissions: {
+            view: !!a.permissions?.view,
+            update: !!a.permissions?.update,
+            delete: !!a.permissions?.delete,
+          },
+        }));
+      }
+
+      const updateFields = {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(contact !== undefined && { contact }),
+        ...(remarks !== undefined && { remarks }),
+        ...(requirements !== undefined && { requirements }),
+        ...(location !== undefined && { location }),
+        ...(category !== undefined && { category }),
+        ...(datatype !== undefined && { datatype }),
+        ...(callStatus !== undefined && { callStatus }),
+        ...(followUpDate !== undefined && { followUpDate }),
+        assignedTo: assignedToTransformed,
+        additionalContacts: Array.isArray(additionalContacts) ? additionalContacts : client.additionalContacts,
+        ...followUpFields
+      };
+
+      return Client.findByIdAndUpdate(client._id, { $set: updateFields }, { new: true, runValidators: true });
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
     });
 
     const results = await Promise.all(updatePromises);
@@ -251,6 +381,7 @@ router.post("/save-all-updates", async (req, res) => {
 
     res.status(200).json({
       message: "Updates applied successfully",
+<<<<<<< HEAD
       updatedClients: updatedCount,
     });
   } catch (error) {
@@ -259,4 +390,16 @@ router.post("/save-all-updates", async (req, res) => {
   }
 });
 
+=======
+      updatedClients: updatedCount
+    });
+
+  } catch (error) {
+    console.error("Error in /save-all-updates:", error);
+    res.status(500).json({ error: "Failed to save updates", details: error.message });
+  }
+});
+
+
+>>>>>>> e535ab6584991d2da1192b8eb158a59d2165b973
 module.exports = router;

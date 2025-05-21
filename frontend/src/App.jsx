@@ -17,6 +17,8 @@ import MyConversions from "./pages/crm/MyConversions";
 import TodayFollowups from "./pages/crm/TodayFollowups";
 import UpcomingFollowups from "./pages/crm/UpcomingFollowups"
 import ConvertedLeads from "./pages/crm/ConvertedLeads"
+import PDashboard from "./pages/crm/ProductManage/PDashboard";
+import ProductPage from "./pages/crm/ProductManage/ProductPage";
 
 const App = () => {
 
@@ -24,19 +26,22 @@ const App = () => {
     <>
         <Routes>
           <Route path="/" element={<Mainhome />} />
-          <Route path="/crm" element = {<Home />}/>
+          <Route path="/crm" element = {<Home />}/> 
+          <Route path="/crm/login"  element={<Login/>}/>
           <Route path ="/crm/entrydashboard" element={<ProtectedRoute role={["user", "admin"]}><Dashboard /></ProtectedRoute>}/>
           <Route path="/crm/lead-management" element={<ProtectedRoute role={["user", "admin"]}><LeadManagement /></ProtectedRoute>} />
           <Route path="/crm/unassigned-leads" element={<ProtectedRoute role="admin"><UnassignedLeadManagement /></ProtectedRoute>} />
           <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
           <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
           <Route path="/crm/assigned-leads" element={<ProtectedRoute role="admin"><AssignedLeadManagement /></ProtectedRoute>} />
-          <Route path="/crm/login"  element={<Login/>}/>
+         
           <Route path="/crm/my-leads"  element={<ProtectedRoute role={["admin","user"]}><MyLeads /></ProtectedRoute>}/>
           <Route path="/crm/conversions"  element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>}/>
           <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />
           <Route path="/crm/upcoming-followups" element={<ProtectedRoute role={["user", "admin"]}><UpcomingFollowups /></ProtectedRoute>} />
           <Route path="/crm/won-leads"  element={<ProtectedRoute role="admin"><ConvertedLeads /></ProtectedRoute>}/>
+          <Route path="/crm/product-dashboard"  element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>}/>
+          <Route path="/crm/product-management"  element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>}/>
         </Routes>
         <ToastContainer position="top-center" autoClose={3000} />
     </>

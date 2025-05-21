@@ -9,7 +9,7 @@ const Sidebar = () => {
 
   const dashboards = [
     { label: "Lead Management", path: "/crm/entrydashboard" },
-    // { label: "Client Overview", path: "/" },
+    { label: "Product Management", path: "/crm/product-dashboard" },
     // { label: "User Roles", path: "/" }
   ];
 

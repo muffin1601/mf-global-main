@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../../models/ProductData');
+const Category = require('../../models/Category');
 
 // @route   POST /api/products
 // @desc    Create a new product
@@ -59,4 +60,40 @@ router.get("/products", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch clients" });
   }
 });
+
+router.post('/categories/add', async (req, res) => {
+  try {
+    const category = new Category({ name: req.body.name });
+    await category.save();
+    res.status(201).json({ message: 'Category added', category });
+  } catch (err) {
+    console.error('Error adding category:', err);
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Category already exists.' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/products/search', async (req, res) => {
+  try {
+    const { p_code } = req.query;
+
+    if (!p_code || p_code.trim() === '') {
+      return res.status(400).json({ message: 'Product code is required' });
+    }
+
+    const product = await Product.findOne({ p_code: p_code.trim() });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json({ product });
+  } catch (err) {
+    console.error('Error searching product:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 module.exports = router;

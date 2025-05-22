@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import "../../../styles/crm/Dashboard.css";
 import Navbar from "../../../components/crm/Navbar"; // Adjust the import path as needed
 import Sidebar from "../../../components/crm/Sidebar";
-import ProductsTable from "../../../components/crm/Product/ProductsTable";
+import VendorsTable from "../../../components/crm/Product/VendorsTable";
 
 
-const ProductPage = () => {
+const VendorPage= () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true); // To handle loading state
@@ -59,7 +59,7 @@ const ProductPage = () => {
         <div className="main-content">
           <Navbar /> {/* Top navbar */}
           <div className="dashboard-main">
-            <ProductsTable />
+            <VendorsTable />
           </div>
           <footer style={{ 
             marginTop: "20px", 
@@ -79,4 +79,4 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+export default VendorPage;

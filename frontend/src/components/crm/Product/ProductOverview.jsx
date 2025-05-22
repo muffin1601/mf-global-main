@@ -31,8 +31,8 @@ const ProductOverview = () => {
         setOutOfStock(productRes.data.outOfStock || 0);
         setReturnedProducts(productRes.data.returnedProducts || 0);
 
-        const vendorRes = await axios.get(`${import.meta.env.VITE_API_URL}/vendors/count`);
-        setTotalVendors(vendorRes.data.totalVendors || 0);
+        const vendorRes = await axios.get(`${import.meta.env.VITE_API_URL}/vendors`);
+        setTotalVendors(vendorRes.data.vendors.length || 0);
       } catch (error) {
         console.error('Error fetching product or vendor stats:', error);
       }
@@ -58,7 +58,7 @@ const ProductOverview = () => {
     change: '+1.5%',
     color: 'white',
     bg: '#26a69a',
-    route: '/vendors',
+    route: '/crm/vendor-management',
   },
   {
     title: 'Low Stock Items',

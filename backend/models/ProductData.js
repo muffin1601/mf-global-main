@@ -26,10 +26,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  cat_id: String,
   p_image: String,
   p_description: String,
   p_type: String,
   p_color: String,
+  HSN_code: String,
+  GST_rate: Number,
   p_price: priceSchema
 });
 

@@ -9,7 +9,7 @@ import { logActivity } from '../../utils/logActivity'; // Adjust the import path
 import { toast } from 'react-toastify';
 import FilterModal from './Modals/FilterModal';
 import DownloadReportModal from './Modals/DownloadModal';
-
+import SearchProductModal from './Modals/SearchProductModal';
 
 const MyLeadTable = () => {
   const [leads, setLeads] = useState([]);
@@ -20,6 +20,7 @@ const MyLeadTable = () => {
   const [editLead, setEditLead] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const [filtersForDelete, setFiltersForDelete] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
   const [filters, setFilters] = useState({
@@ -131,10 +132,10 @@ const downloadCSVReport = async (leads) => {
       <div className="lead-header">
         <h5>My Leads Report</h5>
         <div className="lead-btn-group">
-          {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button> */}
+          <button className="btn-update" onClick={() => setShowProductModal(true)}>Products</button>
           <button className="btn-filter"onClick={() => setShowModal(true)}>Get Report</button>
           <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
-          {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
+          {/* <button className="btn-update" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
 
@@ -251,6 +252,10 @@ const downloadCSVReport = async (leads) => {
           }}
           defaultFilters={filters}  // Make sure defaultFilters is passed if needed
         />)}
+      {showProductModal && (
+  <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />
+)}
+
     </div>
   );
 };

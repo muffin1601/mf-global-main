@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
+   const [categoryIds, setCategoryIds] = useState([]);
   const [formData, setFormData] = useState({
     p_name: '',
     p_image: '',
@@ -15,6 +17,12 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       sales_100_above: ''
     }
   });
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`).then((res) => {
+      setCategoryIds(res.data.catIds);
+    });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -125,6 +133,22 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 onChange={handleChange}
                 className="form-modal-textarea"
               />
+            </div>
+            <div className="form-group">
+                <label>Category</label>
+                <select
+                    name="cat_id"
+                    value={formData.cat_id}
+                    onChange={handleChange}
+                    className="form-modal-input"
+                >
+                    <option value="">Select Category</option>
+                    {categoryIds.map((cat) => (
+                        <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
+                            {cat.name || cat.label || cat._id || cat.id || cat}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             <div className="form-group">

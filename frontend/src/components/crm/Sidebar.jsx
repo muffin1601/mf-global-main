@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import '../../styles/crm/Sidebar.css';
-import { FaHome, FaBars } from 'react-icons/fa';
+import { FaHome } from 'react-icons/fa';
 
-const Sidebar = () => {
+const Sidebar = ({ userRole }) => {
   const [menuOpen, setMenuOpen] = useState(true);
   const [dashboardsOpen, setDashboardsOpen] = useState(true);
 
+const user = JSON.parse(localStorage.getItem('user'))
+
+  // Conditionally include "Product Management"
   const dashboards = [
     { label: "Lead Management", path: "/crm/entrydashboard" },
-    { label: "Product Management", path: "/crm/product-dashboard" },
-    // { label: "User Roles", path: "/" }
+    ...(user.role !== 'user' ? [{ label: "Product Management", path: "/crm/product-dashboard" }] : [])
   ];
 
   return (
@@ -20,7 +22,6 @@ const Sidebar = () => {
           <img src="/assets/logo.png" alt="logo" />
           {menuOpen && <span className="sidebar-logo-text">MF Global Services</span>}
         </div>
-        {/* <FaBars className="menu-toggle-icon" onClick={() => setMenuOpen(!menuOpen)} /> */}
       </div>
 
       {menuOpen && <div className="sidebar-section-title">MAIN</div>}

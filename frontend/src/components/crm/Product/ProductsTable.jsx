@@ -3,6 +3,7 @@ import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import AddProductModal from '../Modals/AddProductModal';
+import AddCategoryModal from '../Modals/AddCategoryModal'; // Adjust the import path as needed
 // import other modals as needed
 
 const ProductsTable = () => {
@@ -10,7 +11,7 @@ const ProductsTable = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
-
+  const [showCatModal, setShowCatModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
@@ -44,13 +45,17 @@ const ProductsTable = () => {
   const handleAddProduct = () => {
     setShowFormModal(true);
   };
+  const handleAddCategory = () => {
+    setShowCatModal(true);
+  }
 
   return (
     <div className="lead-card">
       <div className="lead-header">
         <h5>All Products</h5>
         <div className="lead-btn-group">
-          <button className="btn-add" onClick={handleAddProduct}>+ Add</button>
+          <button className="btn-add" onClick={handleAddProduct}>+ Product</button>
+          <button className="btn-filter" onClick={handleAddCategory}>+ Category</button>
         </div>
       </div>
 
@@ -124,9 +129,11 @@ const ProductsTable = () => {
       </div>
 
       {showFormModal && (
-        <AddProductModal isOpen={showFormModal} onClose={() => setShowFormModal(false)} />
+        <AddProductModal isOpen={showFormModal} onClose={() => {setShowFormModal(false); fetchProducts();}} />
       )}
-      {/* Add edit/view/delete modals here if implemented */}
+      {showCatModal && (
+        <AddCategoryModal isOpen={showCatModal} onClose={() => setShowCatModal(false)} />
+      )}
     </div>
   );
 };

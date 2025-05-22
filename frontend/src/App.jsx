@@ -19,6 +19,7 @@ import UpcomingFollowups from "./pages/crm/UpcomingFollowups"
 import ConvertedLeads from "./pages/crm/ConvertedLeads"
 import PDashboard from "./pages/crm/ProductManage/PDashboard";
 import ProductPage from "./pages/crm/ProductManage/ProductPage";
+import VendorPage from "./pages/crm/ProductManage/VendorPage";
 
 const App = () => {
 
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/crm/won-leads"  element={<ProtectedRoute role="admin"><ConvertedLeads /></ProtectedRoute>}/>
           <Route path="/crm/product-dashboard"  element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>}/>
           <Route path="/crm/product-management"  element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>}/>
+          <Route path="/crm/vendor-management"  element={<ProtectedRoute role="admin"><VendorPage /></ProtectedRoute>}/>
         </Routes>
         <ToastContainer position="top-center" autoClose={3000} />
     </>

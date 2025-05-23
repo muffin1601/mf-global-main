@@ -6,6 +6,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
   const [pCode, setPCode] = useState('');
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPrice, setShowPrice] = useState(false);
 
   const handleSearch = async () => {
     if (!pCode.trim()) {
@@ -17,7 +18,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     setProduct(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/search?p_code=${pCode.trim()}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/search?product_code=${pCode.trim()}`);
       if (!response.ok) throw new Error('Product not found');
       const data = await response.json();
       setProduct(data.product);
@@ -31,14 +32,22 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 
   // ✅ Define the fields outside JSX
   const fieldsToDisplay = [
-    { key: 'p_code', label: 'Product Code' },
-    { key: 'p_name', label: 'Product Name' },
-    { key: 'category', label: 'Category' },
-    { key: 'price.mrp', label: 'MRP' },
-    { key: 'price.sp', label: 'Selling Price' },
-    { key: 'stock', label: 'Stock Quantity' },
-    // Add more as needed
-  ];
+  { key: 'product_code', label: 'Product Code' },
+  { key: 'p_name', label: 'Product Name' },
+  // { key: 'cat_id', label: 'Category ID' },
+  // { key: 'p_image', label: 'Image URL' },
+  { key: 'p_description', label: 'Description' },
+  { key: 'p_type', label: 'Type' },
+  { key: 'p_color', label: 'Color' },
+  { key: 'HSN_code', label: 'HSN Code' },
+  { key: 'GST_rate', label: 'GST Rate (%)' },
+  { key: 'p_price.price_code', label: 'Price Code' },
+  { key: 'p_price.single_price', label: 'Single Price' },
+  { key: 'p_price.sales_5_50', label: 'Price (5-50 units)' },
+  { key: 'p_price.sales_50_100', label: 'Price (50-100 units)' },
+  { key: 'p_price.sales_100_above', label: 'Price (100+ units)' }
+];
+
 
   if (!isOpen) return null;
 
@@ -70,30 +79,69 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 
         <div className="activitylog-results">
           {product ? (
-            <table className="activitylog-activity-table">
-              <thead>
-                <tr>
-                  <th className="activitylog-th">Field</th>
-                  <th className="activitylog-th">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {fieldsToDisplay.map(({ key, label }) => {
-                  const value = key.includes('.')
-                    ? key.split('.').reduce((obj, prop) => (obj ? obj[prop] : ''), product)
-                    : product[key];
+            <>
+              <table className="activitylog-activity-table">
+                <thead>
+                  <tr>
+                    <th className="activitylog-th">Product Code</th>
+                    <th className="activitylog-th">Name</th>
+                    {/* <th className="activitylog-th">Category ID</th> */}
+                    <th className="activitylog-th">Type</th>
+                    <th className="activitylog-th">Color</th>
+                    <th className="activitylog-th">HSN Code</th>
+                    <th className="activitylog-th">GST Rate (%)</th>
+                    {/* <th className="activitylog-th">Image</th> */}
+                    <th className="activitylog-th">Description</th>
+                    <th className="activitylog-th">Price Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="activitylog-td">{product.product_code}</td>
+                    <td className="activitylog-td">{product.p_name}</td>
+                    {/* <td className="activitylog-td">{product.cat_id}</td> */}
+                    <td className="activitylog-td">{product.p_type}</td>
+                    <td className="activitylog-td">{product.p_color}</td>
+                    <td className="activitylog-td">{product.HSN_code}</td>
+                    <td className="activitylog-td">{product.GST_rate}%</td>
+                    {/* <td className="activitylog-td">
+                      {product.p_image ? (
+                        <img src={product.p_image} alt="Product" style={{ width: '50px', height: '50px' }} />
+                      ) : 'N/A'}
+                    </td> */}
+                    <td className="activitylog-td">{product.p_description || '—'}</td>
+                    <td className="activitylog-td">
+                      <button onClick={() => setShowPrice(!showPrice)}>
+                        {showPrice ? 'Hide' : 'Show'} Price
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-                  return (
-                    <tr key={key}>
-                      <td className="activitylog-td">{label}</td>
-                      <td className="activitylog-td">
-                        {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value || '')}
-                      </td>
+              {showPrice && (
+                <table className="activitylog-activity-table" style={{ marginTop: '1rem' }}>
+                  <thead>
+                    <tr>
+                      <th className="activitylog-th">Price Code</th>
+                      <th className="activitylog-th">Single Price</th>
+                      <th className="activitylog-th">5-50 Sales</th>
+                      <th className="activitylog-th">50-100 Sales</th>
+                      <th className="activitylog-th">100+ Sales</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="activitylog-td">{product.p_price?.price_code || '—'}</td>
+                      <td className="activitylog-td">{product.p_price?.single_price}</td>
+                      <td className="activitylog-td">{product.p_price?.sales_5_50}</td>
+                      <td className="activitylog-td">{product.p_price?.sales_50_100}</td>
+                      <td className="activitylog-td">{product.p_price?.sales_100_above}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </>
           ) : (
             <div className="activitylog-no-logs">No product found or searched yet.</div>
           )}

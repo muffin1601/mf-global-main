@@ -4,9 +4,9 @@ const router = express.Router();
 
 router.get("/products/meta", async (req, res) => {
   try {
-    const catIds = await Category.distinct("cat_id");
+    const cat_names = await Category.distinct("name");
     
-    res.json({ catIds });
+    res.json({ cat_names });
   } catch (err) {
     console.error("Meta Error:", err);
     res.status(500).json({ error: "Internal Server Error" });

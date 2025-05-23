@@ -3,17 +3,22 @@ const router = express.Router();
 const Product = require('../../models/ProductData');
 const Category = require('../../models/Category');
 
+
 // @route   POST /api/products
 // @desc    Create a new product
 // @access  Public or Protected (adjust as needed)
 router.post('/add-product', async (req, res) => {
   try {
     const {
+      product_code,
+      cat_id,
       p_name,
       p_image,
       p_description,
       p_type,
       p_color,
+      HSN_code,
+      GST_rate,
       p_price
     } = req.body;
 
@@ -22,11 +27,15 @@ router.post('/add-product', async (req, res) => {
     }
 
     const newProduct = new Product({
+      product_code,
+      cat_id,
       p_name,
       p_image,
       p_description,
       p_type,
       p_color,
+      HSN_code,
+      GST_rate,
       p_price
     });
 
@@ -77,16 +86,16 @@ router.post('/categories/add', async (req, res) => {
 
 router.get('/products/search', async (req, res) => {
   try {
-    const { p_code } = req.query;
+    const { product_code } = req.query;
 
-    if (!p_code || p_code.trim() === '') {
+    if (!product_code || product_code.trim() === '') {
       return res.status(400).json({ message: 'Product code is required' });
     }
 
-    const product = await Product.findOne({ p_code: p_code.trim() });
+    const product = await Product.findOne({ product_code: product_code.trim() });
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: 'Product not found' });      
     }
 
     res.json({ product });
@@ -96,4 +105,43 @@ router.get('/products/search', async (req, res) => {
   }
 });
 
+router.post('/products/update', async (req, res) => {
+  try {
+    const updatedProduct = req.body;
+
+    if (!updatedProduct || !updatedProduct._id) {
+      return res.status(400).json({ message: "Product ID is required." });
+    }
+
+    // Update the product
+    const result = await Product.findByIdAndUpdate(
+      updatedProduct._id,
+      updatedProduct,
+      { new: true, runValidators: true }
+    );
+
+    if (!result) {
+      return res.status(404).json({ message: "Product not found." });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
+
+router.delete('/products/delete/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+    res.status(200).json({ message: 'Product deleted successfully.', product: deletedProduct });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
 module.exports = router;

@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import FilterModal from './Modals/FilterModal';
 import DownloadReportModal from './Modals/DownloadModal';
 import SearchProductModal from './Modals/SearchProductModal';
+import FormModal from './Modals/FormModal';
 
 const MyLeadTable = () => {
   const [leads, setLeads] = useState([]);
@@ -21,6 +22,7 @@ const MyLeadTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [filtersForDelete, setFiltersForDelete] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
   const [filters, setFilters] = useState({
@@ -73,7 +75,9 @@ const MyLeadTable = () => {
       default: return 'status-other';
     }
   };
-
+const handleAddLead = () => {
+    setFormModalOpen(true);
+  };
 
 const handleDeleteLead = async () => {
   if (!leadforDelete) return;
@@ -132,6 +136,7 @@ const downloadCSVReport = async (leads) => {
       <div className="lead-header">
         <h5>My Leads Report</h5>
         <div className="lead-btn-group">
+          <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update" onClick={() => setShowProductModal(true)}>Products</button>
           <button className="btn-filter"onClick={() => setShowModal(true)}>Get Report</button>
           <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
@@ -220,6 +225,11 @@ const downloadCSVReport = async (leads) => {
       </div>
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
+      )}
+      {isFormModalOpen && (
+        <FormModal
+        isOpen={isFormModalOpen} onClose={() => setFormModalOpen(false)}
+        />
       )}
       {editLead && (
         <EditLeadModal

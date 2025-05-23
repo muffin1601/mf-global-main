@@ -112,7 +112,12 @@
 }
 
 .btn-save-edit {
-  background-color: #2f80ed;
+  background-color: #c27e01;
+  color: white;
+}
+
+.btn-save-edit-1 {
+  background-color: #c43902;
   color: white;
 }
 

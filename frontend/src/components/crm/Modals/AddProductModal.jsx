@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import './styles/EditLeadModal.css'; // Reuse existing modal CSS
+import { AiOutlineClose } from 'react-icons/ai';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
-   const [categoryIds, setCategoryIds] = useState([]);
+  const [categoryNames, setCategoryNames] = useState([]);
+
   const [formData, setFormData] = useState({
+    product_code: '',
     p_name: '',
     p_image: '',
     p_description: '',
     p_type: '',
     p_color: '',
+    cat_id: '',
+    HSN_code: '',
+    GST_rate: '',
     p_price: {
       single_price: '',
       sales_5_50: '',
@@ -19,189 +26,132 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   });
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`).then((res) => {
-      setCategoryIds(res.data.catIds);
-    });
+    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`)
+      .then((res) => setCategoryNames(res.data.cat_names))
+      .catch((err) => console.error("Failed to fetch categories:", err));
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name in formData.p_price) {
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData(prev => ({
+        ...prev,
         p_price: {
-          ...prevData.p_price,
+          ...prev.p_price,
           [name]: value
         }
       }));
     } else {
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData(prev => ({
+        ...prev,
         [name]: value
       }));
     }
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    });
+    e.preventDefault();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to add product');
+      if (!response.ok) throw new Error('Failed to add product');
+
+      const result = await response.json();
+      toast.success('Product added successfully!');
+      if (onSubmit) onSubmit(result);
+      onClose();
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error('Failed to add product. Please try again.');
     }
-
-    const result = await response.json();
-    toast.success('Product added successfully!');
-    if (onSubmit) onSubmit(result);
-    onClose();
-  } catch (error) {
-    console.error('Error adding product:', error);
-    toast.error('❌ Failed to add product. Please try again.');
-  }
-};
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="form-modal-overlay">
-      <div className="form-modal-content">
-        <div className="form-modal-header">
-          <h3 className="form-modal-title">Add New Product</h3>
-          <button className="btn-close-form" onClick={onClose}>×</button>
+    <div className="lead-modal-overlay" onClick={onClose}>
+      <div className="lead-modal edit" onClick={(e) => e.stopPropagation()}>
+        <div className="lead-modal-header">
+          <h3>Add New Product</h3>
+          <button className="close-btn" onClick={onClose}><AiOutlineClose /></button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Product Name</label>
-              <input
-                type="text"
-                name="p_name"
-                value={formData.p_name}
+          <div className="lead-modal-body grid">
+            {[
+              { label: "Product Code", name: "product_code" },
+              { label: "Product Name", name: "p_name", required: true },
+              { label: "Image URL", name: "p_image" },
+              { label: "Type", name: "p_type" },
+              { label: "Color", name: "p_color" },
+              { label: "HSN Code", name: "HSN_code" },
+              { label: "GST Rate (%)", name: "GST_rate", type: "number" }
+            ].map(({ label, name, type = "text", required }) => (
+              <div className="input-group" key={name}>
+                <label>{label}</label>
+                <input
+                  type={type}
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  required={required}
+                />
+              </div>
+            ))}
+
+            <div className="input-group">
+              <label>Category</label>
+              <select
+                name="cat_id"
+                value={formData.cat_id}
                 onChange={handleChange}
-                className="form-modal-input"
-                required
-              />
+              >
+                <option value="">Select Category</option>
+                {categoryNames.map((cat) => (
+                  <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
+                    {cat.name || cat.label || cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="form-group">
-              <label>Image URL</label>
-              <input
-                type="text"
-                name="p_image"
-                value={formData.p_image}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Type</label>
-              <input
-                type="text"
-                name="p_type"
-                value={formData.p_type}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Color</label>
-              <input
-                type="text"
-                name="p_color"
-                value={formData.p_color}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
-
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+            <div className="input-group" style={{ gridColumn: 'span 2' }}>
               <label>Description</label>
               <textarea
                 name="p_description"
                 value={formData.p_description}
                 onChange={handleChange}
-                className="form-modal-textarea"
-              />
-            </div>
-            <div className="form-group">
-                <label>Category</label>
-                <select
-                    name="cat_id"
-                    value={formData.cat_id}
-                    onChange={handleChange}
-                    className="form-modal-input"
-                >
-                    <option value="">Select Category</option>
-                    {categoryIds.map((cat) => (
-                        <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
-                            {cat.name || cat.label || cat._id || cat.id || cat}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <div className="form-group">
-              <label>Single Price</label>
-              <input
-                type="number"
-                name="single_price"
-                value={formData.p_price.single_price}
-                onChange={handleChange}
-                className="form-modal-input"
-                required
               />
             </div>
 
-            <div className="form-group">
-              <label>Sales 5-50</label>
-              <input
-                type="number"
-                name="sales_5_50"
-                value={formData.p_price.sales_5_50}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Sales 50-100</label>
-              <input
-                type="number"
-                name="sales_50_100"
-                value={formData.p_price.sales_50_100}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Sales 100+</label>
-              <input
-                type="number"
-                name="sales_100_above"
-                value={formData.p_price.sales_100_above}
-                onChange={handleChange}
-                className="form-modal-input"
-              />
-            </div>
+            {[
+              { label: "Single Price", name: "single_price", required: true },
+              { label: "Sales 5-50", name: "sales_5_50" },
+              { label: "Sales 50-100", name: "sales_50_100" },
+              { label: "Sales 100+", name: "sales_100_above" }
+            ].map(({ label, name, required }) => (
+              <div className="input-group" key={name}>
+                <label>{label}</label>
+                <input
+                  type="number"
+                  name={name}
+                  value={formData.p_price[name]}
+                  onChange={handleChange}
+                  required={required}
+                />
+              </div>
+            ))}
           </div>
 
-          <div className="form-actions form-action-buttons">
-            <button type="button" className="close-form-btn" onClick={onClose}>
+          <div className="lead-modal-footer-edit">
+            <button type="button" className="btn-cancel" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="submit-form-btn">
+            <button type="submit" className="btn-save-edit">
               Save Product
             </button>
           </div>

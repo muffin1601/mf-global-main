@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const AddVendorModal = ({ isOpen, onClose, onSubmit }) => {
-    const [categoryIds, setCategoryIds] = useState([]);
+    const [categoryNames, setCategoryNames] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     contact_name: '',
@@ -21,7 +21,7 @@ const AddVendorModal = ({ isOpen, onClose, onSubmit }) => {
   
 useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL}/products/meta`).then((res) => {
-      setCategoryIds(res.data.catIds);
+      setCategoryNames(res.data.cat_names);
     });
   }, []);
 
@@ -143,7 +143,7 @@ useEffect(() => {
                     className="form-modal-input"
                 >
                     <option value="">Select Category</option>
-                    {categoryIds.map((cat) => (
+                    {categoryNames.map((cat) => (
                         <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
                             {cat.name || cat.label || cat._id || cat.id || cat}
                         </option>

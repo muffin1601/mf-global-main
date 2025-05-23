@@ -3,6 +3,9 @@ import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import AddVendorModal from '../Modals/AddVendorModal'; // Make sure to create this modal
+import EditVendorModal from '../Modals/EditVendorModal'; // Make sure to create this modal
+import ConfirmModal from '../Modals/ConfirmModal'; // Make sure to create this modal
+import { toast } from 'react-toastify';
 
 const VendorsTable = () => {
   const [vendors, setVendors] = useState([]);
@@ -43,6 +46,24 @@ const VendorsTable = () => {
     setShowFormModal(true);
   };
 
+  const handleDeleteVendor = async () => {
+    if (!vendorToDelete) return;
+  
+    try {
+      const res = await axios.delete(`${import.meta.env.VITE_API_URL}/vendors/delete/${vendorToDelete._id}`);
+      toast.success("Vendor deleted successfully");
+  
+      // await logActivity("Deleted vendor", { vendorName: vendorToDelete.p_name });
+  
+      setVendorToDelete(null); // close modal
+      fetchVendors(); // refresh list
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+      toast.error("Failed to delete vendor.");
+    }
+  };
+  
+
   return (
     <div className="lead-card">
       <div className="lead-header">
@@ -80,7 +101,7 @@ const VendorsTable = () => {
                 <td>{vendor.city}</td>
                 <td>
                   <div className="lead-actions">
-                    <button className="btn-view" title="View" onClick={() => setSelectedVendor(vendor)}><AiOutlineEye /></button>
+                    {/* <button className="btn-view" title="View" onClick={() => setSelectedVendor(vendor)}><AiOutlineEye /></button> */}
                     <button className="btn-edit" title="Edit" onClick={() => setEditVendor(vendor)}><AiOutlineEdit /></button>
                     {user?.role === 'admin' && (
                       <button className="btn-delete" title="Delete" onClick={() => setVendorToDelete(vendor)}>
@@ -119,6 +140,21 @@ const VendorsTable = () => {
 
       {showFormModal && (
         <AddVendorModal isOpen={showFormModal} onClose={() => {setShowFormModal(false); fetchVendors();} }/>
+      )}
+      {editVendor && (
+        <EditVendorModal
+          vendor={editVendor}
+          onClose={() => setEditVendor(null)}
+          onSave={fetchVendors}
+          // userRole={user.role}
+        />
+      )}
+      {vendorToDelete && (
+        <ConfirmModal
+          message={`Are you sure you want to delete ${vendorToDelete.name}?`}
+          onCancel={() => setVendorToDelete(null)}
+          onConfirm={handleDeleteVendor}
+        />
       )}
     </div>
   );

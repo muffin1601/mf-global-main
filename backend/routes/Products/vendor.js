@@ -41,4 +41,46 @@ router.get('/vendors', async (_req, res) => {
   }
 });
 
+router.delete('/vendors/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedVendor = await Vendor.findByIdAndDelete(id);
+    if (!deletedVendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+    res.status(200).json({ message: 'Vendor deleted successfully', vendor: deletedVendor });
+  } catch (error) {
+    console.error('Error deleting vendor:', error);
+    res.status(500).json({ message: 'Server error while deleting vendor' });
+  }
+});
+
+router.post('/vendors/update', async (req, res) => {
+  
+  const updatedVendor = req.body;
+  const vendorId = updatedVendor._id;
+
+  if (!vendorId) {
+    return res.status(400).json({ message: "Vendor ID is required for update." });
+  }
+
+  try {
+    const vendor = await Vendor.findByIdAndUpdate(vendorId, updatedVendor, {
+      new: true, // return the updated document
+      runValidators: true, // validate fields based on schema
+    });
+
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found." });
+    }
+
+    res.status(200).json(vendor);
+  } catch (error) {
+    console.error("Error updating vendor:", error);
+    res.status(500).json({ message: "Server error while updating vendor." });
+  }
+});
+
+
 module.exports = router;

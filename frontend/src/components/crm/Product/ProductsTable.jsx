@@ -4,6 +4,9 @@ import '../../../styles/crm/LeadTable.css';
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import AddProductModal from '../Modals/AddProductModal';
 import AddCategoryModal from '../Modals/AddCategoryModal'; // Adjust the import path as needed
+import ConfirmModal from '../Modals/ConfirmModal';
+import EditProductModal from '../Modals/EditProductModal'; // Adjust the import path as needed
+import { toast } from 'react-toastify';
 // import other modals as needed
 
 const ProductsTable = () => {
@@ -24,15 +27,15 @@ const ProductsTable = () => {
   }, []);
 
   const fetchProducts = async () => {
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
-    const productsData = response.data.products; // ✅ Fix here
-    setProducts(productsData);
-    setTotalProducts(productsData.length);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-};
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
+      const productsData = response.data.products; // ✅ Fix here
+      setProducts(productsData);
+      setTotalProducts(productsData.length);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
 
   const getPaginatedProducts = () => {
@@ -48,6 +51,25 @@ const ProductsTable = () => {
   const handleAddCategory = () => {
     setShowCatModal(true);
   }
+
+  
+const handleDeleteProduct = async () => {
+  if (!productToDelete) return;
+
+  try {
+    const res = await axios.delete(`${import.meta.env.VITE_API_URL}/products/delete/${productToDelete._id}`);
+    toast.success("Product deleted successfully");
+
+    // await logActivity("Deleted Product", { productName: productToDelete.p_name });
+
+    setProductToDelete(null); // close modal
+    fetchProducts(); // refresh list
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    toast.error("Failed to delete product.");
+  }
+};
+
 
   return (
     <div className="lead-card">
@@ -67,9 +89,9 @@ const ProductsTable = () => {
               <th>Product Code</th>
               <th>Name</th>
               <th>Type</th>
-              {/* <th>Color</th> */}
-              {/* <th>Description</th>
-              <th>Image</th> */}
+              <th>Color</th>
+              <th>Description</th>
+              <th>Image</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -77,21 +99,21 @@ const ProductsTable = () => {
             {getPaginatedProducts().map((product, index) => (
               <tr key={product._id}>
                 <td>{(currentPage - 1) * productsPerPage + index + 1}</td>
-                <td>{product.p_code}</td>
+                <td>{product.product_code}</td>
                 <td>{product.p_name}</td>
                 <td>{product.p_type}</td>
-                {/* <td>{product.p_color}</td> */}
-                {/* <td>{product.p_description}</td>
+                <td>{product.p_color}</td>
+                <td>{product.p_description}</td>
                 <td>
                   {product.p_image ? (
                     <img src={product.p_image} alt={product.p_name} style={{ width: '40px', height: '40px' }} />
                   ) : (
                     'N/A'
                   )}
-                </td> */}
+                </td>
                 <td>
                   <div className="lead-actions">
-                    <button className="btn-view" title="View" onClick={() => setSelectedProduct(product)}><AiOutlineEye /></button>
+                    {/* <button className="btn-view" title="View" onClick={() => setSelectedProduct(product)}><AiOutlineEye /></button> */}
                     <button className="btn-edit" title="Edit" onClick={() => setEditProduct(product)}><AiOutlineEdit /></button>
                     {user?.role === 'admin' && (
                       <button className="btn-delete" title="Delete" onClick={() => setProductToDelete(product)}>
@@ -129,10 +151,25 @@ const ProductsTable = () => {
       </div>
 
       {showFormModal && (
-        <AddProductModal isOpen={showFormModal} onClose={() => {setShowFormModal(false); fetchProducts();}} />
+        <AddProductModal isOpen={showFormModal} onClose={() => { setShowFormModal(false); fetchProducts(); }} />
       )}
       {showCatModal && (
         <AddCategoryModal isOpen={showCatModal} onClose={() => setShowCatModal(false)} />
+      )}
+      {editProduct && (
+        <EditProductModal
+          product={editProduct}
+          onClose={() => setEditProduct(null)}
+          onSave={fetchProducts}
+          // userRole={user.role}
+        />
+      )}
+      {productToDelete && (
+        <ConfirmModal
+          message={`Are you sure you want to delete ${productToDelete.p_name}?`}
+          onCancel={() => setProductToDelete(null)}
+          onConfirm={handleDeleteProduct}
+        />
       )}
     </div>
   );

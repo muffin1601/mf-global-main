@@ -17,7 +17,10 @@ router.get("/all-clients", async (req, res) => {
     });
     
     const uniqueClients = Array.from(uniqueClientsMap.values());
+
+    uniqueClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.status(200).json(uniqueClients);
+
   } catch (error) {
     console.error("Error fetching unique clients:", error);
     res.status(500).json({ error: "Failed to fetch clients" });
@@ -28,20 +31,24 @@ router.get("/get-details-clients", async (req, res) => {
   try {
     const totalClients = await Client.countDocuments();
 
-    // Clients with callStatus = "Converted"
-    const convertedClients = await Client.find({ callStatus: "Converted" });
-    const trendingLeads = await Client.find ({status: "In Progress" });
+    // Sorted Clients with callStatus = "Converted"
+    const convertedClients = await Client.find({ status: "Won Lead" })
+      .sort({ createdAt: -1 });
 
-    // Clients where assignedTo contains at least one user with a valid _id
+    // Sorted Clients with status = "In Progress"
+    const trendingLeads = await Client.find({ status: "In Progress" })
+      .sort({ createdAt: -1 });
+
+    // Sorted Clients where assignedTo contains at least one user with a valid _id
     const assignedClients = await Client.find({
       assignedTo: {
         $elemMatch: {
           "user._id": { $exists: true, $ne: null }
         }
       }
-    });
+    }).sort({ createdAt: -1 });
 
-    // Clients with no assignedTo OR empty OR none of the entries have a valid user._id
+    // Sorted Clients with no assignedTo OR empty OR invalid user._id
     const unassignedClients = await Client.find({
       $or: [
         { assignedTo: { $exists: false } },
@@ -56,7 +63,7 @@ router.get("/get-details-clients", async (req, res) => {
           }
         }
       ]
-    });
+    }).sort({ createdAt: -1 });
 
     const convertedCount = convertedClients.length;
     const assignedCount = assignedClients.length;
@@ -84,11 +91,12 @@ router.get("/get-details-clients", async (req, res) => {
   }
 });
 
+
 router.get("/new-clients", async (req, res) => {
     try {
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const newClients = await Client.find({ createdAt: { $gte: twentyFourHoursAgo } });
-
+        newClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         res.status(200).json(newClients);
     } catch (error) {
         console.error("Error fetching new clients:", error);
@@ -101,30 +109,41 @@ router.get('/user-dashboard-stats/:username', async (req, res) => {
   const username = decodeURIComponent(req.params.username);
 
   try {
-    // All leads assigned to the user
-    const myLeads = await Client.find({ "assignedTo.user.name": username });
+    // All leads assigned to the user, sorted by newest first
+    const myLeads = await Client.find({ "assignedTo.user.name": username })
+      .sort({ createdAt: -1 });
 
-    // My Conversions
-    const myConversions = myLeads.filter(client => client.callStatus === "Converted");
-    const myTrendingLeads = myLeads.filter(client => client.status === "In Progress");
+    // My Conversions (sorted)
+    const myConversions = myLeads
+      .filter(client => client.status === "Won Lead")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Today's Follow-ups
+    // My Trending Leads (sorted)
+    const myTrendingLeads = myLeads
+      .filter(client => client.status === "In Progress")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Today's Follow-ups (sorted)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const todaysFollowUps = myLeads.filter(client =>
-      client.followUpDate &&
-      new Date(client.followUpDate) >= today &&
-      new Date(client.followUpDate) < tomorrow
-    );
+    const todaysFollowUps = myLeads
+      .filter(client =>
+        client.followUpDate &&
+        new Date(client.followUpDate) >= today &&
+        new Date(client.followUpDate) < tomorrow
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Upcoming Follow-ups (after today)
-    const upcomingFollowUps = myLeads.filter(client =>
-      client.followUpDate &&
-      new Date(client.followUpDate) > tomorrow
-    );
+    // Upcoming Follow-ups (sorted)
+    const upcomingFollowUps = myLeads
+      .filter(client =>
+        client.followUpDate &&
+        new Date(client.followUpDate) > tomorrow
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.json({
       myLeads,

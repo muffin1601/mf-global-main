@@ -69,11 +69,12 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
     category: editedLead.category,
     datatype: editedLead.datatype,
     callStatus: editedLead.callStatus,
+    status: editedLead.status,
     followUpDate: editedLead.followUpDate,
     additionalContacts,
     assignedTo: editedLead.assignedTo,
   };
-
+  console.log("Saving lead updates:", updates);
   try {
     // Save the lead details
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, {

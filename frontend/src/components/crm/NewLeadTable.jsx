@@ -90,7 +90,7 @@ const handleDeleteLead = async () => {
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
     setLeadforDelete(null); // close modal
-    filterLeads(); // refresh
+    fetchLeads(); // refresh
   } catch (error) {
     console.error("Error deleting lead:", error);
     toast.error("Failed to delete lead.");

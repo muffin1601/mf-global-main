@@ -1,12 +1,15 @@
 import React from "react";
 import { Routes, Route} from "react-router-dom";
+import Mainhome from "./pages/main/Mainhome";
+import Contact from "./pages/main/Contact";
+
+
 import NewLeads from "./pages/crm/NewLeads";
 import Dashboard from "./pages/crm/Dashboard";
 import LeadManagement from "./pages/crm/LeadManagement";
 import Home from "./landingpage/components/Home";
 import Login from "./pages/crm/Login";
 import UserManagement from "./pages/crm/UserManagement";
-import Mainhome from "./pages/main/Mainhome";
 import AssignedLeadManagement from "./pages/crm/AssignedLeadManagement"
 import UnassignedLeadManagement from "./pages/crm/UnassignedLeadManagement"
 import { ToastContainer } from 'react-toastify';
@@ -27,6 +30,9 @@ const App = () => {
     <>
         <Routes>
           <Route path="/" element={<Mainhome />} />
+          <Route path="/contact" element={<Contact/>} />
+
+
           <Route path="/crm" element = {<Home />}/> 
           <Route path="/crm/login"  element={<Login/>}/>
           <Route path ="/crm/entrydashboard" element={<ProtectedRoute role={["user", "admin"]}><Dashboard /></ProtectedRoute>}/>
@@ -35,7 +41,6 @@ const App = () => {
           <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
           <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
           <Route path="/crm/assigned-leads" element={<ProtectedRoute role="admin"><AssignedLeadManagement /></ProtectedRoute>} />
-         
           <Route path="/crm/my-leads"  element={<ProtectedRoute role={["admin","user"]}><MyLeads /></ProtectedRoute>}/>
           <Route path="/crm/conversions"  element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>}/>
           <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />

@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "lucide-react": "^0.525.0",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "react": "^19.0.0",
@@ -27,7 +28,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.0",
     "react-toastify": "^11.0.5",
-    "recharts": "^2.15.3"
+    "recharts": "^2.15.3",
+    "swiper": "^11.2.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

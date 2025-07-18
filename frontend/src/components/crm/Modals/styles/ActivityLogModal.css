@@ -22,7 +22,7 @@
   padding: 24px 28px;
   overflow-y: auto;
   max-height: 90vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
 }
 
 .activitylog-title {
@@ -175,4 +175,15 @@
   color: #7f8c8d;
   text-align: center;
   margin-top: 20px;
+}
+.activitylog-td button {
+  background-color: #f7921e;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.activitylog-td button:hover {
+  background-color: #e67e00;
 }

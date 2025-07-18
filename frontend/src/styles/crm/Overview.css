@@ -114,3 +114,7 @@
     color: #e53935;
   }
   
+  /* .dashboard-card.disabled {
+  pointer-events: none;
+  opacity: 1;
+} */

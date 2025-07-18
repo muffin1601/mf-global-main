@@ -23,6 +23,7 @@ const UnassignedLeadTable = () => {
   const [leadforDelete, setLeadforDelete] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -160,7 +161,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
-          <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
+          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -287,6 +288,13 @@ const downloadCSVReport = async (leads) => {
           onClose={() => setShowBulkUpdateModal(false)}
           filteredLeads={leads}
           onUpdateSuccess={filterLeads} // reapply filters after update
+        />
+      )}
+       {LeadsforDownload && (
+        <ConfirmModal
+          message="Are you sure you want to download report?"
+          onCancel={() => setLeadsforDownload(false)}
+          onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
         />
       )}
     </div>

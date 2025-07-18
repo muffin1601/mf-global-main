@@ -6,8 +6,8 @@ const HeroSection = () => {
     <section className="hero">
         <div className="hero-overlay"></div>
         <div className="hero-text">
-          <h1>Premium Corporate Gifts for Every Occasion!</h1>
-          <p>Customized, high-quality promotional items tailored for your brand needs.</p>
+          <h1 className="hero-title">Premium Corporate Gifting Solutions That Impress & Inspire!</h1>
+          <p className="hero-subtitle">Custom-branded gifts, employee welcome kits, festive hampers & more — designed to build stronger business relationships.</p>
           <button className="hero-cta">Get Started</button>
         </div>
     </section>

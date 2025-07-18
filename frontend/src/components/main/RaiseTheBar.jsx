@@ -1,6 +1,5 @@
 import React from "react";
 import "../../styles/main/RaiseTheBar.css";
-import raiseImage from "/assets/main/raise-bar.jpg"; // Update with your actual image path
 
 const RaiseTheBar = () => {
   return (
@@ -11,13 +10,21 @@ const RaiseTheBar = () => {
           Raise the bar with <span>exceptional corporate gifting</span>
         </h2>
         <p className="raise-description">
-          At MF Global Services, we believe that gifts are more than just objects—they are statements of value,
-          gratitude, and brand strength. Our tailored gifting solutions help you make a lasting impact.
+          At <strong>MF Global Services</strong>, we don’t just deliver gifts—we create experiences. Every gift is thoughtfully curated to reflect your brand’s identity, values, and care for the recipient.
+        </p>
+        <p className="raise-description">
+          Whether you're welcoming new employees, delighting clients, or celebrating milestones, our custom gifting solutions ensure your brand stands out with elegance and intention. From sustainable packaging to high-end branding, every detail is handled with precision and passion.
+        </p>
+        <p className="raise-description">
+          Join the companies that trust us to make lasting impressions—<strong>through creativity, quality, and impact</strong>.
         </p>
       </div>
       <div className="raise-image-wrapper">
         <div className="raise-image-mask">
-          <img src={raiseImage} alt="Raise the bar visual" />
+          <img
+            src="https://images.pexels.com/photos/6400307/pexels-photo-6400307.jpeg"
+            alt="Raise the bar visual"
+          />
         </div>
       </div>
     </section>

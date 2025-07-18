@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaChartBar, FaPercentage, FaTasks, FaProjectDiagram, FaUserPlus, FaUserCheck,
-  FaHandshake, FaBellSlash, FaCalendarAlt
+  FaHandshake, FaBellSlash, FaCalendarAlt, FaFire
 } from 'react-icons/fa';
 
 import '../../styles/crm/Overview.css';
@@ -20,11 +20,13 @@ const Overview = () => {
   const [totalConversions, setTotalconversions] = useState([]);
   const [todayFollowUps, setTodayFollowups] = useState([]);
   const [upcomingFollowUps, setUpcomingFollowups] = useState([]);
+  const [trendingLeads, settrendingLeads] = useState([]);
+  const [myTrendingLeads, setMyTrendingLeads] = useState([]);
 
   const user = JSON.parse(localStorage.getItem('user')) || {
     name: "Mr.Henry",
     profile: "/assets/profile.jpg",
-    role: "user" // fallback role if none exists
+    role: "user"
   };
 
   useEffect(() => {
@@ -40,13 +42,15 @@ const Overview = () => {
         setConversionRate(conversionRes.data.conversionRate);
         setAssignedLeads(conversionRes.data.assignedCount);
         setUnassignedLeads(conversionRes.data.unassignedCount);
+        settrendingLeads(conversionRes.data.trendingLeads.length);
 
-        const UserRes = await axios.get (`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
+        const UserRes = await axios.get(`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
         setMyLeads(UserRes.data.myLeads.length);
         setTotalconversions(UserRes.data.myConversions.length);
         setTodayFollowups(UserRes.data.todaysFollowUps.length);
         setUpcomingFollowups(UserRes.data.upcomingFollowUps.length);
-        
+        setMyTrendingLeads(UserRes.data.myTrendingLeads.length);
+
       } catch (error) {
         console.error('Error fetching leads or conversion rate:', error);
       }
@@ -56,7 +60,6 @@ const Overview = () => {
   }, []);
 
   const cards = [
-    // Admin cards
     {
       title: 'Total Leads',
       value: leads || '0',
@@ -65,7 +68,8 @@ const Overview = () => {
       color: 'white',
       bg: '#ff9e3b',
       route: '/crm/lead-management',
-      role: 'both'
+      role: 'both',
+      disabled: user.role === 'user'
     },
     {
       title: 'Conversion Rate',
@@ -75,7 +79,7 @@ const Overview = () => {
       color: 'white',
       bg: '#d85ed7',
       negative: true,
-      route: '#',
+      route: '/crm/won-leads',
       role: 'admin'
     },
     {
@@ -109,8 +113,16 @@ const Overview = () => {
       route: '/crm/new-leads',
       role: 'admin'
     },
-
-    // User cards
+    {
+      title: 'Trending Leads',
+      value: trendingLeads || '0',
+      icon: <FaFire />,
+      change: '+6.3%',
+      color: 'white',
+      bg: '#ff7043',
+      route: '/crm/trending-leads',
+      role: 'admin'
+    },
     {
       title: 'My Leads',
       value: myLeads || '0',
@@ -150,10 +162,19 @@ const Overview = () => {
       bg: '#4db6ac',
       route: '/crm/upcoming-followups',
       role: 'user'
+    },
+    {
+      title: 'My Trending Leads',
+      value: myTrendingLeads || '0',
+      icon: <FaFire />,
+      change: '+5.0%',
+      color: 'white',
+      bg: '#ff8a65',
+      route: '/crm/my-trending-leads',
+      role: 'user'
     }
   ];
 
-  // 🔍 Filter cards based on user role
   const filteredCards = cards.filter(card => card.role === user.role || card.role === 'both');
 
   return (
@@ -173,10 +194,22 @@ const Overview = () => {
         {filteredCards.map((card, index) => (
           <div
             key={index}
-            className="dashboard-card"
-            onClick={() => navigate(card.route)}
+            className={`dashboard-card ${card.disabled ? 'disabled' : ''}`}
+            onClick={() => {
+              if (!card.disabled) {
+                navigate(card.route);
+              }
+            }}
+            style={card.disabled ? {  opacity: 1 } : {}}
           >
-            <div className="card-icon" style={{ backgroundColor: card.bg, color: card.color, boxShadow: `0px 2px 6px ${card.bg}` }}>
+            <div
+              className="card-icon"
+              style={{
+                backgroundColor: card.bg,
+                color: card.color,
+                boxShadow: `0px 2px 6px ${card.bg}`
+              }}
+            >
               {card.icon}
             </div>
             <div className="card-content">

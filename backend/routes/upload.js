@@ -75,7 +75,10 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       const contact = normalizedRow["contact"] || null;
       const company = normalizedRow["company"] || null;
       const location = normalizedRow["location"] || null;
-      const category = normalizedRow["category"] || null;
+      let category = normalizedRow["category"] || null;
+      if (category) {
+        category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+      }
       const datatype = normalizedRow["datatype"] || null;
 
       if (!phone && !contact) {
@@ -91,7 +94,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       }
 
       if (location && location.length > 15) {
-        return addSkipped({ phone, contact, company, location, category,dataype, reason: "Location exceeds 15 characters" });
+        return addSkipped({ phone, contact, company, location, category,datatype, reason: "Location exceeds 15 characters" });
       }
 
       const validDatatypes = [

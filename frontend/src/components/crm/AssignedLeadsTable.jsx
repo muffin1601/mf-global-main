@@ -20,6 +20,7 @@ const AssignedLeadsTable = () => {
   const [showFetchModal, setShowFetchModal] = useState(false);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const dateType = 'followUpDate'
   const [filters, setFilters] = useState({
     category: [],
@@ -218,7 +219,7 @@ const handleDownload = () => {
         <div className="lead-btn-group">
           <button className="btn-filter" onClick={() => setShowFetchModal(true)}>Fetch Report</button>
           {/* <button className="btn-update">Filter</button> */}
-          <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
+          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -333,6 +334,13 @@ const handleDownload = () => {
             setToDate(incomingFilters.toDate || "");
             handleDownload();
           }}
+        />
+      )}
+       {LeadsforDownload && (
+        <ConfirmModal
+          message="Are you sure you want to download report?"
+          onCancel={() => setLeadsforDownload(false)}
+          onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
         />
       )}
     </div>

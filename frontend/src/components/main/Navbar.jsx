@@ -35,7 +35,7 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-center">
-        <a href="#home" className="nav-link">Home</a>
+        <a href="/" className="nav-link">Home</a>
 
         <div
           className="nav-item dropdown-wrapper"
@@ -44,7 +44,7 @@ const Navbar = () => {
           // style={{ position: 'relative' }}
         >
           <a href="" className="nav-link dropdown">
-            Our Services
+            Our Products
           
           <div className={`dropdown-menu ${dropdownOpen ? "show" : ""}`}onMouseLeave={handleDropdownLeave}>
             <a href="https://printkee.com/">Customize Gifting</a>
@@ -53,7 +53,9 @@ const Navbar = () => {
           </div></a>
         </div>
 
-        <a href="#contact" className="nav-link">Contact Us</a>
+        <a href="#" className="nav-link">Blog</a>
+
+        <a href="/contact" className="nav-link">Contact Us</a>
       </div>
 
       <div className="navbar-social">

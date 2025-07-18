@@ -33,6 +33,7 @@ const Login = () => {
   return (
     <div className="login-page">
       <div className="login-card">
+        <div className="login-box">
         <h2 className="login-title">Sign In</h2>
         <p className="login-subtitle">Welcome back !</p>
         {/* <button className="google-btn">
@@ -74,7 +75,7 @@ const Login = () => {
           <button className="social-btn pink">X</button>
           <button className="social-btn ig">i</button>
         </div>
-      </div>
+      </div></div>
 
       <div className="login-side">
         <img src="/assets/logo.png" alt="logo" />

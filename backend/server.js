@@ -37,6 +37,9 @@ app.use("/api", require("./routes/clientwork"));
 app.use("/api", require("./routes/leads"));
 app.use("/api", require("./routes/dashboardoverview"));
 app.use("/api", require("./routes/Todo-Performance"));
+app.use("/api", require("./routes/Products/product"));
+app.use("/api", require("./routes/Products/vendor"));
+app.use("/api", require("./routes/Products/ProductOverview"));
 
 require("./cron/tradeIndiaCron");
 require("./cron/indiaMartCron");

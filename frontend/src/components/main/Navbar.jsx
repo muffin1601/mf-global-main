@@ -25,7 +25,7 @@ const Navbar = () => {
 
   return (
     <div className={`navbar ${scrolled ? "scrolled" : ""}`}>
-      <div className="navbar-left">
+      <div className="navbar-left-main">
         <img
           src="/assets/logo.png"
           alt="MF Global Logo"

@@ -6,7 +6,7 @@
 }
 
 .testimonial-content {
-  max-width: 90%;
+  max-width: 1000px;
   margin: auto;
   text-align: center;
 }
@@ -27,13 +27,13 @@
 .testimonial-card {
   background: transparent;
   border-radius: 16px;
-  padding: 30px 50px;
-  height: 40vh;
+  padding: 30px 40px;
+  min-height: 300px;
   box-shadow: 0 8px 24px rgba(255, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  border: 2px solid #ffcaca;
   justify-content: space-between;
+  border: 2px solid #ffcaca;
   transition: transform 0.3s ease;
 }
 
@@ -46,7 +46,7 @@
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin: 0 auto 15px auto;
+  margin: 0 auto 15px;
   border: 2px solid #ff3b3f;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
 }
@@ -55,7 +55,7 @@
   font-size: 1rem;
   font-style: italic;
   color: #f5f5f5;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
 .testimonial-author {
@@ -68,17 +68,16 @@
   color: #bbbbbb;
 }
 
-/* Swiper Pagination Dots */
+/* Swiper Pagination */
 .swiper-pagination {
   margin-top: 30px;
   position: relative;
-  bottom: 0 !important;
 }
 
 .swiper-pagination-bullet {
   width: 12px;
   height: 12px;
-  background: #888; /* Inactive dot */
+  background: #888;
   opacity: 0.5;
   margin: 0 6px;
   border-radius: 50%;
@@ -86,7 +85,88 @@
 }
 
 .swiper-pagination-bullet-active {
-  background: #ff3b3f; /* Red to match theme */
+  background: #ff3b3f;
   opacity: 1;
   transform: scale(1.2);
+}
+
+/* ---------- Responsive Styles ---------- */
+@media (max-width: 1024px) {
+  .testimonial-heading {
+    font-size: 2.2rem;
+  }
+
+  .testimonial-subheading {
+    font-size: 1rem;
+  }
+
+  .testimonial-card {
+    padding: 25px 30px;
+  }
+
+  .testimonial-quote {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .testimonial-wrapper {
+    padding: 80px 15px;
+  }
+
+  .testimonial-heading {
+    font-size: 2rem;
+  }
+
+  .testimonial-subheading {
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+
+  .testimonial-card {
+    padding: 20px 20px;
+  }
+
+  .testimonial-quote {
+    font-size: 0.9rem;
+  }
+
+  .testimonial-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonial-heading {
+    font-size: 1.8rem;
+  }
+
+  .testimonial-subheading {
+    font-size: 0.9rem;
+  }
+
+  .testimonial-card {
+    padding: 18px;
+  }
+
+  .testimonial-quote {
+    font-size: 0.85rem;
+  }
+
+  .testimonial-img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
+  }
 }

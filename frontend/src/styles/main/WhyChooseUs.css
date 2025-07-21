@@ -68,3 +68,62 @@
   font-size: 0.95rem;
   color: #dddddd;
 }
+
+@media (max-width: 1024px) {
+  .why-heading {
+    font-size: 2.2rem;
+  }
+
+  .why-subheading {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .why-wrapper {
+    padding: 80px 16px;
+  }
+
+  .why-heading {
+    font-size: 2rem;
+  }
+
+  .why-subheading {
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+
+  .why-card {
+    padding: 24px 20px;
+  }
+
+  .why-title {
+    font-size: 1.1rem;
+  }
+
+  .why-description {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .why-heading {
+    font-size: 1.8rem;
+  }
+
+  .why-subheading {
+    font-size: 0.9rem;
+  }
+
+  .why-card {
+    padding: 20px 16px;
+  }
+
+  .why-title {
+    font-size: 1rem;
+  }
+
+  .why-description {
+    font-size: 0.85rem;
+  }
+}

@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // API Routes
+app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api", require("./routes/client"));
 app.use("/api", require("./routes/upload"));
 app.use("/api", require("./routes/fetch-client"));

@@ -53,7 +53,7 @@ const Navbar = () => {
           </div></a>
         </div>
 
-        <a href="#" className="nav-link">Blog</a>
+        <a href="/blogs" className="nav-link">Blog</a>
 
         <a href="/contact" className="nav-link">Contact Us</a>
       </div>

@@ -2,7 +2,9 @@ import React from "react";
 import { Routes, Route} from "react-router-dom";
 import Mainhome from "./pages/main/Mainhome";
 import Contact from "./pages/main/Contact";
-
+import BlogDetail from "./pages/main/BlogDetail";
+import BlogList from "./pages/main/BlogList";
+import BlogForm from "./pages/main/BlogForm";
 
 import NewLeads from "./pages/crm/NewLeads";
 import Dashboard from "./pages/crm/Dashboard";
@@ -31,6 +33,9 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Mainhome />} />
           <Route path="/contact" element={<Contact/>} />
+          <Route path="/blogs" element={<BlogList />} />
+          <Route path="/blogs/new" element={<BlogForm />} />
+          <Route path="/blogs/:id" element={<BlogDetail />} />
 
 
           <Route path="/crm" element = {<Home />}/> 

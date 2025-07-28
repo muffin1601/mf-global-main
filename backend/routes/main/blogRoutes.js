@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const Blog = require('../models/blog');
-const Comment = require('../models/comment');
+const Blog = require('../../models/blog');
+const Comment = require('../../models/comment');
 
 router.get('/', async (req, res) => {
     try {

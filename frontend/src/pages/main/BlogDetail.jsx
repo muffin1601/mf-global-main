@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import CommentSection from '../../components/main/CommentSection';
-import "../../styles/main/Blog.css";
+import "../../styles/main/BlogDetail.css";
 import Navbar from '../../components/main/Navbar';
 import Footer from '../../components/main/Footer';
 import WhyChooseUs from '../../components/main/WhyChooseUs';
@@ -19,23 +19,23 @@ const BlogDetail = () => {
 
   return (
     <>
-        <Navbar/>
-                <div className="blog-background-container">
-            <div className="blog-background-overlay"></div>
-    <div className="blog-detail-container">
-      <h2 className="blog-detail-title">{blog.title}</h2>
-      {blog.media && (
-        blog.media.includes('mp4') ? (
-          <video className="blog-detail-media" width="100%" controls src={blog.media} />
-        ) : (
-          <img className="blog-detail-media" src={blog.media} alt={blog.title} width="100%" />
-        )
-      )}
-      <p className="blog-detail-content">{blog.content}</p>
-      <CommentSection blogId={id} />
-    </div></div>
-    <WhyChooseUs/>
-    <Footer/>
+      <Navbar />
+      <div className="blog-background-container-2">
+        <div className="blog-background-overlay-2"></div>
+        <div className="blog-detail-container">
+          <h2 className="blog-detail-title">{blog.title}</h2>
+          {blog.media && (
+            blog.media.includes('mp4') ? (
+              <video className="blog-detail-media" width="100%" controls src={blog.media} />
+            ) : (
+              <img className="blog-detail-media" src={blog.media} alt={blog.title} width="100%" />
+            )
+          )}
+          <p className="blog-detail-content">{blog.content}</p>
+          <CommentSection blogId={id} />
+        </div></div>
+      <WhyChooseUs />
+      <Footer />
     </>
   );
 };

@@ -130,6 +130,25 @@
   transform: translateX(5px);
 }
 
+.contactus-status {
+  color: #888;
+  font-size: 0.95rem;
+  margin-top: 12px;
+}
+
+.contactus-success {
+  color: green;
+  font-size: 1rem;
+  margin-top: 12px;
+}
+
+.contactus-error {
+  color: red;
+  font-size: 1rem;
+  margin-top: 12px;
+}
+
+
 @media (max-width: 1200px) {
   .contactus-container {
     padding: 120px 100px;

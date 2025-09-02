@@ -1,11 +1,9 @@
 /* Navbar styles */
-
 .navbar {
   position: fixed;
   top: 0;
   width: 100%;
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   padding: 0.8% 3%;
@@ -16,13 +14,13 @@
 }
 
 .navbar.scrolled {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .navbar-left-main {
   display: flex;
   align-items: center;
-  width: 25%;
+  gap: 10px;
 }
 
 .navbar-logo-img {
@@ -34,39 +32,37 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: #ffffff;
-  margin-left: 10px;
 }
 
 .navbar-center {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  width: 70%;
+  gap: 30px;
   flex-wrap: wrap;
 }
 
 .nav-link {
-  position: relative;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: white;
   cursor: pointer;
   text-decoration: none;
+  position: relative;
   transition: color 0.3s;
 }
 
 .nav-link:hover {
-  color: #8B0000;
+  color: #c52d12;
 }
 
 .nav-link::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -3px;
   left: 0;
   width: 0;
   height: 2px;
-  background: #8B0000;
+  background: #c52d12;
   transition: width 0.3s ease;
 }
 
@@ -75,7 +71,7 @@
 }
 
 /* Dropdown styles */
-.dropdown {
+.dropdown-wrapper {
   position: relative;
 }
 
@@ -83,12 +79,12 @@
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 10px;
-  background: rgba(253, 251, 251, 0.95);
+  margin-top: 5px;
+  background: rgba(255, 255, 255, 0.95);
   color: #292828;
-  padding: 10px 0;
   min-width: 200px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  padding: 10px 0;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   opacity: 0;
   pointer-events: none;
   transform: translateY(10px);
@@ -104,47 +100,29 @@
 
 .dropdown-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #292828;
-  text-align: left;
+  padding: 8px 20px;
   font-size: 1rem;
+  color: #292828;
   text-decoration: none;
-  position: relative;
-  transition: background 0.2s, color 0.2s;
+  transition: all 0.2s;
 }
 
 .dropdown-menu a:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #8B0000;
-}
-
-.dropdown-menu a::after {
-  content: '';
-  position: absolute;
-  bottom: 5px;
-  left: 20px;
-  width: 0;
-  height: 2px;
-  background: #8B0000;
-  transition: width 0.3s ease;
-}
-
-.dropdown-menu a:hover::after {
-  width: calc(100% - 40px);
+  color: #c52d12;
+  background-color: rgba(0,0,0,0.05);
 }
 
 /* Social icons */
 .navbar-social {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
-  width: 5%;
+  gap: 15px;
+  padding-left: 200px;
 }
 
 .social-icon {
-  color: #ffffff;
   font-size: 1.3rem;
+  color: #ffffff;
   transition: transform 0.2s ease, color 0.3s ease;
 }
 
@@ -153,23 +131,24 @@
   transform: scale(1.1);
 }
 
-/* ---------- Responsive Styles ---------- */
+/* Visitor count */
+.navbar-visitor-count {
+  color: white;
+  margin-left: 0px;
+  font-size: 1rem;
+  font-weight: 500;
+}
 
+/* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .navbar-center {
-    gap: 25px;
+    gap: 20px;
   }
-
   .nav-link {
     font-size: 1rem;
   }
-
-  .navbar-social {
-    gap: 0.8rem;
-  }
-
   .social-icon {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -177,46 +156,36 @@
   .navbar {
     flex-direction: column;
     align-items: flex-start;
-    padding: 12px 20px;
+    padding: 10px 20px;
   }
-
-  .navbar-left,
+  .navbar-left-main,
   .navbar-center,
-  .navbar-social {
+  .navbar-social,
+  .navbar-visitor-count {
     width: 100%;
     margin-bottom: 10px;
   }
-
-  .navbar-left {
-    justify-content: space-between;
-  }
-
   .navbar-center {
     flex-direction: column;
+    gap: 10px;
     align-items: flex-start;
-    gap: 15px;
   }
-
   .navbar-social {
     justify-content: flex-start;
-    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .navbar {
-    padding: 10px 12px;
-  }
-
   .navbar-logo {
     font-size: 1.2rem;
   }
-
   .nav-link {
     font-size: 0.95rem;
   }
-
   .social-icon {
     font-size: 1rem;
+  }
+  .navbar-visitor-count {
+    font-size: 0.9rem;
   }
 }

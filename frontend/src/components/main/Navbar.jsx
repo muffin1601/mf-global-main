@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/main/Navbar.css";
 import { FaFacebookF, FaLinkedinIn, FaInstagram } from "react-icons/fa";
+import axios from "axios";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [visitorCount, setVisitorCount] = useState(0); 
+
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/visitors/count`) 
+      .then((res) => setVisitorCount(res.data.totalVisitors))
+      .catch((err) => console.error("Failed to fetch visitor count", err));
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +77,9 @@ const Navbar = () => {
         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
           <FaInstagram className="social-icon" />
         </a>
+      </div>
+      <div className="navbar-visitor-count">
+        Visitor Count: <span id="visitor-count">{visitorCount}</span>
       </div>
     </div>
   );

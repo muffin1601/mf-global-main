@@ -25,6 +25,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // API Routes
 app.use("/api", require("./routes/main/emailRoutes"));
+app.use ("/api/visitors", require("./routes/main/visitor"));
 app.use("/api/blogs", require("./routes/main/blogRoutes"));
 app.use("/api", require("./routes/client"));
 app.use("/api", require("./routes/upload"));

@@ -7,7 +7,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-top">
         <div className="footer-logo-section">
-          <img src="/assets/logo.png" alt="MF Global Logo" className="footer-logo-img" />
+          <img src="/assets/logo.webp" alt="MF Global Logo" className="footer-logo-img" />
           <p className="footer-tagline">
             Redefining Corporate Gifting with Style, Strategy & Impact.
           </p>

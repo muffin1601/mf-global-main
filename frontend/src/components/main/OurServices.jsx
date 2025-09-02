@@ -1,8 +1,8 @@
 import React from "react";
 import "../../styles/main/OurServices.css";
-import img1 from "/assets/main/printkee-img.png";
-import img2 from "/assets/main/coachingpromo-img.png";
-import img3 from "/assets/main/other-img.png";
+import img1 from "/assets/main/printkee-img.webp";
+import img2 from "/assets/main/coachingpromo-img.webp";
+import img3 from "/assets/main/other-img.webp";
 
 const services = [
   {

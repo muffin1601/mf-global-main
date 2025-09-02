@@ -1,4 +1,3 @@
-/* Navbar styles */
 .navbar {
   position: fixed;
   top: 0;
@@ -31,15 +30,20 @@
 .navbar-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #fff;
 }
 
-.navbar-center {
+.desktop-menu {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 30px;
-  flex-wrap: wrap;
+}
+
+.desktop-menu-1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
 }
 
 .nav-link {
@@ -70,7 +74,6 @@
   width: 100%;
 }
 
-/* Dropdown styles */
 .dropdown-wrapper {
   position: relative;
 }
@@ -84,7 +87,7 @@
   color: #292828;
   min-width: 200px;
   padding: 10px 0;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   opacity: 0;
   pointer-events: none;
   transform: translateY(10px);
@@ -109,10 +112,9 @@
 
 .dropdown-menu a:hover {
   color: #c52d12;
-  background-color: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
-/* Social icons */
 .navbar-social {
   display: flex;
   align-items: center;
@@ -122,8 +124,8 @@
 
 .social-icon {
   font-size: 1.3rem;
-  color: #ffffff;
-  transition: transform 0.2s ease, color 0.3s ease;
+  color: #fff;
+  transition: transform 0.2s, color 0.3s;
 }
 
 .social-icon:hover {
@@ -131,17 +133,154 @@
   transform: scale(1.1);
 }
 
-/* Visitor count */
 .navbar-visitor-count {
   color: white;
-  margin-left: 0px;
   font-size: 1rem;
   font-weight: 500;
 }
 
-/* ---------- Responsive ---------- */
+.hamburger-icon {
+  margin-top: 10px;
+  display: none;
+  font-size: 1.8rem;
+  color: white;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.sidebar-1 {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 280px;
+  height: 100vh;
+  background: #111;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2000;
+  transition: right 0.3s ease-in-out;
+}
+
+.sidebar-1.open {
+
+  right: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sidebar-logo-img {
+  height: 40px;
+}
+
+.sidebar-close {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.sidebar-1 a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  margin: 12px 0;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.sidebar-1 a:hover {
+  color: #c52d12;
+}
+
+.sidebar-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-dropdown > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.sidebar-dropdown-menu {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-left: 15px;
+}
+
+.sidebar-dropdown.open .sidebar-dropdown-menu {
+  max-height: 500px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.sidebar-dropdown-menu a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 0;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.sidebar-dropdown-menu a:hover {
+  color: #c52d12;
+}
+
+.chevron {
+  margin-right: 100px;
+  transition: transform 0.3s ease;
+}
+
+.chevron.rotate {
+  transform: rotate(180deg);
+}
+
+.sidebar-social {
+  display: flex;
+  gap: 15px;
+  margin-top: auto;
+}
+
+.sidebar-visitor-count {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #ddd;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1500;
+}
+
 @media (max-width: 1024px) {
-  .navbar-center {
+  .desktop-menu {
     gap: 20px;
   }
   .nav-link {
@@ -153,25 +292,14 @@
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 20px;
+  .desktop-menu {
+    display: none;
   }
-  .navbar-left-main,
-  .navbar-center,
-  .navbar-social,
-  .navbar-visitor-count {
-    width: 100%;
-    margin-bottom: 10px;
+  .desktop-menu-1 {
+    display: none;
   }
-  .navbar-center {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  .navbar-social {
-    justify-content: flex-start;
+  .hamburger-icon {
+    display: block;
   }
 }
 

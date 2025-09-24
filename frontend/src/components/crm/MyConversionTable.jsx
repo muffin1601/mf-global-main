@@ -17,6 +17,7 @@ const MyConversionTable = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
+  const [LeadsforDownload, setLeadsforDownload] = useState(null);
   const [filters, setFilters] = useState({
     category: [],
     datatype: [],
@@ -104,15 +105,15 @@ const downloadCSVReport = async (leads) => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `New_Leads_Report.csv`);
+    link.setAttribute("download", `Converted_Leads_Report.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("New leads report downloaded successfully!");
+    toast.success("MyConverted leads report downloaded successfully!");
 
-    await logActivity("Downloaded new Leads Report", {
+    await logActivity("Downloaded MyConverted Leads Report", {
       leadsCount: leads.length,
     });
   } catch (error) {
@@ -128,7 +129,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
-          <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
+          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -230,7 +231,14 @@ const downloadCSVReport = async (leads) => {
           onConfirm={handleDeleteLead}
         />
       )}
-      
+      {LeadsforDownload && (
+        <ConfirmModal
+          message="Are you sure you want to download report?"
+          onCancel={() => setLeadsforDownload(false)}
+          onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
+        />
+      )}
+    
     </div>
   );
 };

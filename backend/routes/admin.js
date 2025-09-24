@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const ActivityLog = require("../models/UserActivity"); // Mongoose model
+const ActivityLog = require("../models/UserActivity"); 
 const authenticate = require("../middleware/auth");
-const User = require("../models/User"); // Mongoose model
+const User = require("../models/User"); 
 const bcrypt = require("bcrypt");
 
-// GET /activity/user?query=amit
+
 router.get("/activity/user", authenticate, async (req, res) => {
   const { query } = req.query;
 
@@ -35,7 +35,7 @@ router.patch('/admin/toggle-user/:id/toggle', async (req, res) => {
   res.json(user);
 });
 
-// Register new user
+
 router.post('/admin/register-user', async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;

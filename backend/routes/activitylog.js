@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ActivityLog = require("../models/UserActivity");
 
-// POST /api/activity/log
+
 router.post("/activity/log", async (req, res) => {
   try {
     const { userId, name, role, action, timestamp, details } = req.body;

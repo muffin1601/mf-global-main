@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-const { ObjectId } = require('mongodb'); // Using native mongodb ObjectId
-const ClientPermission = require("../models/ClientPermission"); // Correct model import
+const { ObjectId } = require('mongodb'); 
+const ClientPermission = require("../models/ClientPermission"); 
 
-// POST /add-client
 
 router.post("/add-client", async (req, res) => {
   try {
     const { contact, phone } = req.body;
 
-    // Remove icons from specific fields before checking or saving
+    
     const removeIcons = (value) =>
       typeof value === "string" ? value.replace(/^[^\w\s]*\s*/, "").trim() : value;
 
@@ -18,7 +17,7 @@ router.post("/add-client", async (req, res) => {
     req.body.status = removeIcons(req.body.status);
     req.body.callStatus = removeIcons(req.body.callStatus);
 
-    // Check for duplicate client using contact or phone
+    
     const existingClient = await Client.findOne({
       $or: [
         contact && { contact },
@@ -62,7 +61,7 @@ router.get('/check-duplicate-phone', async (req, res) => {
   }
 });
 
-// Check if contact number exists in the database
+
 
 router.get("/check-duplicate-contact", async (req, res) => {
   const { contact } = req.query;
@@ -85,9 +84,9 @@ router.get("/check-duplicate-contact", async (req, res) => {
 });
 
 
-// Example in Express.js
+
 router.post("/clients/delete", async (req, res) => {
-  const { ids } = req.body; // expects an array of client _id values
+  const { ids } = req.body; 
   try {
     await Client.deleteMany({ _id: { $in: ids } });
     res.json({ success: true, message: "Clients deleted successfully" });
@@ -96,135 +95,153 @@ router.post("/clients/delete", async (req, res) => {
   }
 });
 
-// Helper function: builds follow-up date history logic
-function buildFollowUpDateFields(client, newFollowUpDate) {
+
+
+const removeIcons = (value) => {
+  return typeof value === "string"
+    ? value.replace(/^[^\w]*\s*/, "").trim()
+    : value;
+};
+
+
+const buildFollowUpDateFields = (client, newFollowUpDate) => {
   if (!newFollowUpDate) return {};
 
   const dateObj = new Date(newFollowUpDate);
-  const history = {};
-
   const { followUpDateOne, followUpDateTwo, followUpDateThree } = client;
 
-  if (!followUpDateOne) {
-    history.followUpDateOne = dateObj;
-  } else if (!followUpDateTwo) {
-    history.followUpDateTwo = dateObj;
-  } else if (!followUpDateThree) {
-    history.followUpDateThree = dateObj;
+  if (!followUpDateOne) return { followUpDate: dateObj, followUpDateOne: dateObj };
+  if (!followUpDateTwo) return { followUpDate: dateObj, followUpDateTwo: dateObj };
+  if (!followUpDateThree) return { followUpDate: dateObj, followUpDateThree: dateObj };
+
+  const oldest = Math.min(
+    new Date(followUpDateOne).getTime(),
+    new Date(followUpDateTwo).getTime(),
+    new Date(followUpDateThree).getTime()
+  );
+
+  if (new Date(followUpDateOne).getTime() === oldest) {
+    return { followUpDate: dateObj, followUpDateOne: dateObj };
+  } else if (new Date(followUpDateTwo).getTime() === oldest) {
+    return { followUpDate: dateObj, followUpDateTwo: dateObj };
   } else {
-    // All are filled — overwrite the oldest
-    const oldest = Math.min(
-      new Date(followUpDateOne).getTime(),
-      new Date(followUpDateTwo).getTime(),
-      new Date(followUpDateThree).getTime()
-    );
-
-    if (new Date(followUpDateOne).getTime() === oldest) {
-      history.followUpDateOne = dateObj;
-    } else if (new Date(followUpDateTwo).getTime() === oldest) {
-      history.followUpDateTwo = dateObj;
-    } else {
-      history.followUpDateThree = dateObj;
-    }
+    return { followUpDate: dateObj, followUpDateThree: dateObj };
   }
-
-  return {
-    followUpDate: dateObj,
-    ...history
-  };
-}
+};
 
 router.post("/save-all-updates", async (req, res) => {
   try {
     const { updates } = req.body;
-    // Clean icons from datatype, status, callStatus before saving
-    const removeIcons = (options) =>
-      Array.isArray(options)
-      ? options.map(opt => typeof opt === "string" ? opt.replace(/^[^\w]*\s*/, "").trim() : opt)
-      : typeof options === "string"
-        ? options.replace(/^[^\w]*\s*/, "").trim()
-        : options;
-
-    updates.forEach(update => {
-      if (update.datatype) update.datatype = removeIcons(update.datatype);
-      if (update.status) update.status = removeIcons(update.status);
-      if (update.callStatus) update.callStatus = removeIcons(update.callStatus);
-    });
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "No updates to apply" });
     }
 
-    // Validate assignedTo fields for all updates before starting DB operations
-    for (const update of updates) {
-      if (Array.isArray(update.assignedTo)) {
-        for (const a of update.assignedTo) {
-          if (!a.user || !a.user._id || !a.user.name) {
-            return res.status(400).json({ error: "assignedTo user._id and user.name are required" });
-          }
-        }
-      }
-    }
-
     const updatePromises = updates.map(async (update) => {
-      const {
-        id,
-        name,
-        email,
-        phone,
-        contact,
-        remarks,
-        requirements,
-        location,
-        category,
-        datatype,
-        callStatus,
-        followUpDate,
-        assignedTo,
-        additionalContacts
-      } = update;
+      try {
+        const {
+          id,
+          name,
+          email,
+          phone,
+          contact,
+          remarks,
+          requirements,
+          location,
+          category,
+          datatype,
+          callStatus,
+          followUpDate,
+          assignedTo,
+          additionalContacts,
+          status,
+          inquiryDate,
+          address,
+        } = update;
 
-      const query = id ? { _id: new ObjectId(id) } : (phone || contact) ? { $or: [{ phone }, { contact }] } : null;
-      if (!query) return null;
+        if (!id && !phone && !contact) return null;
 
-      const client = await Client.findOne(query);
-      if (!client) return null;
+        const query = id
+          ? { _id: new ObjectId(id) }
+          : { $or: [{ phone }, { contact }] };
 
-      const followUpFields = buildFollowUpDateFields(client, followUpDate);
+        const client = await Client.findOne(query);
+        if (!client) return null;
 
-      // Transform assignedTo
-      let assignedToTransformed = client.assignedTo || [];
-      if (Array.isArray(assignedTo)) {
-        assignedToTransformed = assignedTo.map((a) => ({
-          user: {
-            _id: new ObjectId(a.user._id),
-            name: a.user.name,
-          },
-          permissions: {
-            view: !!a.permissions?.view,
-            update: !!a.permissions?.update,
-            delete: !!a.permissions?.delete,
-          },
-        }));
+       
+        const cleanDatatype = removeIcons(datatype);
+        const cleanCallStatus = removeIcons(callStatus);
+        const cleanStatus = removeIcons(status);
+
+        
+        let assignedToTransformed = [];
+
+        if (Array.isArray(assignedTo) && assignedTo.length > 0) {
+          assignedToTransformed = assignedTo
+            .filter(
+              (a) =>
+                a &&
+                a.user &&
+                typeof a.user._id === "string" &&
+                a.user._id.trim() !== "" &&
+                typeof a.user.name === "string" &&
+                a.user.name.trim() !== ""
+            )
+            .map((a) => {
+              try {
+                return {
+                  user: {
+                    _id: new ObjectId(a.user._id),
+                    name: a.user.name,
+                  },
+                  permissions: {
+                    view: !!a.permissions?.view,
+                    update: !!a.permissions?.update,
+                    delete: !!a.permissions?.delete,
+                  },
+                };
+              } catch (err) {
+                
+                return null;
+              }
+            })
+            .filter(Boolean); 
+        } else {
+          assignedToTransformed = []; 
+        }
+
+       
+        const followUpFields = buildFollowUpDateFields(client, followUpDate);
+
+       
+        const updateFields = {
+          ...(name !== undefined && { name }),
+          ...(email !== undefined && { email }),
+          ...(phone !== undefined && { phone }),
+          ...(contact !== undefined && { contact }),
+          ...(remarks !== undefined && { remarks }),
+          ...(requirements !== undefined && { requirements }),
+          ...(location !== undefined && { location }),
+          ...(category !== undefined && { category }),
+          ...(cleanDatatype && { datatype: cleanDatatype }),
+          ...(cleanCallStatus && { callStatus: cleanCallStatus }),
+          ...(cleanStatus && { status: cleanStatus }),
+          ...(inquiryDate !== undefined && { inquiryDate }),
+          ...(address !== undefined && { address }),
+          assignedTo: assignedToTransformed,
+          additionalContacts: Array.isArray(additionalContacts)
+            ? additionalContacts
+            : client.additionalContacts,
+          ...followUpFields,
+        };
+
+        return Client.findByIdAndUpdate(client._id, { $set: updateFields }, {
+          new: true,
+          runValidators: true,
+        });
+      } catch (innerErr) {
+        console.error("Failed to process individual update:", innerErr.message);
+        return null;
       }
-
-      const updateFields = {
-        ...(name !== undefined && { name }),
-        ...(email !== undefined && { email }),
-        ...(phone !== undefined && { phone }),
-        ...(contact !== undefined && { contact }),
-        ...(remarks !== undefined && { remarks }),
-        ...(requirements !== undefined && { requirements }),
-        ...(location !== undefined && { location }),
-        ...(category !== undefined && { category }),
-        ...(datatype !== undefined && { datatype }),
-        ...(callStatus !== undefined && { callStatus }),
-        ...(followUpDate !== undefined && { followUpDate }),
-        assignedTo: assignedToTransformed,
-        additionalContacts: Array.isArray(additionalContacts) ? additionalContacts : client.additionalContacts,
-        ...followUpFields
-      };
-
-      return Client.findByIdAndUpdate(client._id, { $set: updateFields }, { new: true, runValidators: true });
     });
 
     const results = await Promise.all(updatePromises);
@@ -232,14 +249,12 @@ router.post("/save-all-updates", async (req, res) => {
 
     res.status(200).json({
       message: "Updates applied successfully",
-      updatedClients: updatedCount
+      updatedClients: updatedCount,
     });
-
   } catch (error) {
-    console.error("Error in /save-all-updates:", error);
-    res.status(500).json({ error: "Failed to save updates", details: error.message });
+    console.error("Error in /save-all-updates:", error.message);
+    res.status(500).json({ error: "Failed to save updates" });
   }
 });
-
 
 module.exports = router;

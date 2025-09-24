@@ -1,8 +1,8 @@
 import React from "react";
 import "../../styles/main/OurServices.css";
-import img1 from "/assets/main/printkee-img.png";
-import img2 from "/assets/main/coachingpromo-img.png";
-import img3 from "/assets/main/other-img.png";
+import img1 from "/assets/main/printkee-img.webp";
+import img2 from "/assets/main/coachingpromo-img.webp";
+import img3 from "/assets/main/other-img.webp";
 
 const services = [
   {
@@ -31,8 +31,10 @@ const services = [
 const OurServices = () => {
   return (
     <section className="services-section">
-      <h2 className="services-heading">Our Services</h2>
-      <p className="services-quote">Innovative Solutions, Tailored Excellence</p>
+      <h2 className="services-heading">Empowering Brands Through Curated Corporate Gifting Solutions</h2>
+      <p className="services-quote">From welcome kits to festive hampers, our end-to-end gifting services are designed to elevate employee experiences, impress clients, and make your brand unforgettable.
+
+</p>
       <div className="services-grid">
         {services.map((service, index) => (
           <div className="service-card" key={index}>

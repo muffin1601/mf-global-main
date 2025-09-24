@@ -121,7 +121,7 @@ const FormModal = ({
     e.preventDefault();
 
     if (phoneError || contactError) {
-      alert("Please resolve errors before submitting.");
+      toast.error("Please resolve errors before submitting.");
       return;
     }
 

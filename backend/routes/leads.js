@@ -60,6 +60,7 @@ router.post('/printkee/capture-lead', async (req, res) => {
     const {
       name,
       company,
+      productCode,
       email,
       phone,
       requirements,
@@ -71,10 +72,10 @@ router.post('/printkee/capture-lead', async (req, res) => {
       company: company,
       email: email,
       phone: phone,
-      requirements: requirements,
+      requirements: requirements || productCode,
       inquiryDate: new Date(),
       callStatus: "Not Called",
-      status:"New Lead",
+      status: "New Lead",
       datatype: "WebPortals",
     });
 

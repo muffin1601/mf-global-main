@@ -9,7 +9,8 @@ import { logActivity } from '../../utils/logActivity'; // Adjust the import path
 import { toast } from 'react-toastify';
 import FilterModal from './Modals/FilterModal';
 import DownloadReportModal from './Modals/DownloadModal';
-
+import SearchProductModal from './Modals/SearchProductModal';
+import FormModal from './Modals/FormModal';
 
 const MyLeadTable = () => {
   const [leads, setLeads] = useState([]);
@@ -20,7 +21,10 @@ const MyLeadTable = () => {
   const [editLead, setEditLead] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [filtersForDelete, setFiltersForDelete] = useState(null);
+  const [LeadsforDownload, setLeadsforDownload] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
   const [filters, setFilters] = useState({
     category: [],
@@ -72,7 +76,9 @@ const MyLeadTable = () => {
       default: return 'status-other';
     }
   };
-
+const handleAddLead = () => {
+    setFormModalOpen(true);
+  };
 
 const handleDeleteLead = async () => {
   if (!leadforDelete) return;
@@ -115,9 +121,9 @@ const downloadCSVReport = async (leads) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("New leads report downloaded successfully!");
+    toast.success("My leads report downloaded successfully!");
 
-    await logActivity("Downloaded new Leads Report", {
+    await logActivity("Downloaded My Leads Report", {
       leadsCount: leads.length,
     });
   } catch (error) {
@@ -131,10 +137,11 @@ const downloadCSVReport = async (leads) => {
       <div className="lead-header">
         <h5>My Leads Report</h5>
         <div className="lead-btn-group">
-          {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button> */}
+          <button className="btn-add" onClick={handleAddLead}>+ Add</button>
+          <button className="btn-update" onClick={() => setShowProductModal(true)}>Products</button>
           <button className="btn-filter"onClick={() => setShowModal(true)}>Get Report</button>
-          <button className="btn-download" onClick={() => downloadCSVReport(leads)}disabled={!leads.length}>Download</button>
-          {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
+          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          {/* <button className="btn-update" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
 
@@ -220,6 +227,11 @@ const downloadCSVReport = async (leads) => {
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
       )}
+      {isFormModalOpen && (
+        <FormModal
+        isOpen={isFormModalOpen} onClose={() => setFormModalOpen(false)}
+        />
+      )}
       {editLead && (
         <EditLeadModal
           lead={editLead}
@@ -251,6 +263,16 @@ const downloadCSVReport = async (leads) => {
           }}
           defaultFilters={filters}  // Make sure defaultFilters is passed if needed
         />)}
+      {showProductModal && (
+        <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />
+      )}
+    {LeadsforDownload && (
+        <ConfirmModal
+          message="Are you sure you want to download report?"
+          onCancel={() => setLeadsforDownload(false)}
+          onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
+        />
+      )}
     </div>
   );
 };

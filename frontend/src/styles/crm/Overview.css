@@ -1,116 +1,203 @@
-
 .dashboard-overview {
-    padding: 20px;
-    font-family: p;
-    font-family: 'Poppins', sans-serif;
-  }
-  
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-  }
+  padding: 0px;
+ font-family: 'outfit', sans-serif;
+  color: #333333; 
+}
 
-  
-  
-  .breadcrumb {
-    font-size: 14px;
-    color: #8e8e93;
-    margin-bottom: 4px;
-  }
-  
-  .dashboard-header h2 {
-    margin: 0;
-    font-weight: 500;
-  }
-  
-  .dashboard-user-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .btn {
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    background: #f2f4f8;
-    color: #333;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-  }
-  
-  .btn.share {
-    background-color: #f57c00;
-    color: white;
-    font-family: 'Poppins', sans-serif;
-  }
-  
-  .dashboard-profile-pic {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
-  .dashboard-cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  
-  .dashboard-card {
-    background-color: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px) saturate(150%);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  padding: 32px 40px 32px 40px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.dashboard-header h2 {
+  font-size: 2.5rem;
+  font-weight: 400;
+  margin: 0;
+  color: #212529; 
+}
+
+.dashboard-header .breadcrumb {
+  font-size: 1rem;
+  color: #6c757d; 
+  font-weight: 500;
+  margin: 0 0 5px;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #4949494b;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px) saturate(150%);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    padding: 32px;
+}
+
+.dashboard-card {
+  display: flex;
+  align-items: center;
+  padding: 25px;
+  gap: 10px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.09));
+  backdrop-filter: blur(20px); 
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+}
+
+.dashboard-card.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dashboard-card .card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.dashboard-card .card-content {
+  margin-left: 15px;
+}
+
+.dashboard-card .card-title {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+  font-weight: 500;
+}
+
+.dashboard-card .card-value {
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin: 5px 0 0;
+  line-height: 1;
+  color: #212529;
+}
+
+.dashboard-card .card-change {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dashboard-card .card-change.positive {
+  color: #28a745;
+}
+
+.dashboard-card .card-change.negative {
+  color: #dc3545;
+}
+
+.dashboard-card .card-change svg {
+  margin-right: 3px;
+}
+
+/* Card Icon Styles */
+.card-total-leads {
+  background: rgba(255, 158, 59, 0.15);
+  color: #ff9e3b;
+  box-shadow: 0px 2px 6px rgba(255, 158, 59, 0.2);
+}
+
+.card-conversion-rate {
+  background: rgba(216, 94, 215, 0.15);
+  color: #d85ed7;
+  box-shadow: 0px 2px 6px rgba(216, 94, 215, 0.2);
+}
+
+.card-assigned-leads {
+  background: rgba(243, 109, 149, 0.15);
+  color: #f36d95;
+  box-shadow: 0px 2px 6px rgba(243, 109, 149, 0.2);
+}
+
+.card-unassigned-leads {
+  background: rgba(255, 140, 98, 0.15);
+  color: #ff8c62;
+  box-shadow: 0px 2px 6px rgba(255, 140, 98, 0.2);
+}
+
+.card-new-leads {
+  background: rgba(209, 138, 222, 0.15);
+  color: #d18ade;
+  box-shadow: 0px 2px 6px rgba(209, 138, 222, 0.2);
+}
+
+.card-trending-leads {
+  background: rgba(255, 112, 67, 0.15);
+  color: #ff7043;
+  box-shadow: 0px 2px 6px rgba(255, 112, 67, 0.2);
+}
+
+.card-my-leads {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64b5f6;
+  box-shadow: 0px 2px 6px rgba(100, 181, 246, 0.2);
+}
+
+.card-my-conversions {
+  background: rgba(129, 199, 132, 0.15);
+  color: #81c784;
+  box-shadow: 0px 2px 6px rgba(129, 199, 132, 0.2);
+}
+
+.card-today-followups {
+  background: rgba(255, 213, 79, 0.15);
+  color: #ffd54f;
+  box-shadow: 0px 2px 6px rgba(255, 213, 79, 0.2);
+}
+
+.card-upcoming-followups {
+  background: rgba(77, 182, 172, 0.15);
+  color: #4db6ac;
+  box-shadow: 0px 2px 6px rgba(77, 182, 172, 0.2);
+}
+
+.card-my-trending-leads {
+  background: rgba(255, 138, 101, 0.15);
+  color: #ff8a65;
+  box-shadow: 0px 2px 6px rgba(255, 138, 101, 0.2);
+}
+
+@media (max-width: 576px) {
+  .dashboard-overview {
     padding: 20px;
-    flex: 1 1 220px;
-    min-width: 200px;
-    cursor: pointer;
-    transition: transform 0.2s;
   }
-  
-  .dashboard-card:hover {
-    transform: translateY(-4px);
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-    font-weight: 500;
-    margin-bottom: 10px;
+  .dashboard-user-actions {
+    margin-top: 15px;
   }
-  
-  .card-title {
-    font-size: 14px;
-    color: #607d8b;
-    text-align: left;
-  }
-  
-  .card-value {
-    font-size: 24px;
-    font-weight: 500;
-  }
-  
-  .card-change {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-top: 6px;
-    display: inline-block;
-    background-color: #e0f2f1;
-    color: #26a69a;
-  }
-  
-  .card-change.negative {
-    background-color: #ffebee;
-    color: #e53935;
-  }
-  
+}

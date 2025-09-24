@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/authSlice";
+import { toast } from "react-toastify";
+import CustomToast from "../../components/crm/CustomToast";
+import { FaGoogle, FaFacebook, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../styles/crm/Login.css";
-import { toast } from 'react-toastify';
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -20,70 +24,107 @@ const Login = () => {
     });
 
     const data = await res.json();
-    if (!res.ok || !data.token) return toast.error(data.message || "Login failed.");
-    if (data.user && data.user.enabled === false)
-      return toast.error("Your account is disabled. Please contact support.");
+
+    if (!res.ok || !data.token) {
+      return toast(
+        <CustomToast
+          type="error"
+          title="Login Failed!"
+          message={data.message || "Invalid credentials. Please try again."}
+        />
+      );
+    }
+
+    if (data.user && data.user.enabled === false) {
+      return toast(
+        <CustomToast
+          type="error"
+          title="Account Disabled"
+          message="Your account is disabled. Please contact support."
+        />
+      );
+    }
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     dispatch(loginSuccess(data.user));
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Login Successful"
+        message="Welcome back!"
+      />
+    );
+
     navigate("/crm/entrydashboard");
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h2 className="login-title">Sign In</h2>
-        <p className="login-subtitle">Welcome back !</p>
-        {/* <button className="google-btn">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
-          Signup with Google
-        </button>
-        <div className="divider">OR</div> */}
-        <form onSubmit={handleLogin}>
-          <label className="login-label">Username</label>
+    <div className="login-wrapper">
+      <video autoPlay loop muted playsInline className="login-bg-video">
+        <source src="https://www.pexels.com/download/video/18446570/" type="video/mp4" />
+      </video>
+
+      <div className="login-glass-card">
+        <h2 className="login-heading">Sign In</h2>
+        <p className="login-subheading">Welcome back 👋</p>
+
+        <form onSubmit={handleLogin} className="login-form">
+          <label className="login-label-username">Username</label>
           <input
-          className="login-input"
+            className="login-input-username"
             type="text"
-            placeholder="Username"
+            placeholder="Enter your username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          <div className="password-row">
-            <label >Password</label>
-            <a href="#">Forget password ?</a>
-          </div>
-          <input
-            className="login-input"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <div className="remember-row">
-            <input type="checkbox" id="remember" />
-            <label htmlFor="remember">Remember password ?</label>
-          </div>
-          <button className="signin-btn" type="submit">Sign In</button>
-        </form>
-        <p className="signup-msg">
-          Dont have an account? <a href="#">Sign Up</a>
-        </p>
-        <div className="social-icons">
-          <button className="social-btn fb">f</button>
-          <button className="social-btn pink">X</button>
-          <button className="social-btn ig">i</button>
-        </div>
-      </div>
 
-      <div className="login-side">
-        <img src="/assets/logo.png" alt="logo" />
-        <h2>Hello Again!</h2>
-        <h4>Ready to Dive In?</h4>
-        <p>
-          Stay connected to your data, tasks, and performance all in one place.
-          Secure, simple, and built for productivity.
-        </p>
+          <div className="login-password-header">
+            <label className="login-label-password">Password</label>
+            <a href="#" className="login-forgot-link">Forgot password?</a>
+          </div>
+
+          <div className="login-password-field">
+            <input
+              className="login-input-password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="login-eye-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
+          <div className="login-remember-row">
+            <input type="checkbox" id="login-remember" className="login-remember-checkbox" />
+            <label htmlFor="login-remember" className="login-remember-label">
+              Remember password?
+            </label>
+          </div>
+
+          <button className="login-submit-btn" type="submit">
+            Sign In
+          </button>
+        </form>
+
+        {/* <p className="login-signup-msg">
+          Don’t have an account? <a href="#" className="login-signup-link">Sign Up</a>
+        </p> */}
+
+        {/* Social Icons */}
+        <div className="login-social-icons">
+          <button className="login-social-btn login-social-google"><FaGoogle /></button>
+          <button className="login-social-btn login-social-facebook"><FaFacebook /></button>
+          <button className="login-social-btn login-social-twitter"><FaXTwitter /></button>
+          <button className="login-social-btn login-social-linkedin"><FaLinkedin /></button>
+        </div>
       </div>
     </div>
   );

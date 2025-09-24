@@ -1,0 +1,97 @@
+.blog-background-container-2 {
+    position: relative;
+    background: url('https://images.pexels.com/photos/7790889/pexels-photo-7790889.jpeg') no-repeat center center;
+    min-height: 60vh;
+    padding: 60px 0 40px 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.blog-background-overlay-2 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.blog-detail-container {
+    position: relative;
+    z-index: 2;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 36px 28px 32px 28px;
+    max-width: 1500px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.blog-detail-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #1a2236;
+    text-align: center;
+}
+
+.blog-detail-media {
+    display: block;
+    margin: 0 auto 28px auto;
+    border-radius: 12px;
+    max-height: 380px;
+    object-fit: cover;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.blog-detail-content {
+    font-size: 1.15rem;
+    color: #333;
+    line-height: 1.7;
+    margin-bottom: 36px;
+    white-space: pre-line;
+}
+
+.blog-loading {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #888;
+    margin-top: 80px;
+}
+
+@media (max-width: 1024px) {
+    .blog-detail-container {
+        padding: 28px 16px 24px 16px;
+        max-width: 95vw;
+    }
+    .blog-detail-title {
+        font-size: 1.7rem;
+    }
+    .blog-detail-media {
+        max-height: 260px;
+    }
+}
+
+@media (max-width: 600px) {
+    .blog-background-container-2 {
+        padding: 32px 0 20px 0;
+        min-height: 40vh;
+    }
+    .blog-detail-container {
+        padding: 16px 6px 14px 6px;
+        border-radius: 10px;
+    }
+    .blog-detail-title {
+        font-size: 1.2rem;
+        margin-bottom: 16px;
+    }
+    .blog-detail-media {
+        max-height: 160px;
+        border-radius: 8px;
+    }
+    .blog-detail-content {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+}

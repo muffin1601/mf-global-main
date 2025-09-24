@@ -24,6 +24,9 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // API Routes
+app.use("/api", require("./routes/main/emailRoutes"));
+app.use ("/api/visitors", require("./routes/main/visitor"));
+app.use("/api/blogs", require("./routes/main/blogRoutes"));
 app.use("/api", require("./routes/client"));
 app.use("/api", require("./routes/upload"));
 app.use("/api", require("./routes/fetch-client"));
@@ -37,6 +40,9 @@ app.use("/api", require("./routes/clientwork"));
 app.use("/api", require("./routes/leads"));
 app.use("/api", require("./routes/dashboardoverview"));
 app.use("/api", require("./routes/Todo-Performance"));
+app.use("/api", require("./routes/Products/product"));
+app.use("/api", require("./routes/Products/vendor"));
+app.use("/api", require("./routes/Products/ProductOverview"));
 
 require("./cron/tradeIndiaCron");
 require("./cron/indiaMartCron");

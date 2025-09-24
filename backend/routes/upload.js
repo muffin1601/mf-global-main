@@ -26,10 +26,10 @@ const upload = multer({
 const PHONE_REGEX = /^[6-9][0-9]{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Helper function to clean input data (removes unwanted special characters and trims spaces)
+
 const cleanInput = (input) => {
   return input
-    .replace(/[^\x20-\x7E]/g, "")  // Remove non-ASCII characters
+    .replace(/[^\x20-\x7E]/g, "")  
     .trim();  // Trim leading and trailing spaces
 };
 

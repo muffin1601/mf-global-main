@@ -4,9 +4,7 @@ const Product = require('../../models/ProductData');
 const Category = require('../../models/Category');
 
 
-// @route   POST /api/products
-// @desc    Create a new product
-// @access  Public or Protected (adjust as needed)
+
 router.post('/add-product', async (req, res) => {
   try {
     const {
@@ -52,7 +50,7 @@ router.post('/add-product', async (req, res) => {
 
 router.get("/products", async (req, res) => {
   try {
-    const products = await Product.find().lean(); // get all clients
+    const products = await Product.find().lean(); 
     // const uniqueProductsMap = new Map();
 
     // clients.forEach(client => {

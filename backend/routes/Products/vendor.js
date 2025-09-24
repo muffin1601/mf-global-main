@@ -2,10 +2,10 @@ const express = require('express');
 const router  = express.Router();
 const Vendor  = require('../../models/VendorData');
 
-// POST /vendors/add  – create a vendor
+
 router.post('/add-vendor', async (req, res) => {
   try {
-    console.log('Received vendor payload:', req.body); // <--- Add this
+    console.log('Received vendor payload:', req.body); 
 
     const data = { ...req.body };
 
@@ -21,7 +21,7 @@ router.post('/add-vendor', async (req, res) => {
 
     return res.status(201).json({ message: 'Vendor Added', vendor });
   } catch (err) {
-    console.error('Error while adding vendor:', err); // <--- Add this
+    console.error('Error while adding vendor:', err); 
     if (err.code === 11000) {
       return res.status(400).json({ error: 'Vendor code already exists.' });
     }
@@ -30,7 +30,7 @@ router.post('/add-vendor', async (req, res) => {
 });
 
 
-// (optional) GET /vendors – list all vendors
+
 router.get('/vendors', async (_req, res) => {
   try {
     const vendors = await Vendor.find().lean();
@@ -67,8 +67,8 @@ router.post('/vendors/update', async (req, res) => {
 
   try {
     const vendor = await Vendor.findByIdAndUpdate(vendorId, updatedVendor, {
-      new: true, // return the updated document
-      runValidators: true, // validate fields based on schema
+      new: true, 
+      runValidators: true, 
     });
 
     if (!vendor) {

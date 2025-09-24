@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-const { ObjectId } = require('mongodb'); // Using native mongodb ObjectId
-const ClientPermission = require("../models/ClientPermission"); // Correct model import
+const { ObjectId } = require('mongodb'); 
+const ClientPermission = require("../models/ClientPermission"); 
 
-// POST /add-client
 
 router.post("/add-client", async (req, res) => {
   try {
     const { contact, phone } = req.body;
 
-    // Remove icons from specific fields before checking or saving
+    
     const removeIcons = (value) =>
       typeof value === "string" ? value.replace(/^[^\w\s]*\s*/, "").trim() : value;
 
@@ -18,7 +17,7 @@ router.post("/add-client", async (req, res) => {
     req.body.status = removeIcons(req.body.status);
     req.body.callStatus = removeIcons(req.body.callStatus);
 
-    // Check for duplicate client using contact or phone
+    
     const existingClient = await Client.findOne({
       $or: [
         contact && { contact },
@@ -62,7 +61,7 @@ router.get('/check-duplicate-phone', async (req, res) => {
   }
 });
 
-// Check if contact number exists in the database
+
 
 router.get("/check-duplicate-contact", async (req, res) => {
   const { contact } = req.query;
@@ -85,9 +84,9 @@ router.get("/check-duplicate-contact", async (req, res) => {
 });
 
 
-// Example in Express.js
+
 router.post("/clients/delete", async (req, res) => {
-  const { ids } = req.body; // expects an array of client _id values
+  const { ids } = req.body; 
   try {
     await Client.deleteMany({ _id: { $in: ids } });
     res.json({ success: true, message: "Clients deleted successfully" });
@@ -97,14 +96,14 @@ router.post("/clients/delete", async (req, res) => {
 });
 
 
-// Utility: clean icons from strings
+
 const removeIcons = (value) => {
   return typeof value === "string"
     ? value.replace(/^[^\w]*\s*/, "").trim()
     : value;
 };
 
-// Utility: determine which follow-up field to update
+
 const buildFollowUpDateFields = (client, newFollowUpDate) => {
   if (!newFollowUpDate) return {};
 
@@ -168,12 +167,12 @@ router.post("/save-all-updates", async (req, res) => {
         const client = await Client.findOne(query);
         if (!client) return null;
 
-        // Clean field values
+       
         const cleanDatatype = removeIcons(datatype);
         const cleanCallStatus = removeIcons(callStatus);
         const cleanStatus = removeIcons(status);
 
-        // AssignedTo transformation
+        
         let assignedToTransformed = [];
 
         if (Array.isArray(assignedTo) && assignedTo.length > 0) {
@@ -201,19 +200,19 @@ router.post("/save-all-updates", async (req, res) => {
                   },
                 };
               } catch (err) {
-                // Skip invalid ObjectId
+                
                 return null;
               }
             })
-            .filter(Boolean); // Remove any nulls from failed conversions
+            .filter(Boolean); 
         } else {
-          assignedToTransformed = []; // empty is allowed
+          assignedToTransformed = []; 
         }
 
-        // Determine which follow-up date to update
+       
         const followUpFields = buildFollowUpDateFields(client, followUpDate);
 
-        // Construct update object conditionally
+       
         const updateFields = {
           ...(name !== undefined && { name }),
           ...(email !== undefined && { email }),

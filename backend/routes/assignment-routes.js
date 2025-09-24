@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Client = require("../models/ClientData"); // Correct model import
+const Client = require("../models/ClientData"); 
 const User = require('../models/User');
 
 router.post("/clients/filter", async (req, res) => {
@@ -37,14 +37,14 @@ router.post("/clients/filter", async (req, res) => {
       query.push({ status: { $in: status } });
     }
 
-    // Assigned/Unassigned flag
+  
     if (assigned === "assigned") {
       query.push({ assignedTo: { $exists: true, $ne: [] } });
     } else if (assigned === "unassigned") {
       query.push({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: [] }] });
     }
 
-    // Filter by assignedTo.user.name if provided
+    
     if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
       query.push({
         "assignedTo.user.name": { $in: assignedTo }
@@ -55,7 +55,7 @@ router.post("/clients/filter", async (req, res) => {
 
     const clients = await Client.find(finalQuery);
 
-    // Optional: remove duplicates
+  
     const uniqueClients = clients.filter((client, index, self) =>
       index === self.findIndex(c => c._id.toString() === client._id.toString())
     );
@@ -68,7 +68,7 @@ router.post("/clients/filter", async (req, res) => {
 });
 
 
-// --- POST assign users to leads ---
+
 router.post('/leads/assign', async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
 
@@ -82,14 +82,14 @@ router.post('/leads/assign', async (req, res) => {
 
         const updatedAssignments = new Map();
 
-        // Keep existing assignments
+     
         (lead.assignedTo || []).forEach((a) => {
           if (a.user && a.user._id) {
             updatedAssignments.set(a.user._id.toString(), a);
           }
         });
 
-        // Add/update with new assignments
+        
         users.forEach((user) => {
           updatedAssignments.set(user._id.toString(), {
             user: {
@@ -112,8 +112,6 @@ router.post('/leads/assign', async (req, res) => {
   }
 });
 
-
-// --- POST remove assignments ---
 router.post('/leads/remove-assignments', async (req, res) => {
   const { Leads, userIds } = req.body;
 

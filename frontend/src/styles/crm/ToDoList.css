@@ -1,0 +1,166 @@
+
+                .crm-dashboard {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                    padding: 24px;
+                }
+
+                /* To-Do List Card Styling */
+                .todo-card {
+                    width: 50%;
+                    max-width: 700px;
+                    background-color: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(15px) saturate(150%);
+                    border-radius: 24px;
+                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+                    padding: 32px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    transition: all 0.3s ease;
+                }
+
+                .todo-header {
+                    font-size: 2rem;
+                    font-weight: 400;
+                    color: #383838;
+                    text-align: left;
+                    letter-spacing: -1px;
+
+                }
+
+                .todo-input-form {
+                    display: flex;
+                    gap: 12px;
+                }
+
+                .todo-input {
+                    flex-grow: 1;
+                    padding: 12px 16px;
+                    background-color: rgba(255, 255, 255, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                    border-radius: 12px;
+                    font-size: 1rem;
+                    color: #1f2937;
+                    font-family: 'Outfit', sans-serif;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+
+                .todo-input::placeholder {
+                    color: #6b7280;
+                }
+
+                .todo-input:focus {
+                    background-color: rgba(255, 255, 255, 0.7);
+                    border-color: rgba(255, 255, 255, 0.8);
+                }
+
+                .todo-add-button {
+                    background-color: #f97316;
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    padding: 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                }
+
+                .todo-add-button:hover {
+                    background-color: #ea580c;
+                    transform: scale(1.05);
+                }
+
+                .todo-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .todo-item {
+                    display: flex;
+                    align-items: center;
+                    background-color: rgba(255, 255, 255, 0.4);
+                    border-radius: 12px;
+                    padding: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    transition: all 0.2s ease;
+                    position: relative;
+                }
+
+                .todo-item:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 12px -1px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                }
+
+                .task-text {
+                    flex-grow: 1;
+                    color: #1f2937;
+                    font-size: 1rem;
+                    transition: all 0.3s ease;
+                    word-break: break-word;
+                    line-height: 1.5;
+                }
+
+                .task-text.completed {
+                    text-decoration: line-through;
+                    color: #6b7280;
+                    opacity: 0.8;
+                }
+
+                .action-buttons {
+                    display: flex;
+                    gap: 8px;
+                    margin-left: 16px;
+                }
+                
+                .todo-action-button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 4px;
+                    color: #6b7280;
+                    transition: color 0.2s ease;
+                }
+                
+                .todo-action-button:hover {
+                    color: #f97316;
+                }
+
+                .todo-action-button svg {
+                    width: 20px;
+                    height: 20px;
+                }
+
+                .edit-mode {
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                    gap: 12px;
+                }
+
+                .edit-input {
+                    flex-grow: 1;
+                    padding: 8px 12px;
+                    background-color: rgba(255, 255, 255, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    color: #1f2937;
+                    outline: none;
+                }
+
+                .edit-input:focus {
+                    background-color: rgba(255, 255, 255, 0.7);
+                    border-color: rgba(255, 255, 255, 0.8);
+                }

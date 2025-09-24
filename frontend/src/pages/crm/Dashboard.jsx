@@ -4,9 +4,10 @@ import "../../styles/crm/Dashboard.css";
 import Navbar from "../../components/crm/Navbar";
 import Sidebar from "../../components/crm/Sidebar";
 import Overview from "../../components/crm/Overview";
-import ToDoPerformance from "../../components/crm/ToDoPerformance";
+import SalesPerformance from "../../components/crm/SalesPerformance";
 import ChartOverview from "../../components/crm/ChartOverview";
 import "../../styles/crm/global.css";
+import ToDoList from "../../components/crm/ToDoList";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -51,37 +52,35 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="loading-wrapper">
-        <div className="loader"></div>
+        <div className="premium-spinner"></div>
         <p>Loading Dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-layout">
+    <>
+    <div className="premium-dashboard-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-content-wrapper">
         <Navbar />
-        <div className="dashboard-main">
+        <div className="premium-dashboard-main">
           <Overview />
-          <ToDoPerformance />
+          <div className="second-box">
+          <SalesPerformance />
+          <ToDoList />
+          </div>
+          <div className="third-box">
           <ChartOverview />
+          </div>
         </div>
-        <footer
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#f1f1f1",
-            textAlign: "center",
-            fontSize: "14px",
-            color: "#555",
-            borderTop: "1px solid #ddd",
-          }}
-        >
-          © {new Date().getFullYear()} MF Global Services. All rights reserved.
-        </footer>
+        
       </div>
+      
     </div>
+    <div className="premium-footer">
+          © {new Date().getFullYear()} MF Global Services. All rights reserved.
+        </div></>
   );
 };
 

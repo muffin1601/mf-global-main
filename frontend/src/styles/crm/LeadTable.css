@@ -208,11 +208,11 @@
   .lead-actions button {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #e6edf3;
+    color: #ffffff;
     border-radius: 50%;
     width: 34px;
     height: 34px;
-    font-size: 14px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -225,26 +225,35 @@
     transform: scale(1.05);
   }
 
-  .location-icon {
-    margin-right: 0.25rem;
-  }
 
   .lead-pagination-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 1.5rem;
-    background-color: rgba(51, 51, 51, 0.541);
-    
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    font-family: 'outfit', sans-serif;
     margin-top: 1.5rem;
-    font-size: 0.875rem;
-    color: #8b949e;
+    
+    color: #000000;
   }
 
+
+
   .lead-entries {
-    white-space: nowrap;
+    background: rgba(82, 82, 82, 0.555);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.6rem 1rem;
+    border-radius: 25px;
+    display: flex;
+    font-size: 1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-family: 'outfit', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
   .lead-pagination {
@@ -256,11 +265,17 @@
   }
 
   .lead-pagination button {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e6edf3;
+    background: rgba(82, 82, 82, 0.356);
+    color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 0.6rem 1rem;
-    border-radius: 8px;
+    border-radius: 25px;
+    display: flex;
+    font-size: 1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-family: 'outfit', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
   }

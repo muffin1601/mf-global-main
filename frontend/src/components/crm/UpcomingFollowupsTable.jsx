@@ -18,15 +18,7 @@ const UpcomingFollowupsTable = () => {
   const [editLead, setEditLead] = useState(null);
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [leadforDelete, setLeadforDelete] = useState(null);
-  const [filters, setFilters] = useState({
-    category: [],
-    datatype: [],
-    location: [],
-    fileName: [],
-    status: [],
-    callStatus: [],
-    assignedTo: [],
-  });
+  
 
 
   const user = JSON.parse(localStorage.getItem('user'))
@@ -129,7 +121,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
-          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>

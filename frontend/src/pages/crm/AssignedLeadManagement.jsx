@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/crm/Dashboard.css";
-import Navbar from "../../components/crm/Navbar"; // Adjust the import path as needed
+import Navbar from "../../components/crm/Navbar";
 import Sidebar from "../../components/crm/Sidebar";
 import AssignedLeadsTable from "../../components/crm/AssignedLeadsTable";
-
 
 const AssignedLeadManagement = () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true); // To handle loading state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,7 +22,7 @@ const AssignedLeadManagement = () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ Ensure token is correctly sent
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => {
@@ -38,43 +36,38 @@ const AssignedLeadManagement = () => {
           throw new Error("Invalid response from server");
         }
         setUser(data.user);
-        setMessage(data.message || ""); // Ensure message is properly set
+        setMessage(data.message || "");
       })
       .catch((error) => {
         console.error("Dashboard Fetch Error:", error);
-        navigate("/crm/login"); // Redirect to login if there's an error
+        navigate("/crm/login");
       })
-      .finally(() => setLoading(false)); // Set loading to false once the fetch is done
+      .finally(() => setLoading(false));
   }, [navigate]);
 
   if (loading) {
-    return <div>Loading...</div>; // Add a loading indicator
+    return (
+      <div className="loading-wrapper">
+        <div className="premium-spinner"></div>
+        <p>Loading Dashboard...</p>
+      </div>
+    );
   }
 
   return (
-  
     <>
-      <div className="dashboard-layout">
-        <Sidebar /> {/* Left sidebar */}
-        <div className="main-content">
-          <Navbar /> {/* Top navbar */}
-          <div className="dashboard-main">
+      <div className="premium-dashboard-layout">
+        <Sidebar />
+        <div className="main-content-wrapper">
+          <Navbar />
+          <div className="premium-dashboard-main">
             <AssignedLeadsTable />
           </div>
-          <footer style={{ 
-            marginTop: "20px", 
-            padding: "10px 20px", 
-            backgroundColor: "#f1f1f1", 
-            textAlign: "center", 
-            fontSize: "14px", 
-            color: "#555", 
-            borderTop: "1px solid #ddd" 
-          }}>
-            © {new Date().getFullYear()} MF Global Services. All rights reserved.
-          </footer>
         </div>
       </div>
-
+      <div className="premium-footer">
+        © {new Date().getFullYear()} MF Global Services. All rights reserved.
+      </div>
     </>
   );
 };

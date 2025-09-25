@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../../styles/crm/LeadTable.css'; // Ensure CSS contains styles for .btn-view, .btn-edit, .btn-delete, etc.
+import '../../styles/crm/LeadTable.css'; 
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import LeadModal from './Modals/LeadModal';
 import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
-import { logActivity } from '../../utils/logActivity'; // Adjust the import path as necessary
+import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
-import FetchReportModal from './Modals/FetchReportModal'; // Ensure the path is correct
+import FetchReportModal from './Modals/FetchReportModal';
 
 const AssignedLeadsTable = () => {
   const [leads, setLeads] = useState([]);
@@ -153,7 +153,7 @@ const handleDownload = () => {
       return;
     }
 
-    downloadCSVUserReport(dateType, fromDate, toDate, leads); // Pass the arguments correctly
+    downloadCSVUserReport(dateType, fromDate, toDate, leads);
   };
 
   const downloadCSVUserReport = async (dateType, fromDate, toDate, leads) => {
@@ -177,10 +177,10 @@ const handleDownload = () => {
         from: formattedFromDate,
         to: formattedToDate,
         type: dateType,
-        leads, // Now included in the request body
+        leads, 
       },
       {
-        responseType: "blob", // So CSV is properly handled
+        responseType: "blob", 
       }
     );
 
@@ -217,9 +217,9 @@ const handleDownload = () => {
       <div className="lead-header">
         <h5>Assigned Leads Report</h5>
         <div className="lead-btn-group">
-          <button className="btn-filter" onClick={() => setShowFetchModal(true)}>Fetch Report</button>
+          <button className="btn-filter-2" onClick={() => setShowFetchModal(true)}>Fetch Report</button>
           {/* <button className="btn-update">Filter</button> */}
-          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -234,7 +234,7 @@ const handleDownload = () => {
               <th>Company Name</th>
               <th>Status</th>
               <th>Location</th>
-              <th>Date</th>
+              <th>Datatype</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -254,7 +254,7 @@ const handleDownload = () => {
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
                 <td><i className="ti ti-map-pin"></i> {lead.location}</td>
-                <td>{lead.createdAt?.slice(0, 10)}</td>
+                <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
                       <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}><AiOutlineEye  /></button>

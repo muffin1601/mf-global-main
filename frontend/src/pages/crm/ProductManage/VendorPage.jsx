@@ -47,36 +47,29 @@ const VendorPage= () => {
       .finally(() => setLoading(false)); // Set loading to false once the fetch is done
   }, [navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>; // Add a loading indicator
+   if (loading) {
+    return (
+      <div className="loading-wrapper">
+        <div className="premium-spinner"></div>
+        <p>Loading Dashboard...</p>
+      </div>
+    );
   }
 
   return (
-  
     <>
-      <div className="dashboard-layout">
-        <Sidebar /> {/* Left sidebar */}
-        <div className="main-content">
-          <Navbar /> {/* Top navbar */}
-          <div className="dashboard-main">
-            <VendorsTable />
-          </div>
-          <footer style={{ 
-            marginTop: "20px", 
-            padding: "10px 20px", 
-            backgroundColor: "#f1f1f1", 
-            textAlign: "center", 
-            fontSize: "14px", 
-            color: "#555", 
-            borderTop: "1px solid #ddd" 
-          }}>
-            © {new Date().getFullYear()} MF Global Services. All rights reserved.
-          </footer>
+    <div className="premium-dashboard-layout">
+      <Sidebar />
+      <div className="main-content-wrapper">
+        <Navbar />
+        <div className="premium-dashboard-main">
+          <VendorsTable />
         </div>
       </div>
-
-    </>
+    </div>
+    <div className="premium-footer">
+          © {new Date().getFullYear()} MF Global Services. All rights reserved.
+        </div></>
   );
 };
-
 export default VendorPage;

@@ -26,7 +26,7 @@ const Navbar = () => {
       timestamp: new Date().toISOString(),
     });
     dispatch(logout());
-    navigate('/crm');
+    navigate('/crm/login');
   };
 
   return (

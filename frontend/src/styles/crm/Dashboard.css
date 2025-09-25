@@ -23,7 +23,7 @@
 }
 
 .premium-dashboard-main {
-  background: url('https://images.pexels.com/photos/34004027/pexels-photo-34004027.jpeg') no-repeat center center fixed;
+  background: url('https://images.pexels.com/photos/33992289/pexels-photo-33992289.jpeg') no-repeat center center fixed;
   background-size: cover; /* Makes image cover the container while keeping aspect ratio */
   width: 100%;
   
@@ -37,11 +37,12 @@
   flex-grow: 1;
 }
 
-.second-box, .third-box {
+.second-box {
   display: flex;
   gap: 25px;
   flex-direction: row;
 }
+
 
 @media (max-width: 1200px) {
   .premium-dashboard-main {

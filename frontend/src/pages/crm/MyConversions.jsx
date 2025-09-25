@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/crm/Dashboard.css";
-import Navbar from "../../components/crm/Navbar"; // Adjust the import path as needed
+import Navbar from "../../components/crm/Navbar"; 
 import Sidebar from "../../components/crm/Sidebar";
 import MyConversionTable from "../../components/crm/MyConversionTable";
 
@@ -9,7 +9,7 @@ import MyConversionTable from "../../components/crm/MyConversionTable";
 const MyConversions = () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true); // To handle loading state
+  const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
   
 
@@ -24,7 +24,7 @@ const MyConversions = () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ Ensure token is correctly sent
+        Authorization: `Bearer ${token}`, 
       },
     })
       .then((res) => {
@@ -38,17 +38,17 @@ const MyConversions = () => {
           throw new Error("Invalid response from server");
         }
         setUser(data.user);
-        setMessage(data.message || ""); // Ensure message is properly set
+        setMessage(data.message || ""); 
       })
       .catch((error) => {
         console.error("Dashboard Fetch Error:", error);
-        navigate("/crm/login"); // Redirect to login if there's an error
+        navigate("/crm/login"); 
       })
-      .finally(() => setLoading(false)); // Set loading to false once the fetch is done
+      .finally(() => setLoading(false)); 
   }, [navigate]);
 
   if (loading) {
-    return <div>Loading...</div>; // Add a loading indicator
+    return <div>Loading...</div>; 
   }
 
   return (

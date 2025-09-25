@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from "recharts";
+import "../../styles/crm/ChartOverview.css";
 
 const ChartOverview = () => {
   const [leadData, setLeadData] = useState([]);
@@ -36,14 +47,13 @@ const ChartOverview = () => {
   }, []);
 
   return (
-    <div className="charts-container">
-      
-      {/* Leads Overview Radar Chart */}
-      <div className="chart-box">
-        <div className="chart-header">
-          <span className="chart-title">Leads Overview</span>
+    <div className="chart-overview__container">
+     
+      <div className="chart-overview__leads-box">
+        <div className="chart-overview__leads-header">
+          <span className="chart-overview__leads-title">Leads Overview</span>
           <select
-            className="chart-select"
+            className="chart-overview__leads-select"
             value={leadTimeframe}
             onChange={(e) => setLeadTimeframe(e.target.value)}
           >
@@ -52,29 +62,80 @@ const ChartOverview = () => {
             <option>Weekly</option>
           </select>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <RadarChart data={leadData}>
-            <PolarGrid stroke="#e0e0e0" />
-            <PolarAngleAxis dataKey="year" stroke="#666" />
-            <PolarRadiusAxis angle={90} domain={[0, 150]} stroke="#666" />
-            <Radar name="Hot Leads" dataKey="Hot" stroke="#FF8C00" fill="#FF8C00" fillOpacity={0.6} />
-            <Radar name="Warm Leads" dataKey="Warm" stroke="#FFD700" fill="#FFD700" fillOpacity={0.6} />
-            <Radar name="Cold Leads" dataKey="Cold" stroke="#1E90FF" fill="#1E90FF" fillOpacity={0.6} />
-            <Radar name="Qualified" dataKey="Qualified" stroke="#32CD32" fill="#32CD32" fillOpacity={0.6} />
-            <Legend align="center" verticalAlign="bottom" />
+        <ResponsiveContainer
+          width="100%"
+          height={300}
+          className="chart-overview__leads-responsive"
+        >
+          <RadarChart
+            data={leadData}
+            outerRadius={120}
+            className="chart-overview__leads-radarchart"
+          >
+            <PolarGrid stroke="#e0e0e0" className="chart-overview__leads-grid" />
+            <PolarAngleAxis
+              dataKey="year"
+              stroke="#666"
+              className="chart-overview__leads-angleaxis"
+            />
+            <PolarRadiusAxis
+              angle={90}
+              domain={[0, 150]}
+              stroke="#666"
+              className="chart-overview__leads-radiusaxis"
+            />
+            <Radar
+              name="Hot Leads"
+              dataKey="Hot"
+              stroke="#FF8C00"
+              fill="#FF8C00"
+              fillOpacity={0.6}
+              className="chart-overview__leads-radar-hot"
+            />
+            <Radar
+              name="Warm Leads"
+              dataKey="Warm"
+              stroke="#FFD700"
+              fill="#FFD700"
+              fillOpacity={0.6}
+              className="chart-overview__leads-radar-warm"
+            />
+            <Radar
+              name="Cold Leads"
+              dataKey="Cold"
+              stroke="#1E90FF"
+              fill="#1E90FF"
+              fillOpacity={0.6}
+              className="chart-overview__leads-radar-cold"
+            />
+            <Radar
+              name="Qualified"
+              dataKey="Qualified"
+              stroke="#32CD32"
+              fill="#32CD32"
+              fillOpacity={0.6}
+              className="chart-overview__leads-radar-qualified"
+            />
+            <Legend
+              align="center"
+              verticalAlign="bottom"
+              className="chart-overview__leads-legend"
+            />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Sales Overview Area Chart */}
-      <div className="linechart-box">
-        <div className="chart-header">
-          <span className="chart-title">Sales Overview</span>
-          <div className="tab-buttons">
+      
+      <div className="chart-overview__sales-box">
+        <div className="chart-overview__sales-header">
+          <span className="chart-overview__sales-title">Sales Overview</span>
+          <div className="chart-overview__sales-tabs">
             {["Today", "Weekly", "Yearly"].map((label) => (
               <button
                 key={label}
-                className={`tab-button ${salesTimeframe === label ? "active" : ""}`}
+                className={`chart-overview__sales-tab ${
+                  salesTimeframe === label ? "chart-overview__sales-tab--active" : ""
+                }`}
                 onClick={() => setSalesTimeframe(label)}
               >
                 {label}
@@ -82,19 +143,56 @@ const ChartOverview = () => {
             ))}
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <XAxis dataKey="month" stroke="#666" />
-            <YAxis stroke="#666" />
-            <Tooltip />
-            <Area type="monotone" dataKey="Income" stroke="#FF8C00" fill="#FF8C00" fillOpacity={0.3} />
-            <Area type="monotone" dataKey="Revenue" stroke="#00C49F" fill="#00C49F" fillOpacity={0.3} />
-            <Area type="monotone" dataKey="Profit" stroke="#FFD700" fill="#FFD700" fillOpacity={0.3} />
-            <Legend align="center" verticalAlign="top" />
+
+        <ResponsiveContainer
+          width="100%"
+          height={300}
+          className="chart-overview__sales-responsive"
+        >
+          <AreaChart
+            data={salesData}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            className="chart-overview__sales-areachart"
+          >
+            <XAxis
+              dataKey="month"
+              stroke="#666"
+              className="chart-overview__sales-xaxis"
+            />
+            <YAxis stroke="#666" className="chart-overview__sales-yaxis" />
+            <Tooltip className="chart-overview__sales-tooltip" />
+            <Area
+              type="monotone"
+              dataKey="Income"
+              stroke="#FF8C00"
+              fill="#FF8C00"
+              fillOpacity={0.3}
+              className="chart-overview__sales-area-income"
+            />
+            <Area
+              type="monotone"
+              dataKey="Revenue"
+              stroke="#00C49F"
+              fill="#00C49F"
+              fillOpacity={0.3}
+              className="chart-overview__sales-area-revenue"
+            />
+            <Area
+              type="monotone"
+              dataKey="Profit"
+              stroke="#FFD700"
+              fill="#FFD700"
+              fillOpacity={0.3}
+              className="chart-overview__sales-area-profit"
+            />
+            <Legend
+              align="center"
+              verticalAlign="top"
+              className="chart-overview__sales-legend"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
-
     </div>
   );
 };

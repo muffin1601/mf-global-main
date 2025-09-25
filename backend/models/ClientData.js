@@ -41,7 +41,7 @@ const clientSchema = new mongoose.Schema(
     inquiryDate: { type: String },
     address: { type: String },
     fileName: { type: String, default: null },
-    // New Field
+    
     additionalContacts: [additionalContactSchema]
   },
   { timestamps: true }

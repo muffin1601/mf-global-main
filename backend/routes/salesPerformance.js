@@ -4,9 +4,9 @@ const ClientData = require("../models/ClientData");
 
 router.get("/sales-performance", async (req, res) => {
   try {
-    // Aggregate per sales rep dynamically for all-time data
+    
     const pipeline = [
-      { $unwind: "$assignedTo" }, // In case multiple assignees
+      { $unwind: "$assignedTo" }, 
       {
         $group: {
           _id: "$assignedTo.user._id",
@@ -22,10 +22,10 @@ router.get("/sales-performance", async (req, res) => {
           closedPercentage: {
             $cond: [{ $eq: ["$leads", 0] }, 0, { $multiply: [{ $divide: ["$deals", "$leads"] }, 100] }],
           },
-          change: "neutral", // Optional: compute change vs previous period
+          change: "neutral", 
         },
       },
-      { $sort: { name: 1 } }, // Sort by rep name
+      { $sort: { name: 1 } }, 
     ];
 
     const salesData = await ClientData.aggregate(pipeline);

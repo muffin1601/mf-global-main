@@ -170,14 +170,36 @@ const handleDeleteFilteredLeads = async (filterSet) => {
   return (
     <div className="lead-card">
       <div className="lead-header">
-        <h5>Leads Report</h5>
-        <div className="lead-btn-group">
-          <button className="btn-add" onClick={handleAddLead}>+ Add</button>
-          {user.role == 'admin' && (<button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button>)}
-          <button className="btn-download" onClick={() => setShowModal(true)}>Download</button>
-          <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button>
+          <h5>Leads Report</h5>
+          <div className="lead-btn-group">
+            <button className="btn-add-2" onClick={handleAddLead}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add
+            </button>
+            {user.role == 'admin' && (
+              <button className="btn-update-2" onClick={() => setShowBulkUpdateModal(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="0" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.5 2v6h-6" /><path d="M2.5 22v-6h6" /><path d="M21.5 8a10 10 0 0 0-17.927-4.996" /><path d="M2.5 16a10 10 0 0 0 17.927 4.996" />
+                </svg>
+                Update
+              </button>
+            )}
+            <button className="btn-download-2" onClick={() => setShowModal(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download
+            </button>
+            <button className="btn-filter-2" onClick={() => setShowFilterModal(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+              </svg>
+              Filters
+            </button>
+          </div>
         </div>
-      </div>
 
       <div className="lead-table-wrapper">
         <table className="lead-table">
@@ -189,75 +211,97 @@ const handleDeleteFilteredLeads = async (filterSet) => {
               <th>Company Name</th>
               <th>Status</th>
               <th>Location</th>
-              <th>Date</th>
+              <th>Datatype</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {getPaginatedLeads().map((lead, index) => (
-              <tr key={lead.id || `${lead.email}-${index}`}>
-                <td>{(currentPage - 1) * leadsPerPage + index + 1}</td>
-                <td>
-                  <div className="lead-info">
-                    <div className="lead-details">
-                      <span className="lead-name">{lead.name}</span>
-                      <span className="lead-email">{lead.phone}</span>
+              {getPaginatedLeads().map((lead, index) => (
+                <tr key={lead.id || `${lead.email}-${index}`}>
+                  <td data-label="S.NO">{(currentPage - 1) * leadsPerPage + index + 1}</td>
+                  <td data-label="Lead">
+                    <div className="lead-info">
+                      <div className="lead-details">
+                        <span className="lead-name">{lead.name}</span>
+                        <span className="lead-email">{lead.phone}</span>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                {/* <td>{lead.phone}</td> */}
-                <td>{lead.company}</td>
-                <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
-                <td><i className="ti ti-map-pin"></i> {lead.location}</td>
-                <td>{lead.createdAt?.slice(0, 10)}</td>
-                <td>
+                  </td>
+                  <td data-label="Company Name">{lead.company}</td>
+                  <td data-label="Status">
+                    <span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span>
+                  </td>
+                  <td data-label="Location">
+                    <svg className="location-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {lead.location}
+                  </td>
+                  <td data-label="Datatype">{lead.datatype}</td>
+                  <td data-label="Action">
                     <div className="lead-actions">
-                      <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}><AiOutlineEye  /></button>
-                      <button className="btn-edit" title="Edit" onClick={() => setEditLead(lead)}><AiOutlineEdit /></button>
-                    {user.role === 'admin' && (
-                      <button className="btn-delete" title="Delete" onClick={() => setLeadforDelete(lead)}>
-                        <AiOutlineDelete />
+                      <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="orange" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                        </svg>
                       </button>
-                    )}
+                      <button className="btn-edit" title="Edit" onClick={() => setEditLead(lead)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        </svg>
+                      </button>
+                      {user.role === 'admin' && (
+                        <button className="btn-delete" title="Delete" onClick={() => setLeadforDelete(lead)}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e01212ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
         </table>
       </div>
 
       <div className="lead-pagination-wrapper">
-        <span className="lead-entries">
-          Showing {getPaginatedLeads().length} of {totalLeads} Entries
-        </span>
-        <ul className="lead-pagination">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </button>
-          </li>
-          {[...Array(Math.min(totalPages, 2))].map((_, i) => {
-            const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
-            return (
-              <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
-              </li>
-            );
-          })}
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </li>
-        </ul>
-      </div>
+          <span className="lead-entries">
+            Showing {getPaginatedLeads().length} of {totalLeads} Entries
+          </span>
+          <ul className="lead-pagination">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Prev
+              </button>
+            </li>
+            {[...Array(Math.min(totalPages, 2))].map((_, i) => {
+              const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
+              return (
+                <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
+                  <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
+                </li>
+              );
+            })}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
       )}

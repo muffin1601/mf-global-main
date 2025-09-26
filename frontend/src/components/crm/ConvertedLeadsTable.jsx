@@ -12,7 +12,7 @@ const ConvertedLeadsTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 10;
+  const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
@@ -121,7 +121,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
-          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -136,7 +136,7 @@ const downloadCSVReport = async (leads) => {
               <th>Company Name</th>
               <th>Status</th>
               <th>Location</th>
-              <th>Date</th>
+              <th>Datatype</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -156,7 +156,7 @@ const downloadCSVReport = async (leads) => {
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
                 <td><i className="ti ti-map-pin"></i> {lead.location}</td>
-                <td>{lead.createdAt?.slice(0, 10)}</td>
+                <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
                       <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}><AiOutlineEye  /></button>

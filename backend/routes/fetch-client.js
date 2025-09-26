@@ -3,7 +3,7 @@ const router = express.Router();
 const Client = require("../models/ClientData");
 const ClientPermission = require("../models/ClientPermission"); // Correct model import
 
-// GET /filter-clients
+
 router.get("/filter-clients", async (req, res) => {
   try {
     const { search = "", callStatus = "" } = req.query;

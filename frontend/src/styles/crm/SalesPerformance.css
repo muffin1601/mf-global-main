@@ -1,163 +1,177 @@
 body {
-                    font-family: 'Outfit', sans-serif;
-                    
-                }
+  font-family: "Outfit", sans-serif;
+}
 
-                .crm-dashboard {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 24px;
-                    padding: 24px;
-                    min-height: 100vh;
-                    align-items: flex-start;
-                    justify-content: center;
-                }
+.crm-dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 24px;
+  min-height: 100vh;
+  align-items: flex-start;
+  justify-content: center;
+}
 
-                /* Sales Performance Styles */
-                .sales-performance-card {
-                    width: 50%;
-                    max-width: 800px;
-                    background-color: rgba(255, 255, 255, 0.2);
-                    backdrop-filter: blur(15px) saturate(150%);
-                    border-radius: 24px;
-                    border: 1px solid rgba(255, 255, 255, 0.4);
-                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-                    padding: 32px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 20px;
-                    transition: all 0.3s ease;
-                }
 
-                .sales-card-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 16px;
-                    position: relative;
-                }
+.sp-card {
+  width: 50%;
+  max-width: 800px;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px) saturate(150%);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: all 0.3s ease;
+}
 
-                .sales-card-header h3 {
-                    font-size: 1.45rem;
-                    font-weight: 400;
-                    color: #374151;
-                }
 
-                .sales-dropdown-trigger {
-                    cursor: pointer;
-                    font-size: 0.875rem;
-                    color: #4b5563;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                }
+.sp-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
 
-                .dropdown-arrow {
-                    width: 16px;
-                    height: 16px;
-                    transition: transform 0.2s ease;
-                }
+.sp-title {
+  font-size: 1.65rem;
+  font-weight: 400;
+  color: #242424;
+}
 
-                .sales-dropdown-trigger.open .dropdown-arrow {
-                    transform: rotate(180deg);
-                }
+.sp-period-selector {
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 10px 16px;
+}
 
-                .sales-dropdown-menu {
-                    position: absolute;
-                    top: 100%;
-                    right: 0;
-                    margin-top: 8px;
-                    width: 128px;
-                    background-color: rgba(255, 255, 255, 0.8);
-                    backdrop-filter: blur(8px);
-                    border-radius: 8px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    overflow: hidden;
-                    z-index: 10;
-                }
+.sp-dropdown-trigger {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #242424;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
-                .sales-dropdown-item {
-                    padding: 8px 16px;
-                    font-size: 0.875rem;
-                    color: #374151;
-                    cursor: pointer;
-                    transition: background-color 0.2s ease;
-                }
+.sp-dropdown-arrow {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
 
-                .sales-dropdown-item:hover {
-                    background-color: rgba(255, 239, 213, 0.5); /* light orange */
-                }
+.sp-dropdown-trigger.open .sp-dropdown-arrow {
+  transform: rotate(180deg);
+}
 
-                .sales-table-container {
-                    overflow-x: auto;
-                    border-radius: 8px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
+.sp-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 128px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  z-index: 10;
+}
 
-                .sales-table {
-                    width: 100%;
-                    font-size: 0.875rem;
-                    text-align: left;
-                    color: #6b7280;
-                }
+.sp-dropdown-item {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
 
-                .sales-table-header {
-                    font-size: 0.75rem;
-                    color: #4b5563;
-                    text-transform: uppercase;
-                    background-color: rgba(255, 255, 255, 0.5);
-                    backdrop-filter: blur(8px);
-                }
+.sp-dropdown-item:hover {
+  background-color: rgba(255, 239, 213, 0.5); /* light orange */
+}
 
-                .sales-table-header th {
-                    padding: 12px 24px;
-                }
 
-                .sales-table-row {
-                    background-color: rgba(255, 255, 255, 0.5);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    transition: background-color 0.2s ease;
-                }
+.sp-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-                .sales-table-row:hover {
-                    background-color: rgba(255, 239, 213, 0.5);
-                }
+.sp-table {
+  width: 100%;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #6b7280;
+}
 
-                .sales-table-row td {
-                    padding: 16px 24px;
-                    font-weight: 500;
-                    color: #111827;
-                }
+.sp-table-head {
+  font-size: 0.75rem;
+  color: #4b5563;
+  text-transform: uppercase;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+}
 
-                .sales-rate-cell {
-                    display: flex;
-                    align-items: center;
-                    justify-content: flex-end;
-                }
+.sp-table-head-row th {
+  padding: 12px 24px;
+}
 
-                .sales-change-icon {
-                    margin-left: 8px;
-                    font-size: 1.125rem;
-                }
+.sp-table-row {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease;
+}
 
-                .sales-change-up {
-                    color: #22c55e;
-                }
+.sp-table-row:hover {
+  background-color: rgba(255, 239, 213, 0.5);
+}
 
-                .sales-change-down {
-                    color: #ef4444;
-                }
+.sp-td {
+  padding: 16px 24px;
+  font-weight: 500;
+  color: #111827;
+}
 
-                .sales-change-neutral {
-                    color: #9ca3af;
-                }
 
-                .text-center {
-                    text-align: center;
-                }
+.sp-td-rate {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
 
-                .text-right {
-                    text-align: right;
-                }
+.sp-rate-icon {
+  margin-left: 8px;
+  font-size: 1.125rem;
+}
+
+.sp-rate-up {
+  color: #22c55e;
+}
+
+.sp-rate-down {
+  color: #ef4444;
+}
+
+.sp-rate-neutral {
+  color: #9ca3af;
+}
+
+
+.sp-th-deals,
+.sp-th-leads,
+.sp-td-deals,
+.sp-td-leads {
+  text-align: center;
+}
+
+.sp-th-rate,
+.sp-td-rate {
+  text-align: right;
+}

@@ -37,7 +37,7 @@ router.get("/clients/assigned/:userId", async (req, res) => {
   }
 });
 
-// Route: GET /clients/assigned/:userId/filtered
+
 router.get("/clients/assigned/:userId/filtered", async (req, res) => {
   const { userId } = req.params;
   const { category, datatype, location } = req.query;
@@ -51,13 +51,13 @@ router.get("/clients/assigned/:userId/filtered", async (req, res) => {
       });
 
     const clients = permissions
-      .filter(p => p.clientId) // Only keep valid client data
+      .filter(p => p.clientId) 
       .map(p => ({
         ...p.clientId,
         permission: p.permission,
       }))
       .filter(client => {
-        // Apply filters on client data
+        
         if (category && client.category !== category) return false;
         if (datatype && client.datatype !== datatype) return false;
         if (location && client.location !== location) return false;

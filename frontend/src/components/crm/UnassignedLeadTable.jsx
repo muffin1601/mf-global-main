@@ -17,7 +17,7 @@ const UnassignedLeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 10;
+  const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
@@ -26,15 +26,15 @@ const UnassignedLeadTable = () => {
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [isFormModalOpen, setFormModalOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    category: [],
-    datatype: [],
-    location: [],
-    fileName: [],
-    status: [],
-    callStatus: [],
-    assignedTo: [],
-  });
+  // const [filters, setFilters] = useState({
+  //   category: [],
+  //   datatype: [],
+  //   location: [],
+  //   fileName: [],
+  //   status: [],
+  //   callStatus: [],
+  //   assignedTo: [],
+  // });
 
 
   const user = JSON.parse(localStorage.getItem('user'))
@@ -161,7 +161,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
-          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
@@ -263,7 +263,7 @@ const downloadCSVReport = async (leads) => {
           onConfirm={handleDeleteLead}
         />
       )}
-      {showFilterModal && (
+      {/* {showFilterModal && (
         <FilterModal
           onClose={() => setShowFilterModal(false)}
           onApply={(appliedFilters) => {
@@ -272,7 +272,7 @@ const downloadCSVReport = async (leads) => {
           }}
           defaultFilters={filters}  // Make sure defaultFilters is passed if needed
         />
-      )}
+      )} */}
       {isFormModalOpen && (
         <FormModal
         isOpen={isFormModalOpen} onClose={() => setFormModalOpen(false)}

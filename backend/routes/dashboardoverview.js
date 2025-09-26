@@ -1,24 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-const ClientPermission = require("../models/ClientPermission"); // Correct model import
+const ClientPermission = require("../models/ClientPermission");
 
-// POST /add-client
 router.get("/all-clients", async (req, res) => {
   try {
-    const clients = await Client.find().lean(); // get all clients
+    const clients = await Client.find().lean();
     const uniqueClientsMap = new Map();
+    const skippedClients = [];
 
     clients.forEach(client => {
-      const phoneKey = client.phone || client.contact; // use whichever field exists
-      if (phoneKey && !uniqueClientsMap.has(phoneKey)) {
-        uniqueClientsMap.set(phoneKey, client);
+      const phoneKey = client.phone || client.contact;
+      if (phoneKey) {
+        if (!uniqueClientsMap.has(phoneKey)) {
+          uniqueClientsMap.set(phoneKey, client);
+        } else {
+          skippedClients.push(client); 
+        }
+      } else {
+        skippedClients.push(client);
       }
     });
-    
-    const uniqueClients = Array.from(uniqueClientsMap.values());
 
+    const uniqueClients = Array.from(uniqueClientsMap.values());
     uniqueClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    
+    console.log(
+      "Skipped clients due to duplicate phone/contact:",
+      skippedClients.map(c => ({ name: c.name, phone: c.phone || c.contact }))
+    );
+
     res.status(200).json(uniqueClients);
 
   } catch (error) {
@@ -27,19 +39,15 @@ router.get("/all-clients", async (req, res) => {
   }
 });
 
+
+
 router.get("/get-details-clients", async (req, res) => {
   try {
     const totalClients = await Client.countDocuments();
-
-    // Sorted Clients with callStatus = "Converted"
     const convertedClients = await Client.find({ status: "Won Lead" })
       .sort({ createdAt: -1 });
-
-    // Sorted Clients with status = "In Progress"
     const trendingLeads = await Client.find({ status: "In Progress" })
       .sort({ createdAt: -1 });
-
-    // Sorted Clients where assignedTo contains at least one user with a valid _id
     const assignedClients = await Client.find({
       assignedTo: {
         $elemMatch: {
@@ -47,8 +55,6 @@ router.get("/get-details-clients", async (req, res) => {
         }
       }
     }).sort({ createdAt: -1 });
-
-    // Sorted Clients with no assignedTo OR empty OR invalid user._id
     const unassignedClients = await Client.find({
       $or: [
         { assignedTo: { $exists: false } },
@@ -91,39 +97,33 @@ router.get("/get-details-clients", async (req, res) => {
   }
 });
 
-
 router.get("/new-clients", async (req, res) => {
-    try {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const newClients = await Client.find({ createdAt: { $gte: twentyFourHoursAgo } });
-        newClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        res.status(200).json(newClients);
-    } catch (error) {
-        console.error("Error fetching new clients:", error);
-        res.status(500).json({ error: "Failed to fetch new clients" });
-    }
+  try {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const newClients = await Client.find({ createdAt: { $gte: twentyFourHoursAgo } });
+    newClients.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.status(200).json(newClients);
+  } catch (error) {
+    console.error("Error fetching new clients:", error);
+    res.status(500).json({ error: "Failed to fetch new clients" });
+  }
 });
 
-// GET /api/user-dashboard-stats/:username
 router.get('/user-dashboard-stats/:username', async (req, res) => {
   const username = decodeURIComponent(req.params.username);
 
   try {
-    // All leads assigned to the user, sorted by newest first
     const myLeads = await Client.find({ "assignedTo.user.name": username })
       .sort({ createdAt: -1 });
 
-    // My Conversions (sorted)
     const myConversions = myLeads
       .filter(client => client.status === "Won Lead")
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // My Trending Leads (sorted)
     const myTrendingLeads = myLeads
       .filter(client => client.status === "In Progress")
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Today's Follow-ups (sorted)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -137,7 +137,6 @@ router.get('/user-dashboard-stats/:username', async (req, res) => {
       )
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Upcoming Follow-ups (sorted)
     const upcomingFollowUps = myLeads
       .filter(client =>
         client.followUpDate &&

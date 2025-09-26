@@ -16,7 +16,7 @@ const MyLeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 10;
+  const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -76,6 +76,37 @@ const MyLeadTable = () => {
       default: return 'status-other';
     }
   };
+
+  const filterLeads = (incomingFilters = filters) => {
+      const removeIcons = (options) => {
+        if (Array.isArray(options)) {
+          return options.map(option => {
+            if (typeof option === "string") {
+              return option.replace(/^[^\w]*\s*/, "").trim();
+            }
+            return option;
+          });
+        }
+        return options;
+      };
+  
+      const cleanedFilters = {
+        ...incomingFilters,
+        datatype: removeIcons(incomingFilters.datatype),
+        status: removeIcons(incomingFilters.status),
+        callStatus: removeIcons(incomingFilters.callStatus),
+      };
+  
+      axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters).then((res) => {
+        setTotalLeads(res.data.length);
+        setLeads(res.data);
+        toast.success("Leads filtered successfully");
+      }).catch((err) => {
+        console.error("Filter Error:", err);
+        toast.error("Failed to apply filters.");
+      });
+    };
+
 const handleAddLead = () => {
     setFormModalOpen(true);
   };
@@ -137,11 +168,11 @@ const downloadCSVReport = async (leads) => {
       <div className="lead-header">
         <h5>My Leads Report</h5>
         <div className="lead-btn-group">
-          <button className="btn-add" onClick={handleAddLead}>+ Add</button>
-          <button className="btn-update" onClick={() => setShowProductModal(true)}>Products</button>
-          <button className="btn-filter"onClick={() => setShowModal(true)}>Get Report</button>
-          <button className="btn-download" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
-          {/* <button className="btn-update" onClick={() => setShowFilterModal(true)}>Filters</button> */}
+          <button className="btn-add-2" onClick={handleAddLead}>+ Add</button>
+          <button className="btn-update-2" onClick={() => setShowProductModal(true)}>Products</button>
+          <button className="btn-filter-2"onClick={() => setShowModal(true)}>Get Report</button>
+          <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
+          <button className="btn-update-2" onClick={() => setShowFilterModal(true)}>Filters</button>
         </div>
       </div>
 
@@ -155,7 +186,7 @@ const downloadCSVReport = async (leads) => {
               <th>Company Name</th>
               <th>Status</th>
               <th>Location</th>
-              <th>Date</th>
+              <th>Datatype</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -175,7 +206,7 @@ const downloadCSVReport = async (leads) => {
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
                 <td><i className="ti ti-map-pin"></i> {lead.location}</td>
-                <td>{lead.createdAt?.slice(0, 10)}</td>
+                <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
                       <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}><AiOutlineEye  /></button>
@@ -258,10 +289,10 @@ const downloadCSVReport = async (leads) => {
           onDeleteAll={() =>{setShowAllDeleteModal(true);setFiltersForDelete(filters);}}
           onClose={() => setShowFilterModal(false)}
           onApply={(appliedFilters) => {
-            setFilters(appliedFilters);        // Keep state updated
-            filterLeads(appliedFilters);       // Use fresh filters directly
+            setFilters(appliedFilters);        
+            filterLeads(appliedFilters);       
           }}
-          defaultFilters={filters}  // Make sure defaultFilters is passed if needed
+          defaultFilters={filters}  
         />)}
       {showProductModal && (
         <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />

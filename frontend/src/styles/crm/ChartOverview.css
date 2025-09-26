@@ -1,100 +1,128 @@
-/* ChartOverview.css */
 
-.charts-container {
-  display: grid;
-  gap: 2rem;
+
+:root {
+  --chart-bg: rgba(255, 255, 255, 0.4);
+  --chart-border: rgba(255, 255, 255, 0.5);
+  --chart-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  --primary-orange: #FF8C00;
+  --muted-gray: #666;
+}
+
+
+.chart-overview__container {
+  display: flex;
+  gap: 25px;
+  justify-content: space-between;
+  flex-wrap: wrap;
   font-family: 'Outfit', sans-serif;
-  /* Stacks charts on smaller screens */
-  grid-template-columns: 1fr;
 }
 
-@media (min-width: 1024px) {
-  .charts-container {
-    /* Sets up a three-column grid for larger screens */
-    grid-template-columns: repeat(3, 1fr);
-  }
 
-  .linechart-box {
-    /* Applies spanning only on larger screens */
-    grid-column: span 2 / span 2;
-  }
-}
-
-.chart-box,
-.linechart-box {
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(15px) saturate(150%);
-  -webkit-backdrop-filter: blur(15px) saturate(150%);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  width: 100%;
+.chart-overview__leads-box,
+.chart-overview__sales-box {
+  flex: 1;
+  background-color: var(--chart-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid var(--chart-border);
+  box-shadow: var(--chart-shadow);
+  padding: 20px;
+  min-width: 450px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
-.chart-header {
-  width: 100%;
+
+.chart-overview__sales-box {
+  flex: 1.5;
+}
+
+
+.chart-overview__leads-header,
+.chart-overview__sales-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  font-family: 'Outfit', sans-serif;
-  color: #1f2937; /* Dark gray */
+  margin-bottom: 15px;
+  color: var(--muted-gray);
 }
 
-.chart-title {
-  font-size: 1.25rem;
+.chart-overview__leads-title,
+.chart-overview__sales-title {
+  font-size: 1.2rem;
   font-weight: 600;
+  color: #1f2937;
 }
 
-.tab-buttons {
-  display: flex;
-  gap: 0.5rem;
+
+.chart-overview__leads-select {
+  padding: 6px 12px;
+  border-radius: 12px;
+  width: 60%;
+  border: 1px solid #d1d5db;
   background-color: rgba(255, 255, 255, 0.6);
-  padding: 0.25rem;
-  border-radius: 0.5rem;
-}
-
-.tab-button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  transition: background-color 200ms, color 200ms;
-  background-color: transparent;
-  color: #4b5563; /* Medium gray */
-  border: none;
+  font-size: 0.9rem;
   font-family: 'Outfit', sans-serif;
   cursor: pointer;
 }
 
-.tab-button.active {
-  background-color: #FF8C00;
-  color: white;
-}
 
-.tab-button:hover:not(.active) {
-  background-color: rgba(255, 140, 0, 0.1);
-  color: #FF8C00;
-}
-
-.chart-select {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+.chart-overview__sales-tabs {
+  display: flex;
+  gap: 6px;
   background-color: rgba(255, 255, 255, 0.6);
-  border: 1px solid #d1d5db; /* Light gray */
-  font-size: 0.875rem;
-  font-family: 'Outfit', sans-serif;
+  padding: 4px;
+  border-radius: 8px;
 }
 
-.glass-background {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+.chart-overview__sales-tab {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background-color: transparent;
+  font-family: 'Outfit', sans-serif;
+  color: var(--muted-gray);
+  transition: all 0.2s ease;
+}
+
+.chart-overview__sales-tab:hover {
+  background-color: rgba(255, 140, 0, 0.12);
+  color: var(--primary-orange);
+}
+
+.chart-overview__sales-tab--active {
+  background-color: var(--primary-orange);
+  color: #fff;
+}
+
+/* Chart specific styling */
+.chart-overview__leads-radarchart,
+.chart-overview__sales-areachart {
+  border-radius: 12px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Legends */
+.chart-overview__leads-legend,
+.chart-overview__sales-legend {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--muted-gray);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .chart-overview__container {
+    flex-direction: column;
+  }
+
+  .chart-overview__leads-box,
+  .chart-overview__sales-box {
+    min-width: 100%;
+  }
 }

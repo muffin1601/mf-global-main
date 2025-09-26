@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ClientData = require('../models/ClientData'); // Your Mongoose model
+const ClientData = require('../models/ClientData'); 
 require('dotenv').config();
 const fetchAndStoreLeads = require('../scripts/fetchTradeIndiaLeadsToCRM');
 const fetchLeadsFromIndiaMart = require('../scripts/fetchLeadsFromIndiaMart');
@@ -9,13 +9,13 @@ router.post('/coachinpromo/capture-lead', async (req, res) => {
  
   const apiKey = req.headers['x-api-key'];
 
-  // Check if the API key matches the one stored in the CRM's .env file
+
   if (apiKey !== process.env.COACHINGPROMO_API_KEY) {
     return res.status(403).json({ error: 'Invalid API key' });
   }
 
   try {
-    // Extract lead data from the request body
+ 
     const {
       name,
       companyname,
@@ -25,7 +25,7 @@ router.post('/coachinpromo/capture-lead', async (req, res) => {
       message,
     } = req.body;
 
-    // Create a new lead (client) record
+  
     const newClient = await ClientData.create({
       name: name,
       company: companyname,
@@ -38,7 +38,7 @@ router.post('/coachinpromo/capture-lead', async (req, res) => {
       datatype: "WebPortals",
     });
 
-    // Respond with success message and client data
+    
     res.status(201).json({ message: 'Lead captured successfully', data: newClient });
   } catch (err) {
     console.error('Error capturing lead:', err.message);
@@ -50,13 +50,13 @@ router.post('/printkee/capture-lead', async (req, res) => {
  
   const apiKey = req.headers['x-api-key'];
 
-  // Check if the API key matches the one stored in the CRM's .env file
+  
   if (apiKey !== process.env.COACHINGPROMO_API_KEY) {
     return res.status(403).json({ error: 'Invalid API key' });
   }
 
   try {
-    // Extract lead data from the request body
+    
     const {
       name,
       company,
@@ -66,7 +66,7 @@ router.post('/printkee/capture-lead', async (req, res) => {
       requirements,
     } = req.body;
 
-    // Create a new lead (client) record
+    
     const newClient = await ClientData.create({
       name: name,
       company: company,
@@ -79,7 +79,7 @@ router.post('/printkee/capture-lead', async (req, res) => {
       datatype: "WebPortals",
     });
 
-    // Respond with success message and client data
+    
     res.status(201).json({ message: 'Lead captured successfully', data: newClient });
   } catch (err) {
     console.error('Error capturing lead:', err.message);
@@ -87,27 +87,5 @@ router.post('/printkee/capture-lead', async (req, res) => {
   }
 });
 
-// Route to fetch and store leads
-// router.get('/tradeIndia/fetch-leads', async (req, res) => {
-//   try {
-//     // Call the function to fetch and store leads
-//     await fetchAndStoreLeads();
-//     res.status(200).json({ message: 'Leads fetched and stored successfully' });
-//   } catch (error) {
-//     console.error("❌ Error fetching and storing leads:", error.message);
-//     res.status(500).json({ message: 'Error fetching and storing leads', error: error.message });
-//   }
-// });
-
-// router.get('/fetch-indiamart-leads', async (req, res) => {
-//   try {
-//     // Call the function to fetch and store leads
-//     await fetchLeadsFromIndiaMart();
-//     res.status(200).json({ message: 'IndiaMART leads fetched and stored successfully' });
-//   } catch (error) {
-//     console.error("❌ Error fetching and storing IndiaMART leads:", error.message);
-//     res.status(500).json({ message: 'Error fetching and storing leads', error: error.message });
-//   }
-// });
 
 module.exports = router;

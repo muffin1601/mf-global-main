@@ -27,6 +27,7 @@ import ConvertedLeads from "./pages/crm/ConvertedLeads"
 import PDashboard from "./pages/crm/ProductManage/PDashboard";
 import ProductPage from "./pages/crm/ProductManage/ProductPage";
 import VendorPage from "./pages/crm/ProductManage/VendorPage";
+import TrendingLeads from "./pages/crm/TrendingLeads";
 
 const App = () => {
   const showSuccess = () =>
@@ -59,6 +60,7 @@ const App = () => {
         <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
         <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
         <Route path="/crm/assigned-leads" element={<ProtectedRoute role="admin"><AssignedLeadManagement /></ProtectedRoute>} />
+        <Route path="/crm/trending-leads" element={<ProtectedRoute role="admin"><TrendingLeads /></ProtectedRoute>} />
         <Route path="/crm/my-leads" element={<ProtectedRoute role={["admin", "user"]}><MyLeads /></ProtectedRoute>} />
         <Route path="/crm/conversions" element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>} />
         <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />

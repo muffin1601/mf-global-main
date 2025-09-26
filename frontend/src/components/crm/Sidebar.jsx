@@ -16,9 +16,9 @@ const Sidebar = () => {
   }
 
   const mainNavigation = [
-    { label: "Dashboard Overview", path: "/crm/overview", icon: FaChartBar },
+    // { label: "Dashboard Overview", path: "/crm/overview", icon: FaChartBar },
     { label: "User Management", path: "/crm/users", icon: FaUserTie, roles: ['admin'] },
-    { label: "Settings", path: "/crm/settings", icon: FaCog },
+    // { label: "Settings", path: "/crm/settings", icon: FaCog },
   ];
 
   const dashboards = [

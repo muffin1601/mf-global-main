@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../../styles/crm/PDashboard.css";
+import "../../../styles/crm/Dashboard.css";
 import Navbar from "../../../components/crm/Navbar";
 import Sidebar from "../../../components/crm/Sidebar";
 import ProductOverview from "../../../components/crm/Product/ProductOverview";
 import SalesOverviewChart from '../../../components/crm/Product/SalesOverviewChart';
 import OrderStatistics from '../../../components/crm/Product/OrderStatistics';
 import TopSellingCategories from '../../../components/crm/Product/TopSellingCategories';
+import ChartOverview from '../../../components/crm/ChartOverview';
 // import LatestTransactions from '../../../components/crm/Product/LatestTransactions';
 // import RecentActivity from '../../../components/crm/Product/RecentActivity';
 // import SalesStatistics from '../../../components/crm/Product/SalesStatistics';
@@ -56,40 +57,38 @@ const PDashboard = () => {
   if (loading) {
     return (
       <div className="loading-wrapper">
-        <div className="loader"></div>
+        <div className="premium-spinner"></div>
         <p>Loading Dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="product-dashboard-layout">
+    <>
+    <div className="premium-dashboard-layout">
       <Sidebar />
-      <div className="product-main-content">
+      <div className="main-content-wrapper">
         <Navbar />
-        <ProductOverview />
-        <div className="product-dashboard-main">
-          
+        <div className="premium-dashboard-main">
+          <ProductOverview />
+          <div className="second-box">
           <SalesOverviewChart />
         <OrderStatistics />
         <TopSellingCategories />
+          </div>
+          <div className="third-box">
+          <ChartOverview />
+          </div>
         </div>
-        <footer
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#f1f1f1",
-            textAlign: "center",
-            fontSize: "14px",
-            color: "#555",
-            borderTop: "1px solid #ddd",
-          }}
-        >
-          © {new Date().getFullYear()} MF Global Services. All rights reserved.
-        </footer>
+        
       </div>
+      
     </div>
+    <div className="premium-footer">
+          © {new Date().getFullYear()} MF Global Services. All rights reserved.
+        </div></>
   );
 };
 
 export default PDashboard;
+

@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 50 * 1024 * 1024 }, 
   fileFilter: (req, file, cb) => {
     cb(null, file.mimetype === "text/csv" || file.originalname.endsWith(".csv"));
   },
@@ -30,7 +30,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const cleanInput = (input) => {
   return input
     .replace(/[^\x20-\x7E]/g, "")  
-    .trim();  // Trim leading and trailing spaces
+    .trim();  
 };
 
 router.post("/upload-csv", upload.single("file"), async (req, res) => {
@@ -44,7 +44,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
   let skipped = 0;
   let aborted = false;
 
-  const addSkipped = ({ phone = null, contact = null, company = null, location = null, category = null, datatype = null,reason }) => {
+  const addSkipped = ({ phone = null, contact = null, company = null, location = null, category = null, datatype = null, reason }) => {
     skipped++;
     skippedData.push({ phone, contact, company, location, category, datatype, reason });
   };
@@ -82,19 +82,19 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       const datatype = normalizedRow["datatype"] || null;
 
       if (!phone && !contact) {
-        return addSkipped({ phone, contact, company, location, category,datatype, reason: "Missing phone and contact" });
+        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Missing phone and contact" });
       }
 
       if (phone && !PHONE_REGEX.test(phone)) {
-        return addSkipped({ phone, contact, company, location, category,datatype, reason: "Invalid phone format" });
+        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Invalid phone format" });
       }
 
       if (category && category.length > 15) {
-        return addSkipped({ phone, contact, company, location, category,datatype,reason: "Category exceeds 15 characters" });
+        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Category exceeds 15 characters" });
       }
 
       if (location && location.length > 15) {
-        return addSkipped({ phone, contact, company, location, category,datatype, reason: "Location exceeds 15 characters" });
+        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Location exceeds 15 characters" });
       }
 
       const validDatatypes = [
@@ -158,14 +158,12 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
           ],
         });
 
-        const finalData = results.filter((r) => {
-          let isDupPhone = false;
-          let isDupContact = false;
+        const seenPhones = new Set();
+        const seenContacts = new Set();
 
-          for (const e of existing) {
-            if (r.phone && e.phone === r.phone) isDupPhone = true;
-            if (r.contact && e.contact === r.contact) isDupContact = true;
-          }
+        const finalData = results.filter((r) => {
+          const isDupPhone = r.phone && (seenPhones.has(r.phone) || existing.some(e => e.phone === r.phone));
+          const isDupContact = r.contact && (seenContacts.has(r.contact) || existing.some(e => e.contact === r.contact));
 
           if (isDupPhone || isDupContact) {
             const reason = [
@@ -173,18 +171,12 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
               isDupContact ? "Duplicate Contact" : null
             ].filter(Boolean).join(" & ");
 
-            addSkipped({
-              phone: r.phone,
-              contact: r.contact,
-              company: r.company,
-              location: r.location,
-              category: r.category,
-              datatype: r.datatype,
-              reason,
-            });
-
+            addSkipped({ ...r, reason });
             return false;
           }
+
+          if (r.phone) seenPhones.add(r.phone);
+          if (r.contact) seenContacts.add(r.contact);
 
           return true;
         });
@@ -218,7 +210,5 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       });
     });
 });
-
-
 
 module.exports = router;

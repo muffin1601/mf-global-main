@@ -18,7 +18,7 @@ const LeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 10;
+  const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);

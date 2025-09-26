@@ -16,7 +16,7 @@ const MyLeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const leadsPerPage = 10;
+  const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -289,10 +289,10 @@ const downloadCSVReport = async (leads) => {
           onDeleteAll={() =>{setShowAllDeleteModal(true);setFiltersForDelete(filters);}}
           onClose={() => setShowFilterModal(false)}
           onApply={(appliedFilters) => {
-            setFilters(appliedFilters);        // Keep state updated
-            filterLeads(appliedFilters);       // Use fresh filters directly
+            setFilters(appliedFilters);        
+            filterLeads(appliedFilters);       
           }}
-          defaultFilters={filters}  // Make sure defaultFilters is passed if needed
+          defaultFilters={filters}  
         />)}
       {showProductModal && (
         <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />

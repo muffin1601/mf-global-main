@@ -30,7 +30,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     }
   };
 
-  // ✅ Define the fields outside JSX
+
   const fieldsToDisplay = [
   { key: 'product_code', label: 'Product Code' },
   { key: 'p_name', label: 'Product Name' },

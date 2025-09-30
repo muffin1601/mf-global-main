@@ -12,6 +12,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
       category: [],
       datatype: [],
       location: [],
+      state: [],
       fileName: [],
       status: [],
       callStatus: [],
@@ -21,6 +22,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
   const [dbOptions, setDbOptions] = useState({
     category: [],
     location: [],
+    state: [],
     fileName: [],
   });
 
@@ -60,6 +62,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
         setDbOptions({
           category: [...new Set(res.data.categories || [])],
           location: [...new Set(res.data.locations || [])],
+          state: [...new Set(res.data.states || [])],
           fileName: [...new Set(res.data.filenames || [])],
         });
       } catch (error) {
@@ -95,13 +98,13 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
         </div>
 
         <div className="filtermodal-group">
-          {["category", "location", "fileName"].map((field) => (
+          {["category", "location", "state", "fileName"].map((field) => (
             <ChipSelect
               key={field}
               label={field.charAt(0).toUpperCase() + field.slice(1)}
               name={field}
-              options={dbOptions[field]}
-              selected={modalFilters[field]}
+              options={dbOptions[field] || []}     
+              selected={modalFilters[field] || []}   
               onChange={handleChipChange}
             />
           ))}

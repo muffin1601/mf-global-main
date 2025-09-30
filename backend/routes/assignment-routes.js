@@ -75,10 +75,11 @@ router.get("/clients/meta", async (req, res) => {
   try {
     const categories = await Client.distinct("category");
     const locations = await Client.distinct("location");
+    const states = await Client.distinct("state");
     // const datatypes = await Client.distinct("datatype");
     const filenames = await Client.distinct("fileName");
 
-    res.json({ categories, locations, filenames });
+    res.json({ categories, locations,states, filenames });
   } catch (err) {
     console.error("Meta Error:", err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -97,10 +98,11 @@ router.get("/clients/assigned/:username/meta", async (req, res) => {
   
     const categories = [...new Set(assignedClients.map(c => c.category).filter(Boolean))];
     const locations = [...new Set(assignedClients.map(c => c.location).filter(Boolean))];
+    const states = [...new Set(assignedClients.map(c => c.state).filter(Boolean))];
     const filenames = [...new Set(assignedClients.map(c => c.fileName).filter(Boolean))];
     const datatypes = [...new Set(assignedClients.map(c => c.datatype).filter(Boolean))];
 
-    res.json({ categories, locations, filenames, datatypes });
+    res.json({ categories, locations, states,filenames, datatypes });
   } catch (err) {
     console.error("Assigned Meta Error:", err);
     res.status(500).json({ error: "Internal Server Error" });

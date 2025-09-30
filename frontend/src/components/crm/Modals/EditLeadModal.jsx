@@ -52,28 +52,28 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   const formatDate = (dateString) => (!dateString ? "" : new Date(dateString).toISOString().split("T")[0]);
 
   const saveEditedLead = async () => {
-    const updates = { ...editedLead, additionalContacts };
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
+  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; // <-- include id
+  try {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
 
-      const assignedUser = editedLead.assignedTo?.[0]?.user;
-      if (assignedUser && assignedUser._id) {
-        await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
-          Leads: [editedLead._id],
-          userIds: [assignedUser._id],
-          permissions: editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false },
-        });
-      }
-
-      toast(<CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />);
-      await logActivity("Edited Lead", { leadId: editedLead._id });
-      onSave(res.data);
-      onClose();
-    } catch (error) {
-      console.error(error.response || error.message);
-      toast(<CustomToast type="error" title="Update Failed" message={error.response?.data?.message || error.message} />);
+    const assignedUser = editedLead.assignedTo?.[0]?.user;
+    if (assignedUser && assignedUser._id) {
+      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+        Leads: [editedLead._id],
+        userIds: [assignedUser._id],
+        permissions: editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false },
+      });
     }
-  };
+
+    toast(<CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />);
+    await logActivity("Edited Lead", { leadId: editedLead._id });
+    onSave(res.data.updates?.[0] || updates);
+    onClose();
+  } catch (error) {
+    console.error(error.response || error.message);
+    toast(<CustomToast type="error" title="Update Failed" message={error.response?.data?.message || error.message} />);
+  }
+};
 
   const dropdownFields = {
     callStatus: ["Not Called","📞 Ring","❌ Not Interested","⏳ Available After One Month","✅ Converted","📆 Follow-up Required","🚫 Wrong Number"],

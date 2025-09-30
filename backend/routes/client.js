@@ -139,7 +139,7 @@ router.post("/save-all-updates", async (req, res) => {
     const updatePromises = updates.map(async (update) => {
       try {
         const {
-          id,
+          id, 
           name,
           email,
           phone,
@@ -168,52 +168,26 @@ router.post("/save-all-updates", async (req, res) => {
         const client = await Client.findOne(query);
         if (!client) return null;
 
-       
         const cleanDatatype = removeIcons(datatype);
         const cleanCallStatus = removeIcons(callStatus);
         const cleanStatus = removeIcons(status);
 
-        
         let assignedToTransformed = [];
-
         if (Array.isArray(assignedTo) && assignedTo.length > 0) {
           assignedToTransformed = assignedTo
-            .filter(
-              (a) =>
-                a &&
-                a.user &&
-                typeof a.user._id === "string" &&
-                a.user._id.trim() !== "" &&
-                typeof a.user.name === "string" &&
-                a.user.name.trim() !== ""
-            )
-            .map((a) => {
-              try {
-                return {
-                  user: {
-                    _id: new ObjectId(a.user._id),
-                    name: a.user.name,
-                  },
-                  permissions: {
-                    view: !!a.permissions?.view,
-                    update: !!a.permissions?.update,
-                    delete: !!a.permissions?.delete,
-                  },
-                };
-              } catch (err) {
-                
-                return null;
-              }
-            })
-            .filter(Boolean); 
-        } else {
-          assignedToTransformed = []; 
+            .filter(a => a && a.user && a.user._id && a.user.name)
+            .map(a => ({
+              user: { _id: new ObjectId(a.user._id), name: a.user.name },
+              permissions: {
+                view: !!a.permissions?.view,
+                update: !!a.permissions?.update,
+                delete: !!a.permissions?.delete,
+              },
+            }));
         }
 
-       
         const followUpFields = buildFollowUpDateFields(client, followUpDate);
 
-       
         const updateFields = {
           ...(name !== undefined && { name }),
           ...(email !== undefined && { email }),
@@ -224,9 +198,9 @@ router.post("/save-all-updates", async (req, res) => {
           ...(location !== undefined && { location }),
           ...(state !== undefined && { state }),
           ...(category !== undefined && { category }),
-          ...(cleanDatatype && { datatype: cleanDatatype }),
-          ...(cleanCallStatus && { callStatus: cleanCallStatus }),
-          ...(cleanStatus && { status: cleanStatus }),
+          ...(cleanDatatype !== undefined && { datatype: cleanDatatype }),
+          ...(cleanCallStatus !== undefined && { callStatus: cleanCallStatus }),
+          ...(cleanStatus !== undefined && { status: cleanStatus }),
           ...(inquiryDate !== undefined && { inquiryDate }),
           ...(address !== undefined && { address }),
           assignedTo: assignedToTransformed,
@@ -252,11 +226,13 @@ router.post("/save-all-updates", async (req, res) => {
     res.status(200).json({
       message: "Updates applied successfully",
       updatedClients: updatedCount,
+      updates: results.filter(Boolean),
     });
   } catch (error) {
     console.error("Error in /save-all-updates:", error.message);
     res.status(500).json({ error: "Failed to save updates" });
   }
 });
+
 
 module.exports = router;

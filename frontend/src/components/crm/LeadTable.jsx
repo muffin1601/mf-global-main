@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../../styles/crm/LeadTable.css'; // Ensure CSS contains styles for .btn-view, .btn-edit, .btn-delete, etc.
+import '../../styles/crm/LeadTable.css'; 
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import LeadModal from './Modals/LeadModal';
 import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
 import FilterModal from './Modals/FilterModal';
 import FormModal from './Modals/FormModal';
-import { logActivity } from '../../utils/logActivity'; // Adjust the import path as necessary
+import { logActivity } from '../../utils/logActivity'; 
 import DownloadReportModal from './Modals/DownloadModal';
 import BulkUpdateModal from './Modals/BulkUpdateModal';
 import SearchProductModal from './Modals/SearchProductModal';
@@ -33,6 +33,7 @@ const LeadTable = () => {
     category: [],
     datatype: [],
     location: [],
+    state: [],
     fileName: [],
     status: [],
     callStatus: [],
@@ -55,12 +56,12 @@ const LeadTable = () => {
         category: [],
         datatype: [],
         location: [],
+        state: [],
         fileName: [],
         status: [],
         callStatus: [],
       });
 
-      toast(<CustomToast type="success" title="Leads Loaded" message="Leads fetched successfully" />);
     } catch (error) {
       console.error("Error fetching leads:", error);
       toast(<CustomToast type="error" title="Fetch Failed" message="Failed to fetch leads." />);

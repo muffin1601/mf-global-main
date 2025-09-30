@@ -20,6 +20,15 @@ function extractOrderValue(message) {
   return match ? match[1] : null;
 }
 
+function formatPhone(phone) {
+  if (!phone) return "";
+  let cleaned = phone.toString().replace(/\D/g, ""); 
+  if (cleaned.startsWith("91") && cleaned.length > 10) {
+    cleaned = cleaned.slice(2);
+  }
+  return cleaned.slice(-10); 
+}
+
 const fetchLeadsFromIndiaMart = async () => {
   try {
     const key = process.env.INDIAMART_API_KEY;
@@ -48,8 +57,9 @@ const fetchLeadsFromIndiaMart = async () => {
         name: lead.SENDER_NAME,
         company: lead.SENDER_COMPANY,
         email: lead.SENDER_EMAIL,
-        phone: lead.SENDER_MOBILE,
-        location: lead.SENDER_CITY || lead.SENDER_STATE,
+        phone: formatPhone(lead.SENDER_MOBILE),
+        location: lead.SENDER_CITY || "",
+        state: lead.SENDER_STATE || "",
         category: "IndiaMart",
         requirements: lead.QUERY_MESSAGE,
         datatype: "IndiaMart",
@@ -68,7 +78,7 @@ const fetchLeadsFromIndiaMart = async () => {
       };
 
       await ClientData.findOneAndUpdate(
-        { email: lead.SENDER_EMAIL, inquiryDate: lead.QUERY_TIME }, // deduplication logic
+        { email: lead.SENDER_EMAIL, inquiryDate: lead.QUERY_TIME }, 
         leadData,
         { upsert: true, new: true }
       );

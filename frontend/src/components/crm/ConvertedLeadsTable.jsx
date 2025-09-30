@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../../styles/crm/LeadTable.css'; // Ensure CSS contains styles for .btn-view, .btn-edit, .btn-delete, etc.
+import '../../styles/crm/LeadTable.css'; 
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import LeadModal from './Modals/LeadModal';
 import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
-import { logActivity } from '../../utils/logActivity'; // Adjust the import path as necessary
+import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
 
 const ConvertedLeadsTable = () => {
@@ -17,15 +17,15 @@ const ConvertedLeadsTable = () => {
   const [editLead, setEditLead] = useState(null);
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [leadforDelete, setLeadforDelete] = useState(null);
-  const [filters, setFilters] = useState({
-    category: [],
-    datatype: [],
-    location: [],
-    fileName: [],
-    status: [],
-    callStatus: [],
-    assignedTo: [],
-  });
+  // const [filters, setFilters] = useState({
+  //   category: [],
+  //   datatype: [],
+  //   location: [],
+  //   fileName: [],
+  //   status: [],
+  //   callStatus: [],
+  //   assignedTo: [],
+  // });
 
 
   const user = JSON.parse(localStorage.getItem('user'))
@@ -37,10 +37,10 @@ const ConvertedLeadsTable = () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
         const data = response.data ;
-        setLeads(data.convertedClients);
-        setTotalLeads(data.convertedClients.length);
+        setLeads(data.uniqueConvertedClients);
+        setTotalLeads(data.uniqueConvertedClients.length);
       } catch (error) {
-        toast.error('Error fetching leads:', error);
+        toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
       }
     };
 
@@ -67,8 +67,9 @@ const handleDeleteLead = async () => {
 
   const ids = [leadforDelete._id || leadforDelete.id];
   try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, {ids});
-    toast.success( "Lead deleted successfully");
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
+
+    toast(<CustomToast type="success" title="Success" message="Lead deleted successfully" />);
 
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
@@ -76,13 +77,13 @@ const handleDeleteLead = async () => {
     filterLeads(); // refresh
   } catch (error) {
     console.error("Error deleting lead:", error);
-    toast.error("Failed to delete lead.");
+    toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);
   }
 };
 
 const downloadCSVReport = async (leads) => {
   if (!Array.isArray(leads) || leads.length === 0) {
-    toast.error("No leads provided for CSV download.");
+    toast(<CustomToast type="error" title="Error" message="No leads provided for CSV download." />);
     return;
   }
 
@@ -103,16 +104,22 @@ const downloadCSVReport = async (leads) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("Won Leads report downloaded successfully!");
+    toast(<CustomToast type="success" title="Success" message="Won Leads report downloaded successfully!" />);
 
-    await logActivity("Downloaded new Leads Report", {
-      leadsCount: leads.length,
-    });
+    await logActivity("Downloaded new Leads Report", { leadsCount: leads.length });
   } catch (error) {
     console.error("Error downloading leads CSV report:", error);
-    toast.error("Failed to download leads report.");
+    toast(<CustomToast type="error" title="Error" message="Failed to download leads report." />);
   }
 };
+
+const handleLeadUpdate = (updatedLead) => {
+  setLeads(prev =>
+    prev.map(l => (l._id === updatedLead._id ? updatedLead : l))
+  );
+  fetchLeads();
+};
+
 
   return (
     <div className="lead-card">
@@ -135,7 +142,8 @@ const downloadCSVReport = async (leads) => {
               {/* <th>Phone No.</th> */}
               <th>Company Name</th>
               <th>Status</th>
-              <th>Location</th>
+              <th>Category</th>
+              <th>State</th>
               <th>Datatype</th>
               <th>Action</th>
             </tr>
@@ -155,7 +163,9 @@ const downloadCSVReport = async (leads) => {
                 {/* <td>{lead.phone}</td> */}
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
-                <td><i className="ti ti-map-pin"></i> {lead.location}</td>
+                <td>{lead.category}</td>
+                <td>{lead.state}</td>
+                
                 <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
@@ -212,7 +222,7 @@ const downloadCSVReport = async (leads) => {
         <EditLeadModal
           lead={editLead}
           onClose={() => setEditLead(null)}
-          onSave={fetchLeads}
+          onSave={handleLeadUpdate}  
           userRole={user.role}
         />
       )}

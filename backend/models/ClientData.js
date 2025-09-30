@@ -14,6 +14,7 @@ const clientSchema = new mongoose.Schema(
     phone: { type: String },
     contact: { type: String },
     location: { type: String },
+    state: { type: String },
     category: { type: String },
     quantity: { type: Number },
     requirements: { type: String },

@@ -67,24 +67,24 @@ const css = `
 }
 
 .glasso-confirm-btn.delete {
-  background: rgba(255, 0, 0, 0.91);
+  background: rgba(255, 0, 0, 0.68);
    font-family: 'Outfit', sans-serif;
   color: #fff;
 }
 
 .glasso-confirm-btn.delete:hover {
-  background: rgba(224, 7, 7, 0.9);
+  background: rgba(224, 7, 7, 0.75);
   box-shadow: 0 2px 8px rgba(255,0,0,0.15);
 }
 
 .glasso-confirm-btn.cancel {
-  background: rgba(23,146,23,1);
+  background: rgba(23, 146, 23, 0.78);
    font-family: 'Outfit', sans-serif;
   color: #fff;
 }
 
 .glasso-confirm-btn.cancel:hover {
-  background: rgba(18,120,18,0.95);
+  background: rgba(18, 120, 18, 0.61);
   box-shadow: 0 2px 8px rgba(23,146,23,0.15);
 }
 `;

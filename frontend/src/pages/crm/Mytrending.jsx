@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import "../../styles/crm/Dashboard.css";
 import Navbar from "../../components/crm/Navbar"; 
 import Sidebar from "../../components/crm/Sidebar";
-import TrendingLeadsTable from "../../components/crm/TrendingLeadsTable";
+import MyTrendingLeads from "../../components/crm/MyTrendingLeads";
 
 
-const TrendingLeads = () => {
+const MyTrending = () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true); 
@@ -63,7 +63,7 @@ const TrendingLeads = () => {
       <div className="main-content-wrapper">
         <Navbar />
         <div className="premium-dashboard-main">
-          <TrendingLeadsTable />
+          <MyTrendingLeads />
         </div>
         
       </div>
@@ -75,4 +75,4 @@ const TrendingLeads = () => {
   );
 };
 
-export default TrendingLeads;
+export default MyTrending;

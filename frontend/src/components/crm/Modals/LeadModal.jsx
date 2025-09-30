@@ -6,7 +6,7 @@ const LeadModal = ({ lead, onClose }) => {
 
   const formatDate = (date) => (date ? new Date(date).toLocaleDateString() : 'N/A');
 
-  // Only display these fields
+  
   const displayFields = [
     'name',
     'email',
@@ -14,6 +14,7 @@ const LeadModal = ({ lead, onClose }) => {
     'company',
     'contact',
     'location',
+    'state',
     'category',
     'quantity',
     'requirements',
@@ -57,7 +58,7 @@ const LeadModal = ({ lead, onClose }) => {
             </div>
           )}
 
-          {/* Assigned To */}
+         
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Assigned To</span>
             <span className="glasso-lead-value">
@@ -67,7 +68,7 @@ const LeadModal = ({ lead, onClose }) => {
             </span>
           </div>
 
-          {/* Follow-Up, Inquiry, Updated Dates */}
+          
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Follow-Up Date</span>
             <span className="glasso-lead-value">{formatDate(lead.followUpDate)}</span>

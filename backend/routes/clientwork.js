@@ -133,6 +133,7 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
           category: c.category,
           datatype: c.datatype,
           location: c.location,
+          state: c.state,
           status: c.status,
           remarks: c.remarks,
           followUpDate: format(c.followUpDate),
@@ -185,7 +186,7 @@ router.post("/leads/report/download", async (req, res) => {
 
     const formatDate = d => (d ? new Date(d).toISOString().split("T")[0] : "");
 
-    // Safe filtering by checking if date exists and is valid
+    
     const filteredLeads = leads.filter(lead => {
       const rawDate = lead[type];
       if (!rawDate) return false;
@@ -202,6 +203,7 @@ router.post("/leads/report/download", async (req, res) => {
       category: c.category || "",
       datatype: c.datatype || "",
       location: c.location || "",
+      state: c.state || "",
       status: c.status || "",
       remarks: c.remarks || "",
       followUpDate: formatDate(c.followUpDate),
@@ -260,6 +262,7 @@ router.post("/leads/report/download-by-leads", async (req, res) => {
       category: c.category,
       datatype: c.datatype,
       location: c.location,
+      state: c.state,
       status: c.status,
       remarks: c.remarks,
       followUpDate: formatDate(c.followUpDate),

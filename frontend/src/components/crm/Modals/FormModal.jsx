@@ -18,6 +18,7 @@ const FormModal = ({
     email: "",
     contact: "",
     location: "",
+    state: "",
     phone: "",
     datatype: "",
     category: "",
@@ -154,6 +155,7 @@ const FormModal = ({
       email: "",
       contact: "",
       location: "",
+      state: "",
       phone: "",
       datatype: "",
       category: "",
@@ -191,6 +193,7 @@ const FormModal = ({
             { label: "Company", name: "company" },
             { label: "Email", name: "email", type: "email" },
             { label: "Location", name: "location" },
+            { label: "State", name: "state" },
             { label: "Quantity", name: "quantity" },
           ].map(({ label, name, type = "text" }) => (
             <div className="fe-input-group" key={name}>

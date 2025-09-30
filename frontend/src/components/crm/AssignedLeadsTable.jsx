@@ -178,7 +178,9 @@ const AssignedLeadsTable = () => {
               {/* <th>Phone No.</th> */}
               <th>Company Name</th>
               <th>Status</th>
-              <th>Location</th>
+              <th>Category</th>
+              
+              <th>State</th>
               <th>Datatype</th>
               <th>Action</th>
             </tr>
@@ -198,7 +200,9 @@ const AssignedLeadsTable = () => {
                 {/* <td>{lead.phone}</td> */}
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
-                <td><i className="ti ti-map-pin"></i> {lead.location}</td>
+                <td>{lead.category}</td>
+                
+                <td>{lead.state}</td>
                 <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">

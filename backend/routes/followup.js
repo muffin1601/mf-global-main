@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
 const authenticate = require("../middleware/auth");
-const ClientPermission = require("../models/ClientPermission"); // Correct model import
+const ClientPermission = require("../models/ClientPermission"); 
 
 router.get("/followup/reminder/:userId", authenticate, async (req, res) => {
   const { userId } = req.params;
@@ -14,25 +14,25 @@ router.get("/followup/reminder/:userId", authenticate, async (req, res) => {
   endOfDay.setHours(23, 59, 59, 999);
 
   try {
-    // Get the clients assigned to the user and filter by followUpDate for today
+    
     const permissions = await ClientPermission.find({ userId }).populate({
       path: "clientId",
       model: "ClientData",
       match: {
-        followUpDate: { $gte: startOfDay, $lte: endOfDay } // Filter clients for today
+        followUpDate: { $gte: startOfDay, $lte: endOfDay } 
       },
       options: { lean: true }
     });
 
-    // Flatten and filter valid clients
+    
     const followUpClients = permissions
-      .filter(p => p.clientId) // Only keep if the client matched the date
+      .filter(p => p.clientId)
       .map(p => ({
         ...p.clientId,
         permission: p.permission
       }));
 
-    // Deduplicate clients by phone or contact
+    
     const uniqueClients = followUpClients.filter((client, index, self) =>
       index === self.findIndex(c =>
         (c.phone && client.phone && c.phone === client.phone) ||
@@ -57,14 +57,14 @@ router.put("/followup/update-status/:clientId", authenticate, async (req, res) =
   }
 
   try {
-    // Find the client by clientId
+    
     const client = await Client.findById(clientId);
 
     if (!client) {
       return res.status(404).json({ error: "Client not found" });
     }
 
-    // Update the status field with the provided status
+    
     client.status = status;
     await client.save();
 

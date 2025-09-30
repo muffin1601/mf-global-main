@@ -92,7 +92,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
         </div>
 
         <div className="glasso-modal-body grid">
-          {["name", "email", "phone", "company", "contact", "location", "category", "inquiryDate", "address"].map((field) => (
+          {["name", "email", "phone", "company", "contact", "location", "state","category", "inquiryDate", "address"].map((field) => (
             <div className={`glasso-input-group glasso-${field}`} key={field}>
               <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
               <input

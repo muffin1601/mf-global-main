@@ -1,9 +1,9 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Assuming you have a User model
+const User = require("../models/User"); 
 const router = express.Router();
 
-// Middleware to verify JWT
+
 const verifyToken = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
@@ -15,15 +15,15 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: "Access Denied: Invalid token." });
     }
-    req.user = decoded; // Attach the user info to the request
+    req.user = decoded; 
     next();
   });
 };
 
-// Route to get user data for the dashboard
+
 router.get("/dashboard", verifyToken, async (req, res) => {
   try {
-    // Find the user by the decoded token's ID
+    
     const user = await User.findById(req.user.id);
 
     if (!user) {

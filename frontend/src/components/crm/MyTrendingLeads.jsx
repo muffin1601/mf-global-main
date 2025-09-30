@@ -7,147 +7,87 @@ import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
 import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
-import UserFilterModal from './Modals/UserFilterModal';
-import DownloadReportModal from './Modals/DownloadModal';
-import SearchProductModal from './Modals/SearchProductModal';
-import CustomToast from "./CustomToast";
-import FormModal from './Modals/FormModal';
 
-const MyLeadTable = () => {
+
+const MyTrendingLeads = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [isFormModalOpen, setFormModalOpen] = useState(false);
-  const [filtersForDelete, setFiltersForDelete] = useState(null);
-  const [LeadsforDownload, setLeadsforDownload] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
-  const [filters, setFilters] = useState({
-    category: [],
-    datatype: [],
-    location: [],
-    fileName: [],
-    status: [],
-    callStatus: [],
-    assignedTo: [],
-  });
-
-
+  const [LeadsforDownload, setLeadsforDownload] = useState(null);
+ 
   const user = JSON.parse(localStorage.getItem('user'))
-  const userName = user.name;
 
-   useEffect(() => {
-      fetchLeads();
-    }, []);
+  useEffect(() => {
+  fetchLeads();
+}, []);
 
 const fetchLeads = async () => {
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`
-    );
-    const data = response.data.myLeads;
-
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
+    const data = response.data.myTrendingLeads;
     if (Array.isArray(data)) {
       setLeads(data);
       setTotalLeads(data.length);
     } else {
       setLeads([]);
       setTotalLeads(0);
-      toast(
-        <CustomToast
-          type="error"
-          title="Data Error"
-          message="Invalid data format received from the server."
-        />
-      );
+      toast(<CustomToast type="error" title="Error" message="Invalid data format received from the server." />);
     }
   } catch (error) {
     console.error(error);
-    toast(
-      <CustomToast
-        type="error"
-        title="Fetch Failed"
-        message="Error fetching leads. Please try again."
-      />
-    );
+    toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
   }
 };
 
 const totalPages = Math.ceil(totalLeads / leadsPerPage);
 
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
-  };
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'Won Lead': return 'status-won';
-      case 'New Lead': return 'status-new';
-      case 'Lost Lead': return 'status-lost';
-      case 'In Progress': return 'status-in-progress';
-      default: return 'status-other';
-    }
-  };
+const getPaginatedLeads = () => {
+  const startIndex = (currentPage - 1) * leadsPerPage;
+  return leads.slice(startIndex, startIndex + leadsPerPage);
+};
 
-
-const filterAssignedLeads = async (userName, incomingFilters = filters) => {
-  const removeIcons = (options) => {
-    if (Array.isArray(options)) {
-      return options.map((option) =>
-        typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option
-      );
-    }
-    return options;
-  };
-
-  const cleanedFilters = {
-    ...incomingFilters,
-    datatype: removeIcons(incomingFilters.datatype),
-    status: removeIcons(incomingFilters.status),
-    callStatus: removeIcons(incomingFilters.callStatus),
-  };
-
-  try {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/clients/assigned/${userName}/filter`,
-      cleanedFilters
-    );
-
-    setTotalLeads(res.data.length);
-    setLeads(res.data);
-
-    toast(<CustomToast type="success" title="Filtered" message="Assigned leads filtered successfully" />);
-  } catch (err) {
-    console.error("Assigned Filter Error:", err);
-    toast(<CustomToast type="error" title="Filter Failed" message="Failed to filter assigned leads." />);
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Won Lead': return 'status-won';
+    case 'New Lead': return 'status-new';
+    case 'Lost Lead': return 'status-lost';
+    case 'In Progress': return 'status-in-progress';
+    default: return 'status-other';
   }
 };
 
-const handleAddLead = () => {
-    setFormModalOpen(true);
-  };
+const handleDeleteLead = async () => {
+  if (!leadforDelete) return;
 
+  const ids = [leadforDelete._id || leadforDelete.id];
+  try {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
+    toast(<CustomToast type="success" title="Success" message="Lead deleted successfully" />);
+
+    await logActivity("Deleted Lead", { leadId: leadforDelete._id });
+
+    setLeadforDelete(null); // close modal
+    filterLeads(); // refresh
+  } catch (error) {
+    console.error("Error deleting lead:", error);
+    toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);
+  }
+};
 
 const downloadCSVReport = async (leads) => {
   if (!Array.isArray(leads) || leads.length === 0) {
-    return toast(
-      <CustomToast
-        type="error"
-        title="Download Failed"
-        message="No leads provided for CSV download."
-      />
-    );
+    toast(<CustomToast type="error" title="Error" message="No leads provided for CSV download." />);
+    return;
   }
 
   try {
     const res = await axios.post(
       `${import.meta.env.VITE_API_URL}/leads/report/download-by-leads`,
-      { leads },
+      { leads }, // Send the actual leads
       { responseType: "blob" }
     );
 
@@ -155,45 +95,30 @@ const downloadCSVReport = async (leads) => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `${user.name}_Leads_Report.csv`);
+    link.setAttribute("download", `Trending_Leads_Report.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast(
-      <CustomToast
-        type="success"
-        title="Report Ready"
-        message="My leads report downloaded successfully!"
-      />
-    );
+    toast(<CustomToast type="success" title="Success" message="Your Trending leads report downloaded successfully!" />);
 
-    await logActivity("Downloaded My Leads Report", {
-      leadsCount: leads.length,
-    });
+    await logActivity("Downloaded Your Trending Leads Report", { leadsCount: leads.length });
   } catch (error) {
     console.error("Error downloading leads CSV report:", error);
-    toast(
-      <CustomToast
-        type="error"
-        title="Download Failed"
-        message="Failed to download leads report."
-      />
-    );
+    toast(<CustomToast type="error" title="Error" message="Failed to download leads report." />);
   }
 };
 
   return (
     <div className="lead-card">
       <div className="lead-header">
-        <h5>My Leads Report</h5>
+        <h5>My Trending Leads</h5>
         <div className="lead-btn-group">
-          <button className="btn-add-2" onClick={handleAddLead}>+ Add</button>
-          <button className="btn-update-2" onClick={() => setShowProductModal(true)}>Products</button>
-          <button className="btn-filter-2"onClick={() => setShowModal(true)}>Get Report</button>
+          {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
+          <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
           <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
-          <button className="btn-update-2" onClick={() => setShowFilterModal(true)}>Filters</button>
+          {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
       </div>
 
@@ -206,7 +131,7 @@ const downloadCSVReport = async (leads) => {
               {/* <th>Phone No.</th> */}
               <th>Company Name</th>
               <th>Status</th>
-              <th>Category</th>
+                <th>Category</th>
               <th>State</th>
               <th>Datatype</th>
               <th>Action</th>
@@ -228,7 +153,7 @@ const downloadCSVReport = async (leads) => {
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
                 <td>{lead.category}</td>
-                <td>{lead.state}</td>
+                <td><i className="ti ti-map-pin"></i> {lead.state}</td>
                 <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
@@ -281,11 +206,6 @@ const downloadCSVReport = async (leads) => {
       {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
       )}
-      {isFormModalOpen && (
-        <FormModal
-        isOpen={isFormModalOpen} onClose={() => setFormModalOpen(false)}
-        />
-      )}
       {editLead && (
         <EditLeadModal
           lead={editLead}
@@ -301,34 +221,16 @@ const downloadCSVReport = async (leads) => {
           onConfirm={handleDeleteLead}
         />
       )}
-      {showModal && (
-        <DownloadReportModal
-          onClose={() => setShowModal(false)}
-          leads = {leads}
-        />
-      )}
-      {showFilterModal && (
-      <UserFilterModal
-          // onDeleteAll={() =>{setShowAllDeleteModal(true);setFiltersForDelete(filters);}}
-          onClose={() => setShowFilterModal(false)}
-          onApply={(appliedFilters) => {
-            setFilters(appliedFilters);        
-            filterAssignedLeads(userName, appliedFilters);       
-          }}
-          defaultFilters={filters}  
-        />)}
-      {showProductModal && (
-        <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />
-      )}
-    {LeadsforDownload && (
+      {LeadsforDownload && (
         <ConfirmModal
           message="Are you sure you want to download report?"
           onCancel={() => setLeadsforDownload(false)}
           onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
         />
       )}
+    
     </div>
   );
 };
 
-export default MyLeadTable;
+export default MyTrendingLeads;

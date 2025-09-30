@@ -3,72 +3,6 @@ const router = express.Router();
 const Client = require("../models/ClientData"); 
 const User = require('../models/User');
 
-router.post("/clients/filter", async (req, res) => {
-  try {
-    const {
-      category,
-      location,
-      datatype,
-      callStatus,
-      fileName,
-      status,
-      assigned,
-      assignedTo,
-    } = req.body;
-
-    const query = [];
-
-    if (category && Array.isArray(category) && category.length > 0) {
-      query.push({ category: { $in: category } });
-    }
-    if (location && Array.isArray(location) && location.length > 0) {
-      query.push({ location: { $in: location } });
-    }
-    if (datatype && Array.isArray(datatype) && datatype.length > 0) {
-      query.push({ datatype: { $in: datatype } });
-    }
-    if (callStatus && Array.isArray(callStatus) && callStatus.length > 0) {
-      query.push({ callStatus: { $in: callStatus } });
-    }
-    if (fileName && Array.isArray(fileName) && fileName.length > 0) {
-      query.push({ fileName: { $in: fileName } });
-    }
-    if (status && Array.isArray(status) && status.length > 0) {
-      query.push({ status: { $in: status } });
-    }
-
-  
-    if (assigned === "assigned") {
-      query.push({ assignedTo: { $exists: true, $ne: [] } });
-    } else if (assigned === "unassigned") {
-      query.push({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: [] }] });
-    }
-
-    
-    if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
-      query.push({
-        "assignedTo.user.name": { $in: assignedTo }
-      });
-    }
-
-    const finalQuery = query.length > 0 ? { $and: query } : {};
-
-    const clients = await Client.find(finalQuery);
-
-  
-    const uniqueClients = clients.filter((client, index, self) =>
-      index === self.findIndex(c => c._id.toString() === client._id.toString())
-    );
-
-    res.json(uniqueClients);
-  } catch (err) {
-    console.error("Filter Error:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-
-
 router.post('/leads/assign', async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
 
@@ -136,7 +70,7 @@ router.post('/leads/remove-assignments', async (req, res) => {
   }
 });
 
-// GET /api/clients/meta
+
 router.get("/clients/meta", async (req, res) => {
   try {
     const categories = await Client.distinct("category");
@@ -151,5 +85,26 @@ router.get("/clients/meta", async (req, res) => {
   }
 });
 
+router.get("/clients/assigned/:username/meta", async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    
+    const assignedClients = await Client.find({
+      "assignedTo.user.name": username
+    }).lean();
+
+  
+    const categories = [...new Set(assignedClients.map(c => c.category).filter(Boolean))];
+    const locations = [...new Set(assignedClients.map(c => c.location).filter(Boolean))];
+    const filenames = [...new Set(assignedClients.map(c => c.fileName).filter(Boolean))];
+    const datatypes = [...new Set(assignedClients.map(c => c.datatype).filter(Boolean))];
+
+    res.json({ categories, locations, filenames, datatypes });
+  } catch (err) {
+    console.error("Assigned Meta Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 module.exports = router;

@@ -11,53 +11,35 @@ const db = mongoose.connection;
 const clientSchema = new mongoose.Schema({}, { strict: false });
 const ClientData = mongoose.model("ClientData", clientSchema);
 
-const userSchema = new mongoose.Schema({}, { strict: false });
-const User = mongoose.model("User", userSchema, "users"); // Adjust collection name if needed
-
 db.once("open", async () => {
   console.log("✅ Connected to MongoDB");
 
   try {
-    const clients = await ClientData.find({ assignedTo: { $exists: true } });
+    const clients = await ClientData.find({});
 
     let updatedCount = 0;
 
     for (const client of clients) {
-      const newAssignedTo = [];
+      let newState = "";
 
-      for (const assignee of client.assignedTo || []) {
-        let newUser;
-
-        if (assignee.user && mongoose.Types.ObjectId.isValid(assignee.user)) {
-          const userDoc = await User.findById(assignee.user, "_id name");
-
-          newUser = userDoc
-            ? { _id: userDoc._id, name: userDoc.name || null }
-            : { _id: null, name: null };
-        } else {
-          // If user is null, undefined, or invalid ObjectId, set both to null
-          newUser = { _id: null, name: null };
-        }
-
-        newAssignedTo.push({
-          user: newUser,
-          permissions: assignee.permissions || {
-            view: false,
-            update: false,
-            delete: false,
-          },
-        });
+      if (client.state && client.state !== "") {
+        let currentState = parseInt(client.state, 10);
+        if (isNaN(currentState)) currentState = 0;
+        newState = String(currentState + 1);
+      } else {
+        // keep empty if originally empty
+        newState = "";
       }
 
       await ClientData.updateOne(
         { _id: client._id },
-        { $set: { assignedTo: newAssignedTo } }
+        { $set: { state: newState } }
       );
 
       updatedCount++;
     }
 
-    console.log(`✅ Updated ${updatedCount} client documents with new assignedTo format.`);
+    console.log(`✅ Processed ${updatedCount} client documents, state updated/kept empty.`);
   } catch (err) {
     console.error("❌ Error during migration:", err);
   } finally {

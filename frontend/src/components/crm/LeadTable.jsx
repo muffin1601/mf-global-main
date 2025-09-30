@@ -12,7 +12,7 @@ import DownloadReportModal from './Modals/DownloadModal';
 import BulkUpdateModal from './Modals/BulkUpdateModal';
 import SearchProductModal from './Modals/SearchProductModal';
 import { toast } from 'react-toastify';
-
+import CustomToast from "./CustomToast";
 
 const LeadTable = () => {
   const [leads, setLeads] = useState([]);
@@ -41,26 +41,29 @@ const LeadTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'));
 
-  useEffect(() => {
+   useEffect(() => {
     fetchLeads();
   }, []);
+
   const fetchLeads = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/all-clients`);
       const uniqueClients = response.data || [];
       setLeads(uniqueClients);
       setTotalLeads(uniqueClients.length);
-      const originalFilters = {
+      setFilters({
         category: [],
         datatype: [],
         location: [],
         fileName: [],
         status: [],
         callStatus: [],
-      };
-      setFilters(originalFilters);
+      });
+
+      toast(<CustomToast type="success" title="Leads Loaded" message="Leads fetched successfully" />);
     } catch (error) {
-      console.error('Error fetching leads:', error);
+      console.error("Error fetching leads:", error);
+      toast(<CustomToast type="error" title="Fetch Failed" message="Failed to fetch leads." />);
     }
   };
 
@@ -85,12 +88,7 @@ const LeadTable = () => {
   const filterLeads = (incomingFilters = filters) => {
     const removeIcons = (options) => {
       if (Array.isArray(options)) {
-        return options.map(option => {
-          if (typeof option === "string") {
-            return option.replace(/^[^\w]*\s*/, "").trim();
-          }
-          return option;
-        });
+        return options.map((option) => (typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option));
       }
       return options;
     };
@@ -102,14 +100,17 @@ const LeadTable = () => {
       callStatus: removeIcons(incomingFilters.callStatus),
     };
 
-    axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters).then((res) => {
-      setTotalLeads(res.data.length);
-      setLeads(res.data);
-      toast.success("Leads filtered successfully");
-    }).catch((err) => {
-      console.error("Filter Error:", err);
-      toast.error("Failed to apply filters.");
-    });
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
+      .then((res) => {
+        setTotalLeads(res.data.length);
+        setLeads(res.data);
+        toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
+      })
+      .catch((err) => {
+        console.error("Filter Error:", err);
+        toast(<CustomToast type="error" title="Filter Failed" message="Failed to apply filters." />);
+      });
   };
 
 
@@ -122,23 +123,20 @@ const LeadTable = () => {
 
     const ids = [leadforDelete._id || leadforDelete.id];
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
-      toast.success("Lead deleted successfully");
-
+      await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
       await logActivity("Deleted Lead", { leadId: leadforDelete._id });
-
-      setLeadforDelete(null); // close modal
-      filterLeads(); // refresh
+      setLeadforDelete(null);
+      filterLeads();
+      toast(<CustomToast type="success" title="Deleted" message="Lead deleted successfully" />);
     } catch (error) {
       console.error("Error deleting lead:", error);
-      toast.error("Failed to delete lead.");
+      toast(<CustomToast type="error" title="Delete Failed" message="Failed to delete lead." />);
     }
   };
 
   const handleDeleteFilteredLeads = async (filterSet) => {
-
     const removeIcons = (options) =>
-      Array.isArray(options) ? options.map(opt => opt.replace(/^[^\w]*\s*/, "").trim()) : options;
+      Array.isArray(options) ? options.map((opt) => opt.replace(/^[^\w]*\s*/, "").trim()) : options;
 
     const cleanedFilters = {
       ...filterSet,
@@ -148,26 +146,30 @@ const LeadTable = () => {
     };
 
     try {
-      // Get leads matching filters
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters);
       const leadsToDelete = response.data || [];
 
       if (leadsToDelete.length === 0) {
-        toast.info("No leads matched the filters.");
-        return;
+        return toast(<CustomToast type="info" title="No Leads" message="No leads matched the filters." />);
       }
 
-      const ids = leadsToDelete.map(lead => lead._id || lead.id);
+      const ids = leadsToDelete.map((lead) => lead._id || lead.id);
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
 
-      toast.success(`${res.data.deletedCount || ids.length} lead(s) deleted successfully.`);
-      filterLeads(); // refresh table
+      filterLeads();
+
+      toast(
+        <CustomToast
+          type="success"
+          title="Deleted"
+          message={`${res.data.deletedCount || ids.length} lead(s) deleted successfully.`}
+        />
+      );
     } catch (error) {
       console.error("Delete by filter failed:", error);
-      toast.error("Failed to delete filtered leads.");
+      toast(<CustomToast type="error" title="Delete Failed" message="Failed to delete filtered leads." />);
     }
   };
-
 
   return (
     <div className="lead-card">
@@ -213,7 +215,8 @@ const LeadTable = () => {
               {/* <th>Phone No.</th> */}
               <th>Company Name</th>
               <th>Status</th>
-              <th>Location</th>
+              <th>Category</th>
+              <th>State</th>
               <th>Datatype</th>
               <th>Action</th>
             </tr>
@@ -234,9 +237,10 @@ const LeadTable = () => {
                 <td data-label="Status">
                   <span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span>
                 </td>
+                <td data-label="Category">{lead.category}</td>
                 <td data-label="Location">
 
-                  {lead.location}
+                  {lead.state}
                 </td>
                 <td data-label="Datatype">{lead.datatype}</td>
                 <td data-label="Action">
@@ -326,10 +330,10 @@ const LeadTable = () => {
           onDeleteAll={() => { setShowAllDeleteModal(true); setFiltersForDelete(filters); }}
           onClose={() => setShowFilterModal(false)}
           onApply={(appliedFilters) => {
-            setFilters(appliedFilters);        // Keep state updated
-            filterLeads(appliedFilters);       // Use fresh filters directly
+            setFilters(appliedFilters);        
+            filterLeads(appliedFilters);       
           }}
-          defaultFilters={filters}  // Make sure defaultFilters is passed if needed
+          defaultFilters={filters}  
         />
       )}
       {showProductModal && (

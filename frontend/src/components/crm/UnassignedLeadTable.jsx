@@ -39,38 +39,38 @@ const UnassignedLeadTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'))
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-  const fetchLeads = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
-        const data = response.data ;
-        setLeads(data.uniqueUnassignedClients);
-        setTotalLeads(data.uniqueUnassignedClients.length);
-      } catch (error) {
-        toast.error('Error fetching leads:', error);
-      }
-    };
+useEffect(() => {
+  fetchLeads();
+}, []);
 
-  
-  const totalPages = Math.ceil(totalLeads / leadsPerPage);
+const fetchLeads = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
+    const data = response.data;
+    setLeads(data.uniqueUnassignedClients);
+    setTotalLeads(data.uniqueUnassignedClients.length);
+  } catch (error) {
+    console.error(error);
+    toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
+  }
+};
 
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
-  };
+const totalPages = Math.ceil(totalLeads / leadsPerPage);
 
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'Won Lead': return 'status-won';
-      case 'New Lead': return 'status-new';
-      case 'Lost Lead': return 'status-lost';
-      case 'In Progress': return 'status-in-progress';
-      default: return 'status-other';
-    }
-  };
+const getPaginatedLeads = () => {
+  const startIndex = (currentPage - 1) * leadsPerPage;
+  return leads.slice(startIndex, startIndex + leadsPerPage);
+};
 
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Won Lead': return 'status-won';
+    case 'New Lead': return 'status-new';
+    case 'Lost Lead': return 'status-lost';
+    case 'In Progress': return 'status-in-progress';
+    default: return 'status-other';
+  }
+};
 
 const filterLeads = (incomingFilters = filters) => {
   const removeIcons = (options) => {
@@ -92,14 +92,16 @@ const filterLeads = (incomingFilters = filters) => {
     callStatus: removeIcons(incomingFilters.callStatus),
   };
 
-  axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters).then((res) => {
-    setTotalLeads(res.data.length);
-    setLeads(res.data);
-    toast.success("Leads filtered successfully");
-  }).catch((err) => {
-    console.error("Filter Error:", err);
-    toast.error("Failed to apply filters.");
-  });
+  axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
+    .then((res) => {
+      setTotalLeads(res.data.length);
+      setLeads(res.data);
+      toast(<CustomToast type="success" title="Success" message="Leads filtered successfully" />);
+    })
+    .catch((err) => {
+      console.error("Filter Error:", err);
+      toast(<CustomToast type="error" title="Error" message="Failed to apply filters." />);
+    });
 };
 
 const handleDeleteLead = async () => {
@@ -107,8 +109,8 @@ const handleDeleteLead = async () => {
 
   const ids = [leadforDelete._id || leadforDelete.id];
   try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, {ids});
-    toast.success( "Lead deleted successfully");
+    await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
+    toast(<CustomToast type="success" title="Success" message="Lead deleted successfully" />);
 
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
@@ -116,20 +118,20 @@ const handleDeleteLead = async () => {
     filterLeads(); // refresh
   } catch (error) {
     console.error("Error deleting lead:", error);
-    toast.error("Failed to delete lead.");
+    toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);
   }
 };
 
 const downloadCSVReport = async (leads) => {
   if (!Array.isArray(leads) || leads.length === 0) {
-    toast.error("No leads provided for CSV download.");
+    toast(<CustomToast type="error" title="Error" message="No leads provided for CSV download." />);
     return;
   }
 
   try {
     const res = await axios.post(
       `${import.meta.env.VITE_API_URL}/leads/report/download-by-leads`,
-      { leads }, // Send the actual leads
+      { leads }, 
       { responseType: "blob" }
     );
 
@@ -143,14 +145,14 @@ const downloadCSVReport = async (leads) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("Unassigned leads report downloaded successfully!");
+    toast(<CustomToast type="success" title="Success" message="Unassigned leads report downloaded successfully!" />);
 
     await logActivity("Downloaded unassigned Leads Report", {
       leadsCount: leads.length,
     });
   } catch (error) {
     console.error("Error downloading leads CSV report:", error);
-    toast.error("Failed to download leads report.");
+    toast(<CustomToast type="error" title="Error" message="Failed to download leads report." />);
   }
 };
 
@@ -175,8 +177,9 @@ const downloadCSVReport = async (leads) => {
               {/* <th>Phone No.</th> */}
               <th>Company Name</th>
               <th>Status</th>
-              <th>Location</th>
-              <th>Date</th>
+              <th>Category</th>
+              <th>State</th>
+              <th>Datatype</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -195,8 +198,9 @@ const downloadCSVReport = async (leads) => {
                 {/* <td>{lead.phone}</td> */}
                 <td>{lead.company}</td>
                 <td><span className={`lead-status ${getStatusClass(lead.status)}`}>{lead.status}</span></td>
-                <td><i className="ti ti-map-pin"></i> {lead.location}</td>
-                <td>{lead.createdAt?.slice(0, 10)}</td>
+                <td>{lead.category}</td>
+                <td><i className="ti ti-map-pin"></i> {lead.state}</td>
+                <td>{lead.datatype}</td>
                 <td>
                     <div className="lead-actions">
                       <button className="btn-view" title="View" onClick={() => setSelectedLead(lead)}><AiOutlineEye  /></button>

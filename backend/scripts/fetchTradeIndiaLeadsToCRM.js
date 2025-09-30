@@ -11,6 +11,17 @@ const {
   MONGO_URI,
 } = process.env;
 
+
+function formatPhone(phone) {
+  if (!phone) return "";
+  let cleaned = phone.toString().replace(/\D/g, ""); 
+  if (cleaned.startsWith("91") && cleaned.length > 10) {
+    cleaned = cleaned.slice(2);
+  }
+  return cleaned.slice(-10); 
+}
+
+
 const fetchAndStoreLeads = async () => {
   try {
     await mongoose.connect(MONGO_URI, {
@@ -45,9 +56,10 @@ const fetchAndStoreLeads = async () => {
           name: lead.sender_name || '',
           company: lead.sender_co || '',
           email: lead.sender_email || '',
-          phone: lead.sender_mobile || '',
+          phone: formatPhone(lead.sender_mobile) || '',
           contact: lead.sender_name || '',
           location: lead.sender_city || '',
+          state: lead.sender_state || '',
           category: "TradeIndia",
           requirements: lead.message ? lead.message.replace(/[^\w\s]/gi, '').split(' ').slice(0, 100).join(' ') : '',
           remarks: lead.subject || lead.product_name || '',

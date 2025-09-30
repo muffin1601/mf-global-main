@@ -24,7 +24,7 @@ const upload = multer({
 });
 
 const PHONE_REGEX = /^[6-9][0-9]{9}$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
 const cleanInput = (input) => {
@@ -44,9 +44,9 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
   let skipped = 0;
   let aborted = false;
 
-  const addSkipped = ({ phone = null, contact = null, company = null, location = null, category = null, datatype = null, reason }) => {
+  const addSkipped = ({ phone = null, contact = null, company = null, location = null, state = null, category = null, datatype = null, reason }) => {
     skipped++;
-    skippedData.push({ phone, contact, company, location, category, datatype, reason });
+    skippedData.push({ phone, contact, company, location, state, category, datatype, reason });
   };
 
   const parser = csv();
@@ -75,6 +75,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       const contact = normalizedRow["contact"] || null;
       const company = normalizedRow["company"] || null;
       const location = normalizedRow["location"] || null;
+      const state = normalizedRow["state"] || null;
       let category = normalizedRow["category"] || null;
       if (category) {
         category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
@@ -97,6 +98,13 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
         return addSkipped({ phone, contact, company, location, category, datatype, reason: "Location exceeds 15 characters" });
       }
 
+      if (state && state.length > 15) {
+        return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "State exceeds 15 characters" });
+      }
+      if (company && company.length > 50) {
+        return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "Company exceeds 50 characters" });
+      }
+
       const validDatatypes = [
         "IndiaMart",
         "Offline",
@@ -112,6 +120,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
           contact,
           company,
           location,
+          state,
           category,
           datatype,
           reason: "Invalid datatype",
@@ -125,6 +134,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
         phone,
         contact,
         location,
+        state,
         category,
         quantity: Number(normalizedRow["quantity"]) || 0,
         remarks: normalizedRow["remarks"] || "",

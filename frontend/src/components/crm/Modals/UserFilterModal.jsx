@@ -55,7 +55,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
     const fetchMeta = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/clients/meta`
+          `${import.meta.env.VITE_API_URL}/clients/assigned/${user.name}/meta`
         );
         setDbOptions({
           category: [...new Set(res.data.categories || [])],
@@ -75,11 +75,6 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
     };
     fetchMeta();
   }, []);
-
-  const handleDeleteAll = () => {
-    onDeleteAll(modalFilters);
-    onClose();
-  };
 
   const handleApply = () => {
     onApply(modalFilters);
@@ -123,16 +118,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
         </div>
 
         <div className="filtermodal-footer-wrapper">
-          {user.role === "admin" && (
-            <div className="filtermodal-footer-left">
-              <button
-                className="filtermodal-btn-deleteall"
-                onClick={handleDeleteAll}
-              >
-                <FaTrash />
-              </button>
-            </div>
-          )}
+          
           <div className="filtermodal-footer-right">
             <button className="filtermodal-btn-cancel" onClick={onClose}>
               Cancel

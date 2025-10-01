@@ -191,7 +191,7 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           <button className="btn-add-2" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update-2" onClick={() => setShowProductModal(true)}>Products</button>
-          <button className="btn-filter-2"onClick={() => setShowModal(true)}>Get Report</button>
+          {/* <button className="btn-filter-2"onClick={() => setShowModal(true)}>Get Report</button> */}
           <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           <button className="btn-update-2" onClick={() => setShowFilterModal(true)}>Filters</button>
         </div>

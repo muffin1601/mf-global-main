@@ -46,102 +46,148 @@ const AssignModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
   };
 
   useEffect(() => {
-    const fetchMeta = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/clients/unassigned/meta`);
-        setDbOptions({
-          category: res.data.categories || [],
-          location: res.data.locations || [],
-          state: res.data.states || [],
-          fileName: res.data.filenames || []
-        });
-
-        const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
-        setUsers(userRes.data);
-      } catch (error) {
-        console.error(error);
-        toast.error('Failed to load options');
-      }
-    };
-    fetchMeta();
-  }, []);
-
-  const handleDeleteAll = () => {
-    onDeleteAll(modalFilters);
-    onClose();
-  };
-
-  const filterLeadsForAssign = (incomingFilters = modalFilters) => {
-    const removeIcons = (options) => {
-      if (Array.isArray(options)) {
-        return options.map(option => {
-          if (typeof option === "string") {
-            return option.replace(/^[^\w]*\s*/, "").trim();
-          }
-          return option;
-        });
-      }
-      return options;
-    };
-
-    const cleanedFilters = {
-      ...incomingFilters,
-      datatype: removeIcons(incomingFilters.datatype),
-      status: removeIcons(incomingFilters.status),
-      callStatus: removeIcons(incomingFilters.callStatus),
-    };
-
-    axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
-      .then(res => setFilteredLeads(res.data))
-      .catch(err => console.error("Filter Error:", err));
-  };
-
-  const handleApply = () => {
-    onApply(modalFilters);
-    onClose();
-  };
-
-  const handleAssign = async () => {
-    if (selectedUsers.length === 0) {
-      toast.error("Please select at least one user.");
-      return;
-    }
-
+  const fetchMeta = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
-        Leads: filteredLeads,
-        userIds: selectedUsers,
-        permissions,
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/clients/unassigned/meta`);
+      setDbOptions({
+        category: res.data.categories || [],
+        location: res.data.locations || [],
+        state: res.data.states || [],
+        fileName: res.data.filenames || [],
       });
-      toast.success("Leads assigned successfully.");
-      setAssignOptionsVisible(false);
+
+      const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
+      setUsers(userRes.data);
     } catch (error) {
-      toast.error("Failed to assign leads.");
+      console.error(error);
+      toast(
+        <CustomToast
+          type="error"
+          title="Failed to Load"
+          message="Could not fetch filter options. Please try again."
+        />
+      );
     }
   };
+  fetchMeta();
+}, []);
 
-  const handleRemoveAssignments = async () => {
-    if (selectedUsers.length === 0) {
-      toast.error("Please select at least one user to remove.");
-      return;
-    }
+const handleDeleteAll = () => {
+  onDeleteAll(modalFilters);
+  onClose();
+};
 
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/leads/remove-assignments`, {
-        Leads: filteredLeads,
-        userIds: selectedUsers.map(u => u._id),
-      });
-      toast.success("Assignments removed successfully.");
-      setAssignOptionsVisible(false);
-    } catch (error) {
-      toast.error("Failed to remove assignments.");
+const filterLeadsForAssign = (incomingFilters = modalFilters) => {
+  const removeIcons = (options) => {
+    if (Array.isArray(options)) {
+      return options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option);
     }
+    return options;
   };
 
-  const openAssignBlock = () => {
-    setAssignOptionsVisible(true);
-    filterLeadsForAssign();
+  const cleanedFilters = {
+    ...incomingFilters,
+    datatype: removeIcons(incomingFilters.datatype),
+    status: removeIcons(incomingFilters.status),
+    callStatus: removeIcons(incomingFilters.callStatus),
   };
+
+  axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
+    .then(res => setFilteredLeads(res.data))
+    .catch(err => {
+      console.error("Filter Error:", err);
+      toast(
+        <CustomToast
+          type="error"
+          title="Filter Failed"
+          message="Could not filter leads. Please try again."
+        />
+      );
+    });
+};
+
+const handleApply = () => {
+  onApply(modalFilters);
+  onClose();
+};
+
+const handleAssign = async () => {
+  if (selectedUsers.length === 0) {
+    return toast(
+      <CustomToast
+        type="error"
+        title="No Users Selected"
+        message="Please select at least one user."
+      />
+    );
+  }
+
+  try {
+    await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+      Leads: filteredLeads,
+      userIds: selectedUsers,
+      permissions,
+    });
+    toast(
+      <CustomToast
+        type="success"
+        title="Leads Assigned"
+        message="Leads assigned successfully!"
+      />
+    );
+    setAssignOptionsVisible(false);
+  } catch (error) {
+    console.error(error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Assign Failed"
+        message="Failed to assign leads."
+      />
+    );
+  }
+};
+
+const handleRemoveAssignments = async () => {
+  if (selectedUsers.length === 0) {
+    return toast(
+      <CustomToast
+        type="error"
+        title="No Users Selected"
+        message="Please select at least one user to remove."
+      />
+    );
+  }
+
+  try {
+    await axios.post(`${import.meta.env.VITE_API_URL}/leads/remove-assignments`, {
+      Leads: filteredLeads,
+      userIds: selectedUsers.map(u => u._id),
+    });
+    toast(
+      <CustomToast
+        type="success"
+        title="Assignments Removed"
+        message="Assignments removed successfully!"
+      />
+    );
+    setAssignOptionsVisible(false);
+  } catch (error) {
+    console.error(error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Remove Failed"
+        message="Failed to remove assignments."
+      />
+    );
+  }
+};
+
+const openAssignBlock = () => {
+  setAssignOptionsVisible(true);
+  filterLeadsForAssign();
+};
 
   return (
   <div className="am-overlay" onClick={onClose}>

@@ -17,7 +17,7 @@ const Sidebar = () => {
 
   const mainNavigation = [
     // { label: "Dashboard Overview", path: "/crm/overview", icon: FaChartBar },
-    { label: "User Management", path: "/crm/users", icon: FaUserTie, roles: ['admin'] },
+    { label: "User Management", path: "/crm/user-management", icon: FaUserTie, roles: ['admin'] },
     // { label: "Settings", path: "/crm/settings", icon: FaCog },
   ];
 

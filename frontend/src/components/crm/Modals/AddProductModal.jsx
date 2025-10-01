@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import './styles/EditLeadModal.css'; // Reuse existing modal CSS
 import { AiOutlineClose } from 'react-icons/ai';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {

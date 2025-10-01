@@ -5,12 +5,13 @@ import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import LeadModal from './Modals/LeadModal';
 import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
-import FilterModal from './Modals/FilterModal';
+import AssignModal from "./Modals/AssignModal";
 import FormModal from './Modals/FormModal';
 import { logActivity } from '../../utils/logActivity'; // Adjust the import path as necessary
 import DownloadReportModal from './Modals/DownloadModal';
 import BulkUpdateModal from './Modals/BulkUpdateModal';
 import { toast } from 'react-toastify';
+import CustomToast from './CustomToast';
 
 
 const UnassignedLeadTable = () => {
@@ -21,20 +22,21 @@ const UnassignedLeadTable = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  // const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [isFormModalOpen, setFormModalOpen] = useState(false);
-  // const [filters, setFilters] = useState({
-  //   category: [],
-  //   datatype: [],
-  //   location: [],
-  //   fileName: [],
-  //   status: [],
-  //   callStatus: [],
-  //   assignedTo: [],
-  // });
+  const [filters, setFilters] = useState({
+    category: [],
+    datatype: [],
+    location: [],
+    fileName: [],
+    status: [],
+    callStatus: [],
+    assignedTo: [],
+  });
 
 
   const user = JSON.parse(localStorage.getItem('user'))
@@ -72,37 +74,27 @@ const getStatusClass = (status) => {
   }
 };
 
-const filterLeads = (incomingFilters = filters) => {
-  const removeIcons = (options) => {
-    if (Array.isArray(options)) {
-      return options.map(option => {
-        if (typeof option === "string") {
-          return option.replace(/^[^\w]*\s*/, "").trim();
-        }
-        return option;
-      });
-    }
-    return options;
-  };
+const filterForAssign = async (incomingFilters = filters) => {
+    const removeIcons = (options) =>
+      Array.isArray(options) ? options.map(o => typeof o==="string"?o.replace(/^[^\w]*\s*/,"").trim():o) : options;
 
-  const cleanedFilters = {
-    ...incomingFilters,
-    datatype: removeIcons(incomingFilters.datatype),
-    status: removeIcons(incomingFilters.status),
-    callStatus: removeIcons(incomingFilters.callStatus),
-  };
+    const cleanedFilters = {
+      ...incomingFilters,
+      datatype: removeIcons(incomingFilters.datatype),
+      status: removeIcons(incomingFilters.status),
+      callStatus: removeIcons(incomingFilters.callStatus)
+    };
 
-  axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
-    .then((res) => {
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters);
       setTotalLeads(res.data.length);
       setLeads(res.data);
-      toast(<CustomToast type="success" title="Success" message="Leads filtered successfully" />);
-    })
-    .catch((err) => {
+      toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
+    } catch (err) {
       console.error("Filter Error:", err);
-      toast(<CustomToast type="error" title="Error" message="Failed to apply filters." />);
-    });
-};
+      toast(<CustomToast type="error" title="Filter Failed" message="Failed to filter leads." />);
+    }
+  };
 
 const handleDeleteLead = async () => {
   if (!leadforDelete) return;
@@ -163,6 +155,13 @@ const downloadCSVReport = async (leads) => {
         <div className="lead-btn-group">
           {/* <button className="btn-add" onClick={handleAddLead}>+ Add</button>
           <button className="btn-update"onClick={() => setShowBulkUpdateModal(true)}>Update</button> */}
+          <button
+            className="btn-filter-2"
+            onClick={() => setShowAssignModal(true)}
+            disabled={!leads.length}
+          >
+            Assign Leads
+          </button>
           <button className="btn-download-2" onClick={() => setLeadsforDownload(true)}disabled={!leads.length}>Download</button>
           {/* <button className="btn-filter" onClick={() => setShowFilterModal(true)}>Filters</button> */}
         </div>
@@ -267,14 +266,22 @@ const downloadCSVReport = async (leads) => {
           onConfirm={handleDeleteLead}
         />
       )}
-      {/* {showFilterModal && (
-        <FilterModal
-          onClose={() => setShowFilterModal(false)}
+      {showAssignModal && (
+        <AssignModal
+          onClose={() => setShowAssignModal(false)}
           onApply={(appliedFilters) => {
-            setFilters(appliedFilters);        // Keep state updated
-            filterLeads(appliedFilters);       // Use fresh filters directly
+            setFilters(appliedFilters);       
+            filterForAssign(appliedFilters);    
           }}
-          defaultFilters={filters}  // Make sure defaultFilters is passed if needed
+          defaultFilters={filters}  
+        />
+      )}
+      {/* {showAssignModal && (
+        <AssignLeadModal
+          isOpen={showAssignModal}
+          onClose={() => setShowAssignModal(false)}
+          filteredLeads={leads}
+          onSuccess={fetchLeads} 
         />
       )} */}
       {isFormModalOpen && (
@@ -291,7 +298,7 @@ const downloadCSVReport = async (leads) => {
         <BulkUpdateModal
           onClose={() => setShowBulkUpdateModal(false)}
           filteredLeads={leads}
-          onUpdateSuccess={filterLeads} // reapply filters after update
+          onUpdateSuccess={filterLeads} 
         />
       )}
        {LeadsforDownload && (

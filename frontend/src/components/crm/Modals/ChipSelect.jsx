@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-
-const ChipSelect = ({ label, name, options, selected, onChange }) => {
+const ChipSelect = ({ label, name, options = [], selected = [], onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -17,15 +16,14 @@ const ChipSelect = ({ label, name, options, selected, onChange }) => {
     onChange(name, selected.filter((item) => item !== option));
   };
 
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -38,10 +36,15 @@ const ChipSelect = ({ label, name, options, selected, onChange }) => {
           selected.map((val) => (
             <div className="chip" key={val}>
               {val}
-              <span className="chip-remove" onClick={(e) => {
-                e.stopPropagation();
-                removeChip(val);
-              }}>×</span>
+              <span
+                className="chip-remove"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeChip(val);
+                }}
+              >
+                ×
+              </span>
             </div>
           ))
         )}
@@ -49,16 +52,24 @@ const ChipSelect = ({ label, name, options, selected, onChange }) => {
 
       {isOpen && (
         <div className="chip-dropdown">
-          {options.map((option) => (
-            <div
-              key={option}
-              className={`chip-option ${selected.includes(option) ? 'selected' : ''}`}
-              onClick={() => toggleOption(option)}
-            >
-              {option}
-              {selected.includes(option) && <span className="checkmark">✔</span>}
-            </div>
-          ))}
+          {options.length > 0 ? (
+            options.map((option) => (
+              <div
+                key={option}
+                className={`chip-option ${
+                  selected.includes(option) ? "selected" : ""
+                }`}
+                onClick={() => toggleOption(option)}
+              >
+                {option}
+                {selected.includes(option) && (
+                  <span className="checkmark">✔</span>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="chip-option disabled">No options</div>
+          )}
         </div>
       )}
     </div>
@@ -67,8 +78,8 @@ const ChipSelect = ({ label, name, options, selected, onChange }) => {
 
 export default ChipSelect;
 
+
 const css = `
-/* ChipSelect.css — matches the classNames used in your component */
 
 .chip-select {
   position: relative;
@@ -87,7 +98,7 @@ const css = `
   margin-bottom: 4px;
 }
 
-/* fake-input container */
+
 .chip-container {
   display: flex;
   flex-wrap: wrap;
@@ -107,13 +118,13 @@ const css = `
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
 
-/* placeholder when no chips selected */
+
 .chip-placeholder {
   color: #9aa0a6;
   font-size: 14px;
 }
 
-/* each chip pill */
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -132,7 +143,7 @@ const css = `
   background: #e9edf8;
 }
 
-/* little × remove button inside chip */
+
 .chip-remove {
   display: inline-flex;
   align-items: center;
@@ -149,10 +160,10 @@ const css = `
   color: #d03c3c;
 }
 
-/* dropdown menu */
+
 .chip-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 0px);
   left: 0;
   width: 100%;
   max-width: 100%;
@@ -173,7 +184,7 @@ const css = `
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* option row */
+
 .chip-option {
   padding: 10px 14px;
   font-size: 14px;

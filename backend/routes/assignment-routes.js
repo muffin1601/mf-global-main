@@ -3,11 +3,11 @@ const router = express.Router();
 const Client = require("../models/ClientData"); 
 const User = require('../models/User');
 
-router.post('/leads/assign', async (req, res) => {
+router.post("/leads/assign", async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
 
   try {
-    const users = await User.find({ _id: { $in: userIds } }, '_id name');
+    const users = await User.find({ _id: { $in: userIds } }, "_id name");
 
     await Promise.all(
       Leads.map(async (leadId) => {
@@ -16,21 +16,16 @@ router.post('/leads/assign', async (req, res) => {
 
         const updatedAssignments = new Map();
 
-     
         (lead.assignedTo || []).forEach((a) => {
           if (a.user && a.user._id) {
             updatedAssignments.set(a.user._id.toString(), a);
           }
         });
 
-        
         users.forEach((user) => {
           updatedAssignments.set(user._id.toString(), {
-            user: {
-              _id: user._id,
-              name: user.name || null,
-            },
-            permissions,
+            user: { _id: user._id, name: user.name },
+            permissions: { ...permissions }
           });
         });
 
@@ -39,10 +34,10 @@ router.post('/leads/assign', async (req, res) => {
       })
     );
 
-    res.json({ message: 'Leads assigned successfully' });
+    res.json({ message: "Leads assigned successfully" });
   } catch (error) {
-    console.error('Lead assignment error:', error);
-    res.status(500).json({ error: 'Assignment failed' });
+    console.error("Lead assignment error:", error);
+    res.status(500).json({ error: "Assignment failed" });
   }
 });
 
@@ -108,5 +103,25 @@ router.get("/clients/assigned/:username/meta", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+router.get("/clients/unassigned/meta", async (req, res) => {
+  try {
+    const unassignedClients = await Client.find({
+      $or: [{ assignedTo: { $exists: false } }, { assignedTo: { $size: 0 } }]
+    }).lean();
+
+    const categories = [...new Set(unassignedClients.map(c => c.category).filter(Boolean))];
+    const locations = [...new Set(unassignedClients.map(c => c.location).filter(Boolean))];
+    const states = [...new Set(unassignedClients.map(c => c.state).filter(Boolean))];
+    const filenames = [...new Set(unassignedClients.map(c => c.fileName).filter(Boolean))];
+    const datatypes = [...new Set(unassignedClients.map(c => c.datatype).filter(Boolean))];
+
+    res.json({ categories, locations, states, filenames, datatypes });
+  } catch (err) {
+    console.error("Unassigned Meta Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 module.exports = router;

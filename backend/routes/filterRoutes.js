@@ -96,4 +96,25 @@ router.post("/clients/assigned/:userName/filter", async (req, res) => {
   }
 });
 
+router.post("/clients/unassigned/filter", async (req, res) => {
+  const filters = req.body;
+
+  try {
+    const query = { $and: [{ $or: [{ assignedTo: { $exists: false } }, { assignedTo: { $size: 0 } }] }] };
+
+    if (filters.category?.length) query.$and.push({ category: { $in: filters.category } });
+    if (filters.datatype?.length) query.$and.push({ datatype: { $in: filters.datatype } });
+    if (filters.location?.length) query.$and.push({ location: { $in: filters.location } });
+    if (filters.state?.length) query.$and.push({ state: { $in: filters.state } });
+    if (filters.status?.length) query.$and.push({ status: { $in: filters.status } });
+    if (filters.callStatus?.length) query.$and.push({ callStatus: { $in: filters.callStatus } });
+
+    const unassignedClients = await Client.find(query).lean();
+    res.json(unassignedClients);
+  } catch (err) {
+    console.error("Unassigned Filter Error:", err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 module.exports = router;

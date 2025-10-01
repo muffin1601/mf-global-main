@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './styles/EditLeadModal.css';
+
 import { AiOutlineClose } from 'react-icons/ai';
 import axios from 'axios';
 import { toast } from 'react-toastify';

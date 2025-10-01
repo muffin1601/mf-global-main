@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ChipSelect from "./ChipSelect";
-import "./styles/FetchReportModal.css";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast"; // import your custom toast
 

@@ -13,7 +13,7 @@ const UserTable = () => {
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(null);
 
     const fetchUsers = async () => {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/all`);
         setUsers(res.data);
     };
 

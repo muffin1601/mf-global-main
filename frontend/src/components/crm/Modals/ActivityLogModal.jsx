@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./styles/ActivityLogModal.css";
+
 
 const ActivityLogModal = ({ users, onClose }) => {
   const [selectedUserId, setSelectedUserId] = useState("");

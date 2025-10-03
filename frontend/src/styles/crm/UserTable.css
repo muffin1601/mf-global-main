@@ -1,115 +1,188 @@
-/* UserTable.css */
-
 .user-table-mgmt-container-unique {
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  font-family: 'Poppins', sans-serif;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  margin: 20px;
+  max-width: 100%;
+  font-family: 'Outfit', sans-serif;
 }
-.user-table-title-head{
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+
+.user-table-title-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
 }
+
 .user-table-title-unique {
-  font-size: 22px;
-  font-weight: 500;
-  margin-bottom: 10px;
-  margin-left: 8px;
-  color: #333333;
+  font-size: 2rem;
+  font-weight: 400;
+  color: #000;
+  margin: 0;
 }
 
 .user-table-actions-unique {
   display: flex;
-  gap: 5px;
-  margin-bottom: 20px;
-  justify-content: flex-end;
-  margin-right: 150px;
+  gap: 1rem;
 }
 
 .user-table-register-btn-unique,
-.user-table-change-password-btn-unique {
-  margin-left: 10px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 400;
+.user-table-track-btn-unique {
+  border-radius: 25px;
+  padding: 0.75rem 1.6rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
   cursor: pointer;
-  color: white;
-  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.05);
+  border: none;
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
 }
 
-.user-table-register-btn-unique {
-  background-color: #4caf50;
+.user-table-register-btn-unique{
+  background: linear-gradient(135deg, #34d399, #10b981);
+}
+.user-table-track-btn-unique {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
-.user-table-change-password-btn-unique {
-  background-color: #3498db;
+.user-table-register-btn-unique:hover,
+.user-table-track-btn-unique:hover {
+  
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.05), inset 0 0 10px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
 }
+
 
 .user-table-table-unique {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
   text-align: left;
+  background: rgba(0, 0, 0, 0.329);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .user-table-thead-unique {
-  background-color: #f9f9f9;
+  background-color: rgba(51, 51, 51, 0.397);
 }
 
-.user-table-tr-head-unique {
+.user-table-tr-head-unique th {
+  padding: 1rem 1.2rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #555555;
+  color: #fff;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.192);
 }
 
-.user-table-th-unique {
-  padding: 12px 15px;
-  border-bottom: 1px solid #eeeeee;
+.user-table-tbody-unique {
+  background: transparent;
 }
 
-
-.user-table-tr-body-unique:nth-child(even) {
-  background-color: #fafafa;
+.user-table-tr-body-unique {
+  transition: background 0.2s;
 }
 
 .user-table-tr-body-unique:hover {
-  background-color: #f1f7ff;
+  background-color: rgba(255,255,255,0.05);
 }
 
 .user-table-td-unique {
-  padding: 12px 15px;
-  border-bottom: 1px solid #eeeeee;
-  color: #333333;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 16px;
 }
 
 .user-table-td-actions-unique {
   display: flex;
-  gap: 8px;
-  padding: 12px 15px;
-  border-bottom: 1px solid #eeeeee;
+  gap: 0.5rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .user-table-toggle-btn-unique,
-.user-table-track-btn-unique {
-  margin-left: 10px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 400;
+.user-table-change-password-btn-unique {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 50px;
+  width: auto;
+  height: 34px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  font-family: 'outfit', sans-serif;
+  justify-content: center;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  padding: 20px 25px;
 }
 
-.user-table-toggle-btn-unique {
-  background-color: #f39c12;
-  color: white;
+.user-table-toggle-btn-unique:hover,
+.user-table-change-password-btn-unique:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.05);
 }
 
-.user-table-track-btn-unique {
-  background-color: #8e44ad;
-  color: white;
+@media (max-width: 900px) {
+  .user-table-mgmt-container-unique {
+    padding: 24px 8px;
+    max-width: 100%;
+  }
+  .user-table-title-head {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .user-table-actions-unique {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .user-table-register-btn-unique,
+  .user-table-track-btn-unique {
+    flex-grow: 1;
+  }
+  .user-table-thead-unique {
+    display: none;
+  }
+  .user-table-tr-body-unique {
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255,255,255,0.1);
+  }
+  .user-table-td-unique,
+  .user-table-td-actions-unique {
+    display: flex;
+    justify-content: space-between;
+    text-align: right;
+    padding: 0.75rem 1rem;
+    border-bottom: none;
+  }
+  .user-table-td-unique:before {
+    content: attr(data-label);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    text-align: left;
+    flex-basis: 50%;
+  }
+  /* Add custom labels for each column as needed */
+  .user-table-td-unique:first-child:before { content: "S.NO"; }
+  .user-table-td-unique:nth-child(2):before { content: "User"; }
+  .user-table-td-unique:nth-child(3):before { content: "Email"; }
+  .user-table-td-unique:nth-child(4):before { content: "Role"; }
+  .user-table-td-unique:nth-child(5):before { content: "Status"; }
+  .user-table-td-unique:last-child:before { content: "Action"; }
 }

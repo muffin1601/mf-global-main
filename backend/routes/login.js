@@ -6,7 +6,17 @@ const User = require("../models/User");
 
 router.get("/users", async (req, res) => {
   try {
-    const users = await User.find({enabled:true}).select("-password"); 
+    const users = await User.find({ enabled: true, role:'user' }).select("-password");
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/users/all", async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password");
     res.json(users);
   } catch (err) {
     console.error("Error fetching users:", err);

@@ -4,7 +4,7 @@ import ChipSelect from "./ChipSelect";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast"; // import your custom toast
 
-const FetchReportModal = ({ onClose, onFetch, onDownload }) => {
+const FetchReportModal = ({ onClose, onFetch, onDownload ,onRemoveAssignment }) => {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showDateRange, setShowDateRange] = useState(false);
@@ -68,6 +68,18 @@ const FetchReportModal = ({ onClose, onFetch, onDownload }) => {
     onClose();
   };
 
+    const handleRemoveClick = () => {
+    if (onRemoveAssignment) {
+      const filtersToSend = {
+        ...modalFilters,
+        assignedTo: selectedUsers.map(u => u.name)
+        
+      };
+      onRemoveAssignment(filtersToSend);
+      onClose();
+    }
+  };
+
   return (
     <div className="fetch-report-modal__overlay">
       <div className="fetch-report-modal__container">
@@ -99,6 +111,7 @@ const FetchReportModal = ({ onClose, onFetch, onDownload }) => {
               >
                 Fetch Report
               </button>
+              <button className="am-remove-btn" onClick={handleRemoveClick}>Remove Assignments</button>
               {/* <button
                 className="fetch-report-modal__link-btn"
                 onClick={() => setShowDateRange(true)}

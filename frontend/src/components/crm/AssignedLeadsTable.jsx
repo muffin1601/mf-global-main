@@ -75,7 +75,7 @@ const AssignedLeadsTable = () => {
       .then((res) => {
         setTotalLeads(res.data.length);
         setLeads(res.data);
-        toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
+        // toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
       })
       .catch(() => toast(<CustomToast type="error" title="Failed" message="Failed to apply filters." />));
   };
@@ -157,6 +157,49 @@ const AssignedLeadsTable = () => {
       toast(<CustomToast type="error" title="Error" message="Failed to download report. Please try again." />);
     }
   };
+
+  const handleRemoveAssignments = async (filtersToSend) => {
+
+    const filterResponse = await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, filtersToSend);
+    const filteredLeads = filterResponse.data;
+
+  if (!filteredLeads || filteredLeads.length === 0) {
+    return toast(
+      <CustomToast
+        type="error"
+        title="No Leads Selected"
+        message="No leads available to remove assignments from."
+      />
+    );
+  }
+
+  try {
+    await axios.post(`${import.meta.env.VITE_API_URL}/leads/remove-assignments`, {
+      Leads: filteredLeads.map(l => l._id), 
+    });
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Assignments Removed"
+        message="Assignments removed successfully!"
+      />
+    );
+
+    fetchLeads(); 
+  } catch (error) {
+    console.error(error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Remove Failed"
+        message="Failed to remove assignments."
+      />
+    );
+  }
+};
+
+
   return (
     <div className="lead-card">
       <div className="lead-header">
@@ -276,12 +319,17 @@ const AssignedLeadsTable = () => {
           onFetch={(incomingFilters) => {
             setFilters(incomingFilters);
             filterLeads(incomingFilters);
+            
           }}
           onDownload={(incomingFilters) => {
             setFilters(incomingFilters);
             setFromDate(incomingFilters.fromDate || "");
             setToDate(incomingFilters.toDate || "");
             handleDownload();
+          }}
+          onRemoveAssignment={(incomingFilters) => {
+            setFilters(incomingFilters);
+            handleRemoveAssignments(incomingFilters);
           }}
         />
       )}

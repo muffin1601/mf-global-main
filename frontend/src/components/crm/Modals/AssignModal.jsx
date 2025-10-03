@@ -78,34 +78,34 @@ const handleDeleteAll = () => {
   onClose();
 };
 
-// const filterLeadsForAssign = (incomingFilters = modalFilters) => {
-//   const removeIcons = (options) => {
-//     if (Array.isArray(options)) {
-//       return options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option);
-//     }
-//     return options;
-//   };
+const filterLeadsForAssign = (incomingFilters = modalFilters) => {
+  const removeIcons = (options) => {
+    if (Array.isArray(options)) {
+      return options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option);
+    }
+    return options;
+  };
 
-//   const cleanedFilters = {
-//     ...incomingFilters,
-//     datatype: removeIcons(incomingFilters.datatype),
-//     status: removeIcons(incomingFilters.status),
-//     callStatus: removeIcons(incomingFilters.callStatus),
-//   };
+  const cleanedFilters = {
+    ...incomingFilters,
+    datatype: removeIcons(incomingFilters.datatype),
+    status: removeIcons(incomingFilters.status),
+    callStatus: removeIcons(incomingFilters.callStatus),
+  };
 
-//   axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters)
-//     .then(res => setFilteredLeads(res.data))
-//     .catch(err => {
-//       console.error("Filter Error:", err);
-//       toast(
-//         <CustomToast
-//           type="error"
-//           title="Filter Failed"
-//           message="Could not filter leads. Please try again."
-//         />
-//       );
-//     });
-// };
+  axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters)
+    .then(res => setFilteredLeads(res.data))
+    .catch(err => {
+      console.error("Filter Error:", err);
+      toast(
+        <CustomToast
+          type="error"
+          title="Filter Failed"
+          message="Could not filter leads. Please try again."
+        />
+      );
+    });
+};
 
 const handleApply = () => {
   onApply(modalFilters);
@@ -149,45 +149,45 @@ const handleAssign = async () => {
   }
 };
 
-const handleRemoveAssignments = async () => {
-  if (selectedUsers.length === 0) {
-    return toast(
-      <CustomToast
-        type="error"
-        title="No Users Selected"
-        message="Please select at least one user to remove."
-      />
-    );
-  }
+// const handleRemoveAssignments = async () => {
+//   if (selectedUsers.length === 0) {
+//     return toast(
+//       <CustomToast
+//         type="error"
+//         title="No Users Selected"
+//         message="Please select at least one user to remove."
+//       />
+//     );
+//   }
 
-  try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/leads/remove-assignments`, {
-      Leads: filteredLeads,
-      userIds: selectedUsers.map(u => u._id),
-    });
-    toast(
-      <CustomToast
-        type="success"
-        title="Assignments Removed"
-        message="Assignments removed successfully!"
-      />
-    );
-    setAssignOptionsVisible(false);
-  } catch (error) {
-    console.error(error);
-    toast(
-      <CustomToast
-        type="error"
-        title="Remove Failed"
-        message="Failed to remove assignments."
-      />
-    );
-  }
-};
+//   try {
+//     await axios.post(`${import.meta.env.VITE_API_URL}/leads/remove-assignments`, {
+//       Leads: filteredLeads,
+//       userIds: selectedUsers.map(u => u._id),
+//     });
+//     toast(
+//       <CustomToast
+//         type="success"
+//         title="Assignments Removed"
+//         message="Assignments removed successfully!"
+//       />
+//     );
+//     setAssignOptionsVisible(false);
+//   } catch (error) {
+//     console.error(error);
+//     toast(
+//       <CustomToast
+//         type="error"
+//         title="Remove Failed"
+//         message="Failed to remove assignments."
+//       />
+//     );
+//   }
+// };
 
 const openAssignBlock = () => {
   setAssignOptionsVisible(true);
-  // filterLeadsForAssign();
+  filterLeadsForAssign();
 };
 
   return (
@@ -286,7 +286,7 @@ const openAssignBlock = () => {
 
             <div className="am-assign-footer">
               <button className="am-apply-btn" onClick={handleAssign}>Okay</button>
-              <button className="am-remove-btn" onClick={handleRemoveAssignments}>Remove</button>
+              {/* <button className="am-remove-btn" onClick={handleRemoveAssignments}>Remove</button> */}
               <button className="am-cancel-btn" onClick={() => setAssignOptionsVisible(false)}>Close</button>
             </div>
           </div>

@@ -42,7 +42,7 @@ router.post("/leads/assign", async (req, res) => {
 });
 
 router.post('/leads/remove-assignments', async (req, res) => {
-  const { Leads, userIds } = req.body;
+  const { Leads } = req.body; // Leads are already filtered by assigned users
 
   try {
     await Promise.all(
@@ -50,9 +50,8 @@ router.post('/leads/remove-assignments', async (req, res) => {
         const lead = await Client.findById(leadId);
         if (!lead) return;
 
-        lead.assignedTo = (lead.assignedTo || []).filter(
-          (a) => !userIds.includes(a.user?._id?.toString())
-        );
+        // Clear all assigned users
+        lead.assignedTo = [];
 
         await lead.save();
       })

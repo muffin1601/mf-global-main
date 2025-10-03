@@ -4,6 +4,11 @@ const ChipSelect = ({ label, name, options = [], selected = [], onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef();
 
+  // Do NOT add a default blank
+  const allOptions = options;
+
+  const displayLabel = (val) => (val === "" ? "(Blank)" : val); // optional: show as "(Blank)"
+
   const toggleOption = (option) => {
     if (selected.includes(option)) {
       onChange(name, selected.filter((item) => item !== option));
@@ -34,8 +39,8 @@ const ChipSelect = ({ label, name, options = [], selected = [], onChange }) => {
           <span className="chip-placeholder">Select {label}</span>
         ) : (
           selected.map((val) => (
-            <div className="chip" key={val}>
-              {val}
+            <div className="chip" key={val || "blank"}>
+              {displayLabel(val)}
               <span
                 className="chip-remove"
                 onClick={(e) => {
@@ -52,19 +57,17 @@ const ChipSelect = ({ label, name, options = [], selected = [], onChange }) => {
 
       {isOpen && (
         <div className="chip-dropdown">
-          {options.length > 0 ? (
-            options.map((option) => (
+          {allOptions.length > 0 ? (
+            allOptions.map((option, idx) => (
               <div
-                key={option}
+                key={option || `blank-${idx}`}
                 className={`chip-option ${
                   selected.includes(option) ? "selected" : ""
                 }`}
                 onClick={() => toggleOption(option)}
               >
-                {option}
-                {selected.includes(option) && (
-                  <span className="checkmark">✔</span>
-                )}
+                {displayLabel(option)}
+                {selected.includes(option) && <span className="checkmark">✔</span>}
               </div>
             ))
           ) : (
@@ -77,7 +80,6 @@ const ChipSelect = ({ label, name, options = [], selected = [], onChange }) => {
 };
 
 export default ChipSelect;
-
 
 const css = `
 

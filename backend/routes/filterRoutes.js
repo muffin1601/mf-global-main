@@ -1,8 +1,35 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-const ClientPermission = require("../models/ClientPermission"); 
 
+// Utility: clean and trim filter values
+const cleanFilter = (arr) =>
+  arr
+    .filter((v) => v != null) // remove null/undefined
+    .map((v) => String(v).trim());
+
+// Utility: build field query supporting blank-only and case-insensitive matching
+const buildFieldQuery = (field, arr) => {
+  if (!arr || !arr.length) return null;
+
+  const values = arr.map((v) => (v == null ? "" : String(v).trim()));
+  const hasBlank = values.includes("");
+  const nonBlankValues = values.filter((v) => v !== "");
+
+  const orClauses = [];
+
+  if (nonBlankValues.length) {
+    orClauses.push({ [field]: { $in: nonBlankValues.map((v) => new RegExp(`^${v}$`, "i")) } });
+  }
+  if (hasBlank) {
+    orClauses.push({ [field]: { $in: [null, ""] } });
+  }
+
+  if (!orClauses.length) return null;
+  return orClauses.length === 1 ? orClauses[0] : { $or: orClauses };
+};
+
+// =================== General Filter ===================
 router.post("/clients/filter", async (req, res) => {
   try {
     const {
@@ -19,76 +46,47 @@ router.post("/clients/filter", async (req, res) => {
 
     const query = [];
 
-    if (category && Array.isArray(category) && category.length > 0) {
-      query.push({ category: { $in: category } });
-    }
-    if (location && Array.isArray(location) && location.length > 0) {
-      query.push({ location: { $in: location } });
-    }
-    if (state && Array.isArray(state) && state.length > 0) {
-      query.push({ state: { $in: state } });
-    }
-    if (datatype && Array.isArray(datatype) && datatype.length > 0) {
-      query.push({ datatype: { $in: datatype } });
-    }
-    if (callStatus && Array.isArray(callStatus) && callStatus.length > 0) {
-      query.push({ callStatus: { $in: callStatus } });
-    }
-    if (fileName && Array.isArray(fileName) && fileName.length > 0) {
-      query.push({ fileName: { $in: fileName } });
-    }
-    if (status && Array.isArray(status) && status.length > 0) {
-      query.push({ status: { $in: status } });
-    }
+    if (category?.length) query.push(buildFieldQuery("category", category));
+    if (location?.length) query.push(buildFieldQuery("location", location));
+    if (state?.length) query.push(buildFieldQuery("state", state));
+    if (datatype?.length) query.push(buildFieldQuery("datatype", datatype));
+    if (callStatus?.length) query.push(buildFieldQuery("callStatus", callStatus));
+    if (fileName?.length) query.push(buildFieldQuery("fileName", fileName));
+    if (status?.length) query.push(buildFieldQuery("status", status));
 
-  
-    if (assigned === "assigned") {
-      query.push({ assignedTo: { $exists: true, $ne: [] } });
-    } else if (assigned === "unassigned") {
-      query.push({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: [] }] });
-    }
+    if (assigned === "assigned") query.push({ assignedTo: { $exists: true, $ne: [] } });
+    if (assigned === "unassigned")
+      query.push({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: { $size: 0 } }] });
 
-    
-    if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
-      query.push({
-        "assignedTo.user.name": { $in: assignedTo }
-      });
-    }
+    if (assignedTo?.length)
+      query.push({ "assignedTo.user.name": { $in: cleanFilter(assignedTo) } });
 
-    const finalQuery = query.length > 0 ? { $and: query } : {};
-
-    const clients = await Client.find(finalQuery);
-
-  
-    const uniqueClients = clients.filter((client, index, self) =>
-      index === self.findIndex(c => c._id.toString() === client._id.toString())
-    );
-
-    res.json(uniqueClients);
+    const finalQuery = query.length ? { $and: query } : {};
+    const clients = await Client.find(finalQuery).lean();
+    res.json(clients);
   } catch (err) {
-    console.error("Filter Error:", err);
+    console.error("General Filter Error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-
+// =================== Assigned Filter ===================
 router.post("/clients/assigned/:userName/filter", async (req, res) => {
   const { userName } = req.params;
   const filters = req.body;
+
   try {
-    
-    const query = { "assignedTo.user.name": userName };
+    const query = { $and: [{ "assignedTo.user.name": userName }] };
 
-    if (filters.category?.length) query.category = { $in: filters.category };
-    if (filters.datatype?.length) query.datatype = { $in: filters.datatype };
-    if (filters.location?.length) query.location = { $in: filters.location };
-    if (filters.state?.length) query.state = { $in: filters.state };
-    if (filters.status?.length) query.status = { $in: filters.status };
-    if (filters.callStatus?.length) query.callStatus = { $in: filters.callStatus };
+    const fields = ["category", "datatype", "location", "state", "status", "callStatus", "fileName"];
+    fields.forEach((field) => {
+      if (filters[field]?.length) {
+        const q = buildFieldQuery(field, filters[field]);
+        if (q) query.$and.push(q);
+      }
+    });
 
-    
     const assignedClients = await Client.find(query).lean();
-
     res.json(assignedClients);
   } catch (err) {
     console.error("Assigned Filter Error:", err);
@@ -98,16 +96,28 @@ router.post("/clients/assigned/:userName/filter", async (req, res) => {
 
 router.post("/clients/unassigned/filter", async (req, res) => {
   const filters = req.body;
+  console.log("Received unassigned filter request with body:", filters);
 
   try {
-    const query = { $and: [{ $or: [{ assignedTo: { $exists: false } }, { assignedTo: { $size: 0 } }] }] };
+    const query = {
+      $and: [
+        {
+          $or: [
+            { assignedTo: { $exists: false } },           // no assignedTo field
+            { assignedTo: { $size: 0 } },                 // empty array
+            { "assignedTo.user._id": { $exists: false } } // array exists but no valid user
+          ]
+        }
+      ]
+    };
 
-    if (filters.category?.length) query.$and.push({ category: { $in: filters.category } });
-    if (filters.datatype?.length) query.$and.push({ datatype: { $in: filters.datatype } });
-    if (filters.location?.length) query.$and.push({ location: { $in: filters.location } });
-    if (filters.state?.length) query.$and.push({ state: { $in: filters.state } });
-    if (filters.status?.length) query.$and.push({ status: { $in: filters.status } });
-    if (filters.callStatus?.length) query.$and.push({ callStatus: { $in: filters.callStatus } });
+    const fields = ["category", "datatype", "location", "state", "status", "callStatus", "fileName"];
+    fields.forEach((field) => {
+      if (filters[field]?.length) {
+        const q = buildFieldQuery(field, filters[field]);
+        if (q) query.$and.push(q);
+      }
+    });
 
     const unassignedClients = await Client.find(query).lean();
     res.json(unassignedClients);
@@ -116,5 +126,6 @@ router.post("/clients/unassigned/filter", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 module.exports = router;

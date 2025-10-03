@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import ChipSelect from './ChipSelect';
 import { FaTrash } from 'react-icons/fa';
+import CustomToast from '../CustomToast';
 
 const AssignModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
   const [filteredLeads, setFilteredLeads] = useState({});
@@ -77,34 +78,34 @@ const handleDeleteAll = () => {
   onClose();
 };
 
-const filterLeadsForAssign = (incomingFilters = modalFilters) => {
-  const removeIcons = (options) => {
-    if (Array.isArray(options)) {
-      return options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option);
-    }
-    return options;
-  };
+// const filterLeadsForAssign = (incomingFilters = modalFilters) => {
+//   const removeIcons = (options) => {
+//     if (Array.isArray(options)) {
+//       return options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option);
+//     }
+//     return options;
+//   };
 
-  const cleanedFilters = {
-    ...incomingFilters,
-    datatype: removeIcons(incomingFilters.datatype),
-    status: removeIcons(incomingFilters.status),
-    callStatus: removeIcons(incomingFilters.callStatus),
-  };
+//   const cleanedFilters = {
+//     ...incomingFilters,
+//     datatype: removeIcons(incomingFilters.datatype),
+//     status: removeIcons(incomingFilters.status),
+//     callStatus: removeIcons(incomingFilters.callStatus),
+//   };
 
-  axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
-    .then(res => setFilteredLeads(res.data))
-    .catch(err => {
-      console.error("Filter Error:", err);
-      toast(
-        <CustomToast
-          type="error"
-          title="Filter Failed"
-          message="Could not filter leads. Please try again."
-        />
-      );
-    });
-};
+//   axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters)
+//     .then(res => setFilteredLeads(res.data))
+//     .catch(err => {
+//       console.error("Filter Error:", err);
+//       toast(
+//         <CustomToast
+//           type="error"
+//           title="Filter Failed"
+//           message="Could not filter leads. Please try again."
+//         />
+//       );
+//     });
+// };
 
 const handleApply = () => {
   onApply(modalFilters);
@@ -186,7 +187,7 @@ const handleRemoveAssignments = async () => {
 
 const openAssignBlock = () => {
   setAssignOptionsVisible(true);
-  filterLeadsForAssign();
+  // filterLeadsForAssign();
 };
 
   return (

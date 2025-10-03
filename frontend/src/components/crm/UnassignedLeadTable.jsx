@@ -75,26 +75,64 @@ const getStatusClass = (status) => {
 };
 
 const filterForAssign = async (incomingFilters = filters) => {
-    const removeIcons = (options) =>
-      Array.isArray(options) ? options.map(o => typeof o==="string"?o.replace(/^[^\w]*\s*/,"").trim():o) : options;
 
-    const cleanedFilters = {
-      ...incomingFilters,
-      datatype: removeIcons(incomingFilters.datatype),
-      status: removeIcons(incomingFilters.status),
-      callStatus: removeIcons(incomingFilters.callStatus)
-    };
+  const cleanOptions = (options) =>
+    Array.isArray(options)
+      ? options.map((o) =>
+          typeof o === "string"
+            ? o.replace(/^[^\w]*\s*/, "").trim()
+            : o
+        )
+      : options;
 
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters);
-      setTotalLeads(res.data.length);
-      setLeads(res.data);
-      toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
-    } catch (err) {
-      console.error("Filter Error:", err);
-      toast(<CustomToast type="error" title="Filter Failed" message="Failed to filter leads." />);
-    }
+  
+  const normalizeFilters = (filterObj) => {
+    const fields = ["datatype", "status", "callStatus", "category", "location", "state", "fileName"];
+    const normalized = {};
+
+    fields.forEach((field) => {
+      if (filterObj[field]) {
+        normalized[field] = filterObj[field].map((v) =>
+          v === null || v === undefined ? "" : v
+        );
+      }
+    });
+
+    return normalized;
   };
+
+  const cleanedFilters = {
+    ...normalizeFilters(incomingFilters),
+    datatype: cleanOptions(incomingFilters.datatype),
+    status: cleanOptions(incomingFilters.status),
+    callStatus: cleanOptions(incomingFilters.callStatus),
+  };
+
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/clients/unassigned/filter`,
+      cleanedFilters
+    );
+    setTotalLeads(res.data.length);
+    setLeads(res.data);
+    toast(
+      <CustomToast
+        type="success"
+        title="Filtered"
+        message="Leads filtered successfully"
+      />
+    );
+  } catch (err) {
+    console.error("Filter Error:", err);
+    toast(
+      <CustomToast
+        type="error"
+        title="Filter Failed"
+        message="Failed to filter leads."
+      />
+    );
+  }
+};
 
 const handleDeleteLead = async () => {
   if (!leadforDelete) return;
@@ -158,7 +196,7 @@ const downloadCSVReport = async (leads) => {
           <button
             className="btn-filter-2"
             onClick={() => setShowAssignModal(true)}
-            disabled={!leads.length}
+            // disabled={!leads.length}
           >
             Assign Leads
           </button>

@@ -42,7 +42,7 @@ router.post("/leads/assign", async (req, res) => {
 });
 
 router.post('/leads/remove-assignments', async (req, res) => {
-  const { Leads } = req.body; // Leads are already filtered by assigned users
+  const { Leads } = req.body; 
 
   try {
     await Promise.all(
@@ -50,7 +50,7 @@ router.post('/leads/remove-assignments', async (req, res) => {
         const lead = await Client.findById(leadId);
         if (!lead) return;
 
-        // Clear all assigned users
+        
         lead.assignedTo = [];
 
         await lead.save();
@@ -63,6 +63,51 @@ router.post('/leads/remove-assignments', async (req, res) => {
     res.status(500).json({ error: 'Failed to remove assignments' });
   }
 });
+
+
+router.post("/leads/transfer-assignments", async (req, res) => {
+  const { Leads, newUserName } = req.body; // accept name instead of _id
+
+  if (!Leads || !Array.isArray(Leads) || Leads.length === 0) {
+    return res.status(400).json({ error: "No leads provided" });
+  }
+
+  if (!newUserName) {
+    return res.status(400).json({ error: "Target user name is required" });
+  }
+
+  try {
+    
+    const targetUser = await User.findOne({ name: newUserName }, "_id name");
+    if (!targetUser) {
+      return res.status(404).json({ error: "Target user not found" });
+    }
+
+    
+    await Promise.all(
+      Leads.map(async (leadId) => {
+        const lead = await Client.findById(leadId);
+        if (!lead) return;
+
+        lead.assignedTo = [
+          {
+            user: { _id: targetUser._id, name: targetUser.name },
+            permissions: { view: true, update: true, delete: false },
+          },
+        ];
+
+        await lead.save();
+      })
+    );
+
+    res.json({ message: "Assignments transferred successfully" });
+  } catch (error) {
+    console.error("Transfer assignments error:", error);
+    res.status(500).json({ error: "Failed to transfer assignments" });
+  }
+});
+
+
 
 function cleanValuesWithBlank(arr) {
   const uniqueValues = [...new Set(arr

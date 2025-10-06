@@ -40,7 +40,7 @@ router.get("/followup/reminder/:userId", authenticate, async (req, res) => {
       )
     );
 
-    res.json(uniqueClients); // Send the list of clients for today
+    res.json(uniqueClients); 
   } catch (err) {
     console.error("Error fetching follow-up clients:", err);
     res.status(500).json({ error: "Internal server error" });

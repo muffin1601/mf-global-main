@@ -311,7 +311,8 @@ const downloadCSVReport = async (leads) => {
             setFilters(appliedFilters);       
             filterForAssign(appliedFilters);    
           }}
-          defaultFilters={filters}  
+          defaultFilters={filters}
+          onAssigndone={fetchLeads}
         />
       )}
       {/* {showAssignModal && (

@@ -24,7 +24,7 @@ const MyLeadTable = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [isFormModalOpen, setFormModalOpen] = useState(false);
-  const [filtersForDelete, setFiltersForDelete] = useState(null);
+  // const [filtersForDelete, setFiltersForDelete] = useState(null);
   const [LeadsforDownload, setLeadsforDownload] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
   const [filters, setFilters] = useState({
@@ -36,7 +36,6 @@ const MyLeadTable = () => {
     callStatus: [],
     assignedTo: [],
   });
-
 
   const user = JSON.parse(localStorage.getItem('user'))
   const userName = user.name;

@@ -4,9 +4,11 @@ import { toast } from 'react-toastify';
 import ChipSelect from './ChipSelect';
 import { FaTrash } from 'react-icons/fa';
 import CustomToast from '../CustomToast';
+import ConfirmModal from './ConfirmModal';
 
-const AssignModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
+const AssignModal = ({ onClose, onApply, onDeleteAll, defaultFilters, onAssigndone}) => {
   const [filteredLeads, setFilteredLeads] = useState({});
+  const [onConfirm, setonConfirm] = useState(false);
   const [modalFilters, setModalFilters] = useState(defaultFilters || {
     category: [],
     datatype: [],
@@ -113,10 +115,11 @@ const handleApply = () => {
 };
 
 const handleAssign = async () => {
+  setonConfirm(false);
   if (selectedUsers.length === 0) {
     return toast(
       <CustomToast
-        type="error"
+        type="warning"
         title="No Users Selected"
         message="Please select at least one user."
       />
@@ -125,10 +128,12 @@ const handleAssign = async () => {
 
   try {
     await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+      
       Leads: filteredLeads,
       userIds: selectedUsers,
       permissions,
     });
+    onAssigndone();
     toast(
       <CustomToast
         type="success"
@@ -285,7 +290,7 @@ const openAssignBlock = () => {
             ))}
 
             <div className="am-assign-footer">
-              <button className="am-apply-btn" onClick={handleAssign}>Okay</button>
+              <button className="am-apply-btn" onClick={() => setonConfirm(true)}>Okay</button>
               {/* <button className="am-remove-btn" onClick={handleRemoveAssignments}>Remove</button> */}
               <button className="am-cancel-btn" onClick={() => setAssignOptionsVisible(false)}>Close</button>
             </div>
@@ -294,7 +299,15 @@ const openAssignBlock = () => {
       )}
 
     </div>
+     {onConfirm && (
+            <ConfirmModal
+               message={`Are you sure you want to assign selected leads to ${selectedUsers.map(u => u.name).join(', ')}?`}
+              onCancel={() => setonConfirm(false)}
+              onConfirm={handleAssign}  
+            />
+          )}
   </div>
+  
 );
 
 };

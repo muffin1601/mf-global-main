@@ -199,6 +199,47 @@ const AssignedLeadsTable = () => {
   }
 };
 
+const handleTransferAssignments = async (filtersToSend, targetUserName) => {
+  try {
+    const filterResponse = await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, filtersToSend);
+    const filteredLeads = filterResponse.data;
+
+    if (!filteredLeads || filteredLeads.length === 0) {
+      return toast(
+        <CustomToast
+          type="error"
+          title="No Leads Found"
+          message="No leads available to transfer."
+        />
+      );
+    }
+
+    await axios.post(`${import.meta.env.VITE_API_URL}/leads/transfer-assignments`, {
+      Leads: filteredLeads.map(l => l._id),
+      newUserName: targetUserName,
+    });
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Assignments Transferred"
+        message="Leads transferred successfully!"
+      />
+    );
+
+    fetchLeads(); 
+  } catch (error) {
+    console.error(error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Transfer Failed"
+        message="Failed to transfer assignments."
+      />
+    );
+  }
+};
+
 
   return (
     <div className="lead-card">
@@ -319,7 +360,6 @@ const AssignedLeadsTable = () => {
           onFetch={(incomingFilters) => {
             setFilters(incomingFilters);
             filterLeads(incomingFilters);
-            
           }}
           onDownload={(incomingFilters) => {
             setFilters(incomingFilters);
@@ -330,6 +370,10 @@ const AssignedLeadsTable = () => {
           onRemoveAssignment={(incomingFilters) => {
             setFilters(incomingFilters);
             handleRemoveAssignments(incomingFilters);
+          }}
+          onTransferAssignment={(incomingFilters, targetUserName) => {
+            setFilters(incomingFilters);
+            handleTransferAssignments(incomingFilters, targetUserName); 
           }}
         />
       )}

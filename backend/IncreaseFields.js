@@ -16,30 +16,37 @@ db.once("open", async () => {
 
   try {
     const clients = await ClientData.find({});
-
     let updatedCount = 0;
 
     for (const client of clients) {
-      let newState = "";
+      let newCode = "";
 
-      if (client.state && client.state !== "") {
-        let currentState = parseInt(client.state, 10);
-        if (isNaN(currentState)) currentState = 0;
-        newState = String(currentState + 1);
+      if (client.countryCode && client.countryCode !== "") {
+        
+        let currentCode = parseInt(client.countryCode.replace("+", ""), 10);
+        if (isNaN(currentCode)) {
+          currentCode = null; 
+        }
+
+        if (currentCode !== null) {
+          newCode = String(currentCode + 1); 
+        } else {
+          newCode = client.countryCode; 
+        }
       } else {
-        // keep empty if originally empty
-        newState = "";
+      
+        newCode = "+91";
       }
 
       await ClientData.updateOne(
         { _id: client._id },
-        { $set: { state: newState } }
+        { $set: { countryCode: newCode } }
       );
 
       updatedCount++;
     }
 
-    console.log(`✅ Processed ${updatedCount} client documents, state updated/kept empty.`);
+    console.log(`✅ Processed ${updatedCount} client documents, countryCode updated/kept as is.`);
   } catch (err) {
     console.error("❌ Error during migration:", err);
   } finally {

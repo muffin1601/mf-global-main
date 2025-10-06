@@ -11,6 +11,7 @@ const clientSchema = new mongoose.Schema(
     name: { type: String },
     company: { type: String },
     email: { type: String },
+    countryCode: { type: String },
     phone: { type: String },
     contact: { type: String },
     location: { type: String },

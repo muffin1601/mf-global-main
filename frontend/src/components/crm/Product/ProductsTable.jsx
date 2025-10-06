@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
-import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import {  AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import AddProductModal from '../Modals/AddProductModal';
-import AddCategoryModal from '../Modals/AddCategoryModal'; // Adjust the import path as needed
+import AddCategoryModal from '../Modals/AddCategoryModal'; 
 import ConfirmModal from '../Modals/ConfirmModal';
-import EditProductModal from '../Modals/EditProductModal'; // Adjust the import path as needed
+import EditProductModal from '../Modals/EditProductModal'; 
 import { toast } from 'react-toastify';
-// import other modals as needed
+import CustomToast from '../CustomToast';
+
 
 const ProductsTable = () => {
   const [products, setProducts] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 10;
+  const productsPerPage = 5;
   const [showCatModal, setShowCatModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // const [selectedProduct, setSelectedProduct] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -29,7 +30,7 @@ const ProductsTable = () => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
-      const productsData = response.data.products; // ✅ Fix here
+      const productsData = response.data.products; 
       setProducts(productsData);
       setTotalProducts(productsData.length);
     } catch (error) {
@@ -57,27 +58,41 @@ const handleDeleteProduct = async () => {
   if (!productToDelete) return;
 
   try {
-    const res = await axios.delete(`${import.meta.env.VITE_API_URL}/products/delete/${productToDelete._id}`);
-    toast.success("Product deleted successfully");
+    const res = await axios.delete(
+      `${import.meta.env.VITE_API_URL}/products/delete/${productToDelete._id}`
+    );
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Deleted"
+        message="Product deleted successfully"
+      />
+    );
 
     // await logActivity("Deleted Product", { productName: productToDelete.p_name });
 
-    setProductToDelete(null); // close modal
-    fetchProducts(); // refresh list
+    setProductToDelete(null);
+    fetchProducts();
   } catch (error) {
     console.error("Error deleting product:", error);
-    toast.error("Failed to delete product.");
+    toast(
+      <CustomToast
+        type="error"
+        title="Delete Failed"
+        message="Failed to delete product."
+      />
+    );
   }
 };
-
 
   return (
     <div className="lead-card">
       <div className="lead-header">
         <h5>All Products</h5>
         <div className="lead-btn-group">
-          <button className="btn-add" onClick={handleAddProduct}>+ Product</button>
-          <button className="btn-filter" onClick={handleAddCategory}>+ Category</button>
+          <button className="btn-add-2" onClick={handleAddProduct}>+ Product</button>
+          <button className="btn-filter-2" onClick={handleAddCategory}>+ Category</button>
         </div>
       </div>
 

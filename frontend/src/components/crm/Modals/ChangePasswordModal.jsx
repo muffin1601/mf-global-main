@@ -71,6 +71,7 @@ const css = `
     background: rgba(0,0,0,0.4);
     display: flex;
     justify-content: center;
+     border-radius:20px;
     align-items: center;
     z-index: 9999;
 }
@@ -85,6 +86,7 @@ const css = `
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     overflow-y: auto;
     scroll-behavior: smooth;
+   
     scrollbar-width: thin;
     scrollbar-color: rgba(100,100,100,0.5) rgba(200,200,200,0.2);
 }
@@ -94,6 +96,7 @@ const css = `
     font-size: 1.35rem;
     font-weight: 600;
     color: #222;
+    margin-bottom: 20px;
     text-align: center;
 }
 

@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
-import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
-import AddVendorModal from '../Modals/AddVendorModal'; // Make sure to create this modal
-import EditVendorModal from '../Modals/EditVendorModal'; // Make sure to create this modal
-import ConfirmModal from '../Modals/ConfirmModal'; // Make sure to create this modal
+import {  AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import AddVendorModal from '../Modals/AddVendorModal'; 
+import EditVendorModal from '../Modals/EditVendorModal'; 
+import ConfirmModal from '../Modals/ConfirmModal'; 
 import { toast } from 'react-toastify';
+import CustomToast from '../CustomToast';
 
 const VendorsTable = () => {
   const [vendors, setVendors] = useState([]);
   const [totalVendors, setTotalVendors] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const vendorsPerPage = 10;
+  const vendorsPerPage = 5;
 
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  // const [selectedVendor, setSelectedVendor] = useState(null);
   const [editVendor, setEditVendor] = useState(null);
   const [vendorToDelete, setVendorToDelete] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -27,7 +28,7 @@ const VendorsTable = () => {
   const fetchVendors = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendors`);
-      const vendorsData = response.data.vendors || response.data; // adjust as per API
+      const vendorsData = response.data.vendors || response.data; 
       setVendors(vendorsData);
       setTotalVendors(vendorsData.length);
     } catch (error) {
@@ -46,30 +47,44 @@ const VendorsTable = () => {
     setShowFormModal(true);
   };
 
-  const handleDeleteVendor = async () => {
-    if (!vendorToDelete) return;
-  
-    try {
-      const res = await axios.delete(`${import.meta.env.VITE_API_URL}/vendors/delete/${vendorToDelete._id}`);
-      toast.success("Vendor deleted successfully");
-  
-      // await logActivity("Deleted vendor", { vendorName: vendorToDelete.p_name });
-  
-      setVendorToDelete(null); // close modal
-      fetchVendors(); // refresh list
-    } catch (error) {
-      console.error("Error deleting vendor:", error);
-      toast.error("Failed to delete vendor.");
-    }
-  };
-  
+const handleDeleteVendor = async () => {
+  if (!vendorToDelete) return;
+
+  try {
+    const res = await axios.delete(
+      `${import.meta.env.VITE_API_URL}/vendors/delete/${vendorToDelete._id}`
+    );
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Deleted"
+        message={`Vendor "${vendorToDelete.name || vendorToDelete.v_code}" deleted successfully`}
+      />
+    );
+
+    // await logActivity("Deleted vendor", { vendorName: vendorToDelete.name });
+
+    setVendorToDelete(null);
+    fetchVendors();
+  } catch (error) {
+    console.error("Error deleting vendor:", error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Delete Failed"
+        message="Failed to delete vendor."
+      />
+    );
+  }
+};
 
   return (
     <div className="lead-card">
       <div className="lead-header">
         <h5>All Vendors</h5>
         <div className="lead-btn-group">
-          <button className="btn-add" onClick={handleAddVendor}>+ Add</button>
+          <button className="btn-add-2" onClick={handleAddVendor}>+ Add</button>
         </div>
       </div>
 

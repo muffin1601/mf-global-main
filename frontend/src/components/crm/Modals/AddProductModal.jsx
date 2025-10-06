@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { AiOutlineClose } from 'react-icons/ai';
+import CustomToast from '../CustomToast';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryNames, setCategoryNames] = useState([]);
@@ -49,115 +49,134 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+  e.preventDefault();
 
-      if (!response.ok) throw new Error('Failed to add product');
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
 
-      const result = await response.json();
-      toast.success('Product added successfully!');
-      if (onSubmit) onSubmit(result);
-      onClose();
-    } catch (error) {
-      console.error('Error adding product:', error);
-      toast.error('Failed to add product. Please try again.');
-    }
-  };
+    if (!response.ok) throw new Error('Failed to add product');
+
+    const result = await response.json();
+
+    toast(
+      <CustomToast
+        type="success"
+        title="Product Added"
+        message={`Product "${formData.p_name}" added successfully!`}
+      />
+    );
+
+    if (onSubmit) onSubmit(result);
+    onClose();
+  } catch (error) {
+    console.error('Error adding product:', error);
+    toast(
+      <CustomToast
+        type="error"
+        title="Add Product Failed"
+        message={error.message || 'Failed to add product. Please try again.'}
+      />
+    );
+  }
+};
 
   if (!isOpen) return null;
 
   return (
-    <div className="lead-modal-overlay" onClick={onClose}>
-      <div className="lead-modal edit" onClick={(e) => e.stopPropagation()}>
-        <div className="lead-modal-header">
-          <h3>Add New Product</h3>
-          <button className="close-btn" onClick={onClose}><AiOutlineClose /></button>
-        </div>
+  <div className="fe-modal-overlay" onClick={onClose}>
+    <div className="fe-modal-container" onClick={(e) => e.stopPropagation()}>
+      <div className="fe-modal-header">
+        <h3 className="fe-modal-title">Add New Product</h3>
+        <button className="fe-modal-close" onClick={onClose}>×</button>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="lead-modal-body grid">
-            {[
-              { label: "Product Code", name: "product_code" },
-              { label: "Product Name", name: "p_name", required: true },
-              { label: "Image URL", name: "p_image" },
-              { label: "Type", name: "p_type" },
-              { label: "Color", name: "p_color" },
-              { label: "HSN Code", name: "HSN_code" },
-              { label: "GST Rate (%)", name: "GST_rate", type: "number" }
-            ].map(({ label, name, type = "text", required }) => (
-              <div className="input-group" key={name}>
-                <label>{label}</label>
-                <input
-                  type={type}
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  required={required}
-                />
-              </div>
-            ))}
-
-            <div className="input-group">
-              <label>Category</label>
-              <select
-                name="cat_id"
-                value={formData.cat_id}
+      <form onSubmit={handleSubmit}>
+        <div className="fe-modal-body">
+          {[
+            { label: "Product Code", name: "product_code" },
+            { label: "Product Name", name: "p_name", required: true },
+            { label: "Image URL", name: "p_image" },
+            { label: "Type", name: "p_type" },
+            { label: "Color", name: "p_color" },
+            { label: "HSN Code", name: "HSN_code" },
+            { label: "GST Rate (%)", name: "GST_rate", type: "number" }
+          ].map(({ label, name, type = "text", required }) => (
+            <div className="fe-input-group" key={name}>
+              <label>{label}</label>
+              <input
+                type={type}
+                name={name}
+                value={formData[name]}
                 onChange={handleChange}
-              >
-                <option value="">Select Category</option>
-                {categoryNames.map((cat) => (
-                  <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
-                    {cat.name || cat.label || cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="input-group" style={{ gridColumn: 'span 2' }}>
-              <label>Description</label>
-              <textarea
-                name="p_description"
-                value={formData.p_description}
-                onChange={handleChange}
+                required={required}
               />
             </div>
+          ))}
 
-            {[
-              { label: "Single Price", name: "single_price", required: true },
-              { label: "Sales 5-50", name: "sales_5_50" },
-              { label: "Sales 50-100", name: "sales_50_100" },
-              { label: "Sales 100+", name: "sales_100_above" }
-            ].map(({ label, name, required }) => (
-              <div className="input-group" key={name}>
-                <label>{label}</label>
-                <input
-                  type="number"
-                  name={name}
-                  value={formData.p_price[name]}
-                  onChange={handleChange}
-                  required={required}
-                />
-              </div>
-            ))}
+          <div className="fe-input-group">
+            <label>Category</label>
+            <select
+              name="cat_id"
+              value={formData.cat_id}
+              onChange={handleChange}
+            >
+              <option value="">Select Category</option>
+              {categoryNames.map((cat) => (
+                <option
+                  key={cat._id || cat.id || cat}
+                  value={cat._id || cat.id || cat}
+                >
+                  {cat.name || cat.label || cat}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="lead-modal-footer-edit">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn-save-edit">
-              Save Product
-            </button>
+          <div className="fe-input-group" style={{ gridColumn: 'span 2' }}>
+            <label>Description</label>
+            <textarea
+              name="p_description"
+              value={formData.p_description}
+              onChange={handleChange}
+            />
           </div>
-        </form>
-      </div>
+
+          {[
+            { label: "Single Price", name: "single_price", required: true },
+            { label: "Sales 5-50", name: "sales_5_50" },
+            { label: "Sales 50-100", name: "sales_50_100" },
+            { label: "Sales 100+", name: "sales_100_above" }
+          ].map(({ label, name, required }) => (
+            <div className="fe-input-group" key={name}>
+              <label>{label}</label>
+              <input
+                type="number"
+                name={name}
+                value={formData.p_price[name]}
+                onChange={handleChange}
+                required={required}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="fe-footer-buttons fe-action-buttons">
+          <button type="button" className="fe-btn-close" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="fe-btn-submit">
+            Save Product
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default AddProductModal;

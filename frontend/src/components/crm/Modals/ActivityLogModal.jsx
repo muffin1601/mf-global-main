@@ -206,3 +206,237 @@ const ActivityLogModal = ({ users, onClose }) => {
 );
 };
 export default ActivityLogModal;
+
+const css = `
+.activitylog-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.44);
+  display: flex;
+  border-radius:20px;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.activitylog-modal-content {
+  width: 900px;
+  max-width: calc(100% - 2rem);
+  max-height: 90%;
+  overflow-y: auto;
+  backdrop-filter: blur(14px) saturate(120%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 1.6rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  font-family: 'Outfit', sans-serif;
+}
+
+.activitylog-title {
+  font-size: 1.6rem;
+  color: #313131;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.activitylog-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.activitylog-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.activitylog-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.activitylog-select,
+.activitylog-date-input {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  font-size: 1rem;
+  background: #fff;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.18s ease;
+}
+
+.activitylog-select:focus,
+.activitylog-date-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+}
+
+.activitylog-date-range {
+  display: flex;
+  gap: 1rem;
+}
+
+.activitylog-date-field {
+  flex: 1;
+  display: flex;
+  font-family: 'Outfit', sans-serif;
+  flex-direction: column;
+}
+
+.activitylog-modal-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.activitylog-fetch-btn {
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  background: #007bff;
+  color: #fff;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.activitylog-fetch-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.activitylog-fetch-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.activitylog-close-btn {
+  font-size: 0.95rem;
+  color: #fff;
+  background: #dc3545;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.activitylog-close-btn:hover {
+  background: #c82333;
+}
+
+.activitylog-results {
+  margin-top: 1rem;
+}
+
+.activitylog-activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Outfit', sans-serif;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.activitylog-activity-table th,
+.activitylog-activity-table td {
+  padding: 0.7rem;
+  font-size: 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.activitylog-activity-table th {
+  font-weight: 600;
+  color: #333;
+  background: #f8f9fa;
+}
+
+.activitylog-activity-table tbody tr:hover {
+  background: #f1f1f1;
+}
+
+.activitylog-details-btn {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: none;
+  background: #ffc107;
+  color: #333;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.activitylog-details-btn:hover {
+  background: #e0a800;
+}
+
+.activitylog-details-row {
+  background: #fafafa;
+}
+
+.activitylog-details-td {
+  padding: 0.6rem 0.7rem;
+  font-family: monospace;
+}
+
+.activitylog-log-details {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.activitylog-no-logs {
+  padding: 1.5rem;
+  color: #555;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-top: 1rem;
+  border: 1px dashed #ccc;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .activitylog-modal-content {
+    width: 95%;
+  }
+}
+
+@media (max-width: 640px) {
+  .activitylog-modal-content {
+    padding: 1rem;
+    width: calc(100% - 2rem);
+  }
+  .activitylog-date-range {
+    flex-direction: column;
+  }
+  .activitylog-modal-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .activitylog-fetch-btn,
+  .activitylog-close-btn {
+    width: 100%;
+  }
+  .activitylog-activity-table th,
+  .activitylog-activity-table td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+`;
+
+const style = document.createElement('style');
+style.textContent = css;
+document.head.appendChild(style);

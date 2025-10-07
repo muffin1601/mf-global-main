@@ -1,429 +1,519 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import CustomToast from '../CustomToast';
+import QuotationModal from './QuotationModal';
 
+const calculatePriceWithTax = (basePrice, taxRate) => {
+  if (!basePrice) return '—';
+  const numericBasePrice = Number(basePrice);
+  if (isNaN(numericBasePrice)) return '—';
+  return (numericBasePrice * (1 + taxRate / 100)).toFixed(2);
+};
+
+const PriceDetails = ({ product, taxRate }) => (
+  <table className="price-details-table">
+    <thead>
+      <tr>
+        <th>Price Code</th>
+        <th>Single Price (Tax Inc.)</th>
+        <th>5–50 Sales (Tax Inc.)</th>
+        <th>50–100 Sales (Tax Inc.)</th>
+        <th>100+ Sales (Tax Inc.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{product.p_price?.price_code || '—'}</td>
+        <td>{calculatePriceWithTax(product.p_price?.single_price, taxRate)}</td>
+        <td>{calculatePriceWithTax(product.p_price?.sales_5_50, taxRate)}</td>
+        <td>{calculatePriceWithTax(product.p_price?.sales_50_100, taxRate)}</td>
+        <td>{calculatePriceWithTax(product.p_price?.sales_100_above, taxRate)}</td>
+      </tr>
+    </tbody>
+  </table>
+);
 
 const SearchProductModal = ({ isOpen, onClose }) => {
-  const [pCode, setPCode] = useState('');
-  const [product, setProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showPrice, setShowPrice] = useState(false);
+  const [showPrice, setShowPrice] = useState(null);
+  const [taxRate, setTaxRate] = useState(0);
+
+  // Phase 3 state
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isQuotationOpen, setIsQuotationOpen] = useState(false);
 
   const handleSearch = async () => {
-    if (!pCode.trim()) {
-      toast.error('Please enter a product code');
+    if (!searchTerm.trim()) {
+      toast(
+        <CustomToast
+          type="warning"
+          title="Missing Search Term"
+          message="Please enter a product name, code, type, or color to search."
+        />
+      );
       return;
     }
 
-    setLoading(true);
-    setProduct(null);
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/products/search?product_code=${pCode.trim()}`);
-      if (!response.ok) throw new Error('Product not found');
+      setLoading(true);
+      setProducts([]);
+
+      const url = `${import.meta.env.VITE_API_URL}/products/search?query=${encodeURIComponent(searchTerm)}`;
+      const response = await fetch(url);
       const data = await response.json();
-      setProduct(data.product);
+
+      if (!response.ok || !data.products || data.products.length === 0) {
+        toast(
+          <CustomToast
+            type="error"
+            title="No Products Found"
+            message="No products matched your search term."
+          />
+        );
+        return;
+      }
+
+      setProducts(data.products);
+      toast(
+        <CustomToast
+          type="success"
+          title="Search Successful"
+          message={`Found ${data.products.length} product(s).`}
+        />
+      );
     } catch (err) {
-      console.error('Search error:', err);
-      toast.error('Product not found');
+      toast(
+        <CustomToast
+          type="error"
+          title="Search Failed"
+          message={err.message || 'Failed to search products. Please try again.'}
+        />
+      );
     } finally {
       setLoading(false);
     }
   };
 
-
-  const fieldsToDisplay = [
-  { key: 'product_code', label: 'Product Code' },
-  { key: 'p_name', label: 'Product Name' },
-  // { key: 'cat_id', label: 'Category ID' },
-  // { key: 'p_image', label: 'Image URL' },
-  { key: 'p_description', label: 'Description' },
-  { key: 'p_type', label: 'Type' },
-  { key: 'p_color', label: 'Color' },
-  { key: 'HSN_code', label: 'HSN Code' },
-  { key: 'GST_rate', label: 'GST Rate (%)' },
-  { key: 'p_price.price_code', label: 'Price Code' },
-  { key: 'p_price.single_price', label: 'Single Price' },
-  { key: 'p_price.sales_5_50', label: 'Price (5-50 units)' },
-  { key: 'p_price.sales_50_100', label: 'Price (50-100 units)' },
-  { key: 'p_price.sales_100_above', label: 'Price (100+ units)' }
-];
-
+  const addToQuotation = (product) => {
+    if (selectedProducts.find((p) => p._id === product._id)) {
+      toast(
+        <CustomToast
+          type="warning"
+          title="Already Added"
+          message={`${product.p_name} is already added to the quotation.`}
+        />
+      );
+      return;
+    }
+    setSelectedProducts([...selectedProducts, product]);
+    toast(
+      <CustomToast
+        type="success"
+        title="Added to Quotation"
+        message={`${product.p_name} added successfully.`}
+      />
+    );
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="activitylog-modal-overlay">
-      <div className="activitylog-modal-content">
-        <div className="activitylog-title">Search Product by Code</div>
+    <>
+      <div className="search-product-modal-overlay">
+        <div className="search-product-modal-content">
+          <div className="modal-title">Product Search & Pricing</div>
 
-        <div className="activitylog-form-section">
-          <div className="activitylog-form-group">
-            <label className="activitylog-label">Product Code</label>
-            <input
-              type="text"
-              className="activitylog-date-input"
-              placeholder="e.g. P12345"
-              value={pCode}
-              onChange={(e) => setPCode(e.target.value)}
-            />
+          <div className="form-group-row">
+            <div className="form-group search-group">
+              <label htmlFor="search-input" className="tax-label">Search</label>
+              <input
+                id="search-input"
+                type="text"
+                className="search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by code, name, type, color, or HSN..."
+              />
+            </div>
+
+            <div className="form-group tax-group">
+              <label htmlFor="tax-rate-input" className="tax-label">Apply Tax (%)</label>
+              <input
+                id="tax-rate-input"
+                type="number"
+                className="search-input tax-input"
+                value={taxRate}
+                onChange={(e) => setTaxRate(Number(e.target.value))}
+                placeholder="e.g., 18"
+                min="0"
+              />
+            </div>
           </div>
-          <div className="activitylog-modal-buttons">
-            <button className="activitylog-fetch-btn" onClick={handleSearch} disabled={loading}>
+
+          <div className="modal-buttons">
+            <button
+              className="search-btn"
+              onClick={handleSearch}
+              disabled={loading}
+            >
               {loading ? 'Searching...' : 'Search'}
             </button>
-            <button className="activitylog-close-btn" onClick={onClose}>
+            <button className="close-btn-2" onClick={onClose}>
               Close
             </button>
           </div>
-        </div>
 
-        <div className="activitylog-results">
-          {product ? (
-            <>
-              <table className="activitylog-activity-table">
+          <div className="search-results">
+            {products.length > 0 ? (
+              <table className="products-table">
                 <thead>
                   <tr>
-                    <th className="activitylog-th">Product Code</th>
-                    <th className="activitylog-th">Name</th>
-                    {/* <th className="activitylog-th">Category ID</th> */}
-                    <th className="activitylog-th">Type</th>
-                    <th className="activitylog-th">Color</th>
-                    <th className="activitylog-th">HSN Code</th>
-                    <th className="activitylog-th">GST Rate (%)</th>
-                    {/* <th className="activitylog-th">Image</th> */}
-                    <th className="activitylog-th">Description</th>
-                    <th className="activitylog-th">Price Details</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Color</th>
+                    <th>HSN</th>
+                    <th>GST Rate</th>
+                    <th>Description</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="activitylog-td">{product.product_code}</td>
-                    <td className="activitylog-td">{product.p_name}</td>
-                    {/* <td className="activitylog-td">{product.cat_id}</td> */}
-                    <td className="activitylog-td">{product.p_type}</td>
-                    <td className="activitylog-td">{product.p_color}</td>
-                    <td className="activitylog-td">{product.HSN_code}</td>
-                    <td className="activitylog-td">{product.GST_rate}%</td>
-                    {/* <td className="activitylog-td">
-                      {product.p_image ? (
-                        <img src={product.p_image} alt="Product" style={{ width: '50px', height: '50px' }} />
-                      ) : 'N/A'}
-                    </td> */}
-                    <td className="activitylog-td">{product.p_description || '—'}</td>
-                    <td className="activitylog-td">
-                      <button onClick={() => setShowPrice(!showPrice)}>
-                        {showPrice ? 'Hide' : 'Show'} Price
-                      </button>
-                    </td>
-                  </tr>
+                  {products.map((p) => (
+                    <React.Fragment key={p._id}>
+                      <tr>
+                        <td>{p.product_code}</td>
+                        <td>{p.p_name}</td>
+                        <td>{p.p_type}</td>
+                        <td>{p.p_color}</td>
+                        <td>{p.HSN_code}</td>
+                        <td>{p.GST_rate}%</td>
+                        <td>{p.p_description || '—'}</td>
+                        <td>
+                          <button
+                            className="price-btn"
+                            onClick={() =>
+                              setShowPrice(showPrice === p._id ? null : p._id)
+                            }
+                          >
+                            {showPrice === p._id ? 'Hide' : 'Show'} Price
+                          </button>
+                          <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button>
+                        </td>
+                      </tr>
+                      {showPrice === p._id && (
+                        <tr>
+                          <td colSpan="8" className="price-details-cell">
+                            <PriceDetails product={p} taxRate={taxRate} />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
                 </tbody>
               </table>
+            ) : (
+              <div className="no-results-message">
+                No product found or searched yet.
+              </div>
+            )}
+          </div>
 
-              {showPrice && (
-                <table className="activitylog-activity-table" style={{ marginTop: '1rem' }}>
-                  <thead>
-                    <tr>
-                      <th className="activitylog-th">Price Code</th>
-                      <th className="activitylog-th">Single Price</th>
-                      <th className="activitylog-th">5-50 Sales</th>
-                      <th className="activitylog-th">50-100 Sales</th>
-                      <th className="activitylog-th">100+ Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="activitylog-td">{product.p_price?.price_code || '—'}</td>
-                      <td className="activitylog-td">{product.p_price?.single_price}</td>
-                      <td className="activitylog-td">{product.p_price?.sales_5_50}</td>
-                      <td className="activitylog-td">{product.p_price?.sales_50_100}</td>
-                      <td className="activitylog-td">{product.p_price?.sales_100_above}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              )}
-            </>
-          ) : (
-            <div className="activitylog-no-logs">No product found or searched yet.</div>
-          )}
+          <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button>
         </div>
       </div>
-    </div>
+
+      <QuotationModal
+        isOpen={isQuotationOpen}
+        onClose={() => setIsQuotationOpen(false)}
+        selectedProducts={selectedProducts}
+      />
+    </>
   );
 };
 
 export default SearchProductModal;
 
 const css = `
-
-.activitylog-modal-overlay {
+.search-product-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.44);
   display: flex;
-  border-radius: 20px;
   justify-content: center;
+   border-radius:20px;
   align-items: center;
   z-index: 99999;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* CONTAINER (glass card) */
-.activitylog-modal-content {
-  width: 700px;
+.search-product-modal-content {
+  width: 90%; 
   max-width: calc(100% - 2rem);
   max-height: 90%;
   overflow-y: auto;
   backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  background: rgba(255, 255, 255, 0.87);
+  background: rgba(255, 255, 255, 0.95); 
   border-radius: 20px;
-  padding: 1.6rem 1.6rem;
+  padding: 1.6rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.34);
-  background-size: cover;
-  background-position: center;
-  scroll-behavior: smooth;
-  transition: transform 180ms ease, opacity 180ms ease;
 }
 
-/* Nice appear animation */
-.activitylog-modal-content.show {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* HEADER */
-.activitylog-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.activitylog-title {
-  font-size: 1.4rem;
+.modal-title {
+  font-size: 1.6rem;
   color: #313131;
   font-weight: 600;
-  margin: 0;
+  margin-bottom: 20px;
+  text-align: center;
   font-family: 'Outfit', sans-serif;
 }
 
-.activitylog-close-btn {
-  font-size: 0.95rem;
-  color: #fff;
-  background: rgba(200, 0, 0, 0.72);
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.activitylog-close-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(200,0,0,0.14); }
-
-/* FORM / BODY GRID */
-.activitylog-form-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-/* INPUT GROUPS */
-.activitylog-form-group {
+.form-group-row {
   display: flex;
-  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.activitylog-label {
-  color: #292929;
-  margin-bottom: 0.35rem;
-  font-size: 0.92rem;
+.form-group.search-group {
+  flex-grow: 1;
+}
+
+.form-group.tax-group {
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.tax-label {
+  display: block;
+  font-size: 0.9rem;
   font-weight: 500;
-}
-
-
-.activitylog-date-input,
-.activitylog-modal-content select,
-.activitylog-modal-content textarea {
-  padding: 0.55rem 0.9rem;
-  border-radius: 10px;
-  border: none;
-  outline: none;
+  color: #555;
+  margin-bottom: 0.25rem;
   font-family: 'Outfit', sans-serif;
-  background: rgba(255, 255, 255, 0.84);
-  color: #000;
-  height: 2.5rem;
-  box-shadow: inset 0 1px 0 rgba(0,0,0,0.03);
 }
 
-
-.activitylog-modal-content select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1rem;
-  padding-right: 2.25rem;
-  height: 2.5rem;
+.search-input {
+  font-size: 1rem;
+  border-radius: 12px;
+  width: 100%;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  transition: all 0.18s ease;
 }
 
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
 
-.activitylog-modal-buttons {
+.modal-buttons {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 0.5rem;
-  grid-column: 1 / -1; 
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-
-.activitylog-fetch-btn {
+.search-btn {
   padding: 0.55rem 1rem;
   border-radius: 10px;
   border: none;
-  cursor: pointer;
   font-family: 'Outfit', sans-serif;
-  white-space: nowrap;
-  background: rgba(23, 146, 23, 1);
+  cursor: pointer;
+  background: #007bff;
   color: #fff;
-  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
-}
-.activitylog-fetch-btn:hover {
-  background: rgba(18, 120, 18, 0.98);
-  box-shadow: 0 6px 18px rgba(18,120,18,0.12);
-  transform: translateY(-1px);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
-
-.activitylog-close-btn.secondary {
-  background: rgba(223, 47, 47, 0.77);
-   font-family: 'Outfit', sans-serif;
-  color: #222;
-}
-.activitylog-close-btn.secondary:hover {
-  background: rgba(133, 41, 41, 0.63);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.search-btn:hover:not(:disabled) {
+  background: #0056b3;
 }
 
-/* RESULTS */
-.activitylog-results {
-  margin-top: 1rem;
+.search-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-/* TABLE */
-.activitylog-activity-table {
+.close-btn-2 {
+  font-size: 0.95rem;
+  color: #fff;
+  background: #dc3545;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn-2:hover {
+  background: #c82333;
+}
+
+.quote-show{
+font-size: 0.95rem;
+  color: #fff;
+  background: #42940bff;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top:20px;
+  transition: background-color 0.2s ease;
+}
+  .quote-show:hover{
+  background: #34720bff;
+  }
+
+.products-table {
   width: 100%;
   border-collapse: collapse;
   font-family: 'Outfit', sans-serif;
-  background: transparent;
-  table-layout: auto;
+  border: 1px solid rgba(0,0,0,0.1); 
+  border-radius: 10px;
+  overflow: hidden; 
 }
 
-.activitylog-activity-table thead tr {
-  background: rgba(0,0,0,0.03);
-}
-
-.activitylog-th {
+.products-table th, .products-table td {
+  padding: 0.7rem;
+  font-size: 0.9rem;
   text-align: left;
-  padding: 0.6rem 0.65rem;
-  font-weight: 700;
-  font-size: 0.92rem;
-  color: #222;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
-.activitylog-td {
-  padding: 0.6rem 0.65rem;
-  font-size: 0. nine rem; /* fallback */
-  font-size: 0.92rem;
-  color: #2b2b2b;
-  border-bottom: 1px dashed rgba(0,0,0,0.04);
-  vertical-align: middle;
-  word-break: break-word;
+.products-table th {
+  font-weight: 600;
+  color: #333;
+  background: #f8f9fa;
+  white-space: nowrap; 
 }
 
+.products-table tbody tr:hover {
+  background: #f1f1f1;
+}
 
-.activitylog-td button {
+.products-table button {
   padding: 0.35rem 0.6rem;
   border-radius: 8px;
   border: none;
-   font-family: 'Outfit', sans-serif;
-  background: rgba(0, 102, 204, 0.12);
-  color: #004a99;
+  
+  color: #ffffffff;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  font-family: 'Outfit', sans-serif;
 }
-.activitylog-td button:hover {
-  background: rgba(0, 102, 204, 0.18);
-  transform: translateY(-1px);
-}
-
-/* Price details sub-table spacing */
-.activitylog-activity-table + .activitylog-activity-table {
-  margin-top: 1rem;
+.price-btn {
+ 
+  background: #0246acff;
+  color: #ffffff;
 }
 
-/* NO RESULTS */
-.activitylog-no-logs {
-  padding: 1.25rem;
-  color: #4a4a4a;
-  background: rgba(0,0,0,0.02);
-  border-radius: 10px;
+.price-btn:hover {
+  
+  background: #002f83ff;
+}
+
+.add-btn {
+ 
+  margin-left: 10px;
+  background: #ff3907ff;
+  color: #ffffff; 
+}
+
+.add-btn:hover {
+  
+  background: #c83000ff;
+}
+
+.modal-content-area {
+  background: #f0f4f8; 
+  border: 1px solid #cbd5e1;
+}
+
+
+.modal-title {
+  color: #334155;
+}
+.no-results-message {
+  padding: 1.5rem;
+  color: #555;
   text-align: center;
-  font-size: 0.98rem;
-}
-
-
-.activitylog-modal-content {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(100,100,100,0.5) rgba(200,200,200,0.18);
-}
-.activitylog-modal-content::-webkit-scrollbar {
-  width: 12px;
-}
-.activitylog-modal-content::-webkit-scrollbar-track {
-  background: rgba(200,200,200,0.14);
+  background: #f8f9fa;
   border-radius: 10px;
-}
-.activitylog-modal-content::-webkit-scrollbar-thumb {
-  background-color: rgba(100,100,100,0.5);
-  border-radius: 10px;
-  border: 3px solid rgba(200,200,200,0.18);
-}
-.activitylog-modal-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(80,80,80,0.72);
-  transform: scaleX(1.05);
+  margin-top: 1rem;
+  border: 1px dashed #ccc;
 }
 
-/* RESPONSIVE */
+.price-details-cell {
+  padding: 0 !important;
+  background: #fafafa;
+}
+
+.price-details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.price-details-table th {
+  background: #e9ecef;
+  color: #444;
+  font-weight: 500;
+  text-align: left;
+  padding:  0.7rem;
+  
+}
+
+.price-details-table td {
+  text-align: center;
+  background: #fafafa;
+  padding: 0.6rem 0.7rem;
+  text-align: left;
+  border-bottom: none;
+  font-family: monospace; 
+}
+
+@media (max-width: 900px) {
+  .search-product-modal-content {
+    width: 95%;
+  }
+}
 @media (max-width: 640px) {
-  .activitylog-modal-content {
+  .search-product-modal-content {
     padding: 1rem;
     width: calc(100% - 2rem);
-    border-radius: 14px;
   }
-  .activitylog-form-section {
-    grid-template-columns: 1fr;
+  .form-group-row {
+    flex-direction: column;
   }
-  .activitylog-modal-buttons {
-    justify-content: center;
+  .form-group.tax-group {
+    width: 100%;
+  }
+  .products-table th, .products-table td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .modal-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-btn, .close-btn {
+    width: 100%;
+  }
+  .price-details-table th, .price-details-table td {
+    font-size: 0.75rem;
   }
 }
+`;
 
-/* Small helpers */
-.activitylog-muted {
-  color: #666;
-  font-size: 0. nine rem;
-}
-.activitylog-bold {
-  font-weight: 600;
-}
-`;    
-
-const style = document.createElement("style");
+const style = document.createElement('style');
 style.textContent = css;
 document.head.appendChild(style);

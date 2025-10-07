@@ -84,7 +84,7 @@ const LeadModal = ({ lead, onClose }) => {
         </div>
 
         <div className="glasso-lead-footer">
-          <button className="glasso-lead-ok-btn" onClick={onClose}>OK</button>
+          <button className="glasso-lead-ok-btn" onClick={onClose}>Okay </button>
         </div>
       </div>
     </div>

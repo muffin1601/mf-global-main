@@ -4,7 +4,6 @@ const Product = require('../../models/ProductData');
 const Category = require('../../models/Category');
 
 
-
 router.post('/add-product', async (req, res) => {
   try {
     const {
@@ -84,19 +83,32 @@ router.post('/categories/add', async (req, res) => {
 
 router.get('/products/search', async (req, res) => {
   try {
-    const { product_code } = req.query;
+    const { query } = req.query;
 
-    if (!product_code || product_code.trim() === '') {
-      return res.status(400).json({ message: 'Product code is required' });
+    if (!query || query.trim() === '') {
+      return res.status(400).json({ message: 'Search query is required' });
     }
 
-    const product = await Product.findOne({ product_code: product_code.trim() });
+    const searchTerm = query.trim();
 
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });      
+    
+    const mongoQuery = {
+      $or: [
+        { product_code: searchTerm },
+        { p_name: { $regex: new RegExp(searchTerm, 'i') } },
+        { p_type: { $regex: new RegExp(searchTerm, 'i') } },
+        { p_color: { $regex: new RegExp(searchTerm, 'i') } },
+        { GST_rate: !isNaN(Number(searchTerm)) ? Number(searchTerm) : -1 } 
+      ]
+    };
+
+    const products = await Product.find(mongoQuery);
+
+    if (!products.length) {
+      return res.status(404).json({ message: 'No products found' });
     }
 
-    res.json({ product });
+    res.json({ products });
   } catch (err) {
     console.error('Error searching product:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -111,7 +123,7 @@ router.post('/products/update', async (req, res) => {
       return res.status(400).json({ message: "Product ID is required." });
     }
 
-    // Update the product
+    
     const result = await Product.findByIdAndUpdate(
       updatedProduct._id,
       updatedProduct,

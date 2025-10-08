@@ -72,24 +72,20 @@ const Overview = () => {
   useEffect(() => {
     const fetchLeadsAndConversion = async () => {
       try {
-        const leadsRes = await axios.get(`${import.meta.env.VITE_API_URL}/all-clients`);
-        setLeads(leadsRes.data.length);
-
-        const newleads = await axios.get(`${import.meta.env.VITE_API_URL}/new-clients`);
-        setNewLeads(newleads.data.length);
-
-        const conversionRes = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
-        setConversionRate(conversionRes.data.conversionRate);
-        setAssignedLeads(conversionRes.data.assignedCount);
-        setUnassignedLeads(conversionRes.data.unassignedCount);
-        settrendingLeads(conversionRes.data.trendingLeads.length);
-
-        const UserRes = await axios.get(`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
-        setMyLeads(UserRes.data.myLeads.length);
-        setTotalconversions(UserRes.data.myConversions.length);
-        setTodayFollowups(UserRes.data.todaysFollowUps.length);
-        setUpcomingFollowups(UserRes.data.upcomingFollowUps.length);
-        setMyTrendingLeads(UserRes.data.myTrendingLeads.length);
+        const countsRes = await axios.get(`${import.meta.env.VITE_API_URL}/overview/counts`);
+        setLeads(countsRes.data.totalClients);
+        setNewLeads(countsRes.data.newClients);
+        setAssignedLeads(countsRes.data.assignedClients);
+        setUnassignedLeads(countsRes.data.unassignedClients);
+        setConversionRate(countsRes.data.convertedClients);
+        settrendingLeads(countsRes.data.trendingClients);
+        
+        const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/overview/user-stats/${user.name}`);
+        setMyLeads(userRes.data.myLeads);
+        setTotalconversions(userRes.data.myConversions);
+        setTodayFollowups(userRes.data.todaysFollowUps);
+        setUpcomingFollowups(userRes.data.upcomingFollowUps);
+        setMyTrendingLeads(userRes.data.myTrendingLeads);
 
       } catch (error) {
         console.error('Error fetching leads or conversion rate:', error);

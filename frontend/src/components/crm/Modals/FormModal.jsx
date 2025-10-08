@@ -303,6 +303,7 @@ const css = `
   inset: 0;
   background: rgba(0,0,0,0.4);
   display: flex;
+  border-radius:20px;
   justify-content: center;
   align-items: center;
   z-index: 9999;

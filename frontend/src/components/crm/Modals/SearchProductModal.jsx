@@ -481,6 +481,56 @@ font-size: 0.95rem;
   font-family: monospace; 
 }
 
+/* Scrollbar for search-product-modal-content */
+.search-product-modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.search-product-modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 10px;
+}
+
+.search-product-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1; 
+  border-radius: 10px;
+  border: 2px solid #f1f1f1; 
+}
+
+.search-product-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; 
+}
+
+/* Scrollbar for products-table (if table scrolls horizontally) */
+.products-table::-webkit-scrollbar {
+  height: 8px; /* Horizontal scrollbar height */
+}
+
+.products-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.products-table::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.products-table::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+.search-product-modal-content {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f1f1;
+}
+
+.products-table {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f1f1;
+}
+
+
 @media (max-width: 900px) {
   .search-product-modal-content {
     width: 95%;

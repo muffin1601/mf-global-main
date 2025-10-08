@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../../styles/crm/LeadTable.css'; // Ensure CSS contains styles for .btn-view, .btn-edit, .btn-delete, etc.
+import '../../styles/crm/LeadTable.css'; 
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import LeadModal from './Modals/LeadModal';
 import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
 import AssignModal from "./Modals/AssignModal";
 import FormModal from './Modals/FormModal';
-import { logActivity } from '../../utils/logActivity'; // Adjust the import path as necessary
+import { logActivity } from '../../utils/logActivity'; 
 import DownloadReportModal from './Modals/DownloadModal';
 import BulkUpdateModal from './Modals/BulkUpdateModal';
 import { toast } from 'react-toastify';
@@ -47,7 +47,7 @@ useEffect(() => {
 
 const fetchLeads = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
     const data = response.data;
     setLeads(data.uniqueUnassignedClients);
     setTotalLeads(data.uniqueUnassignedClients.length);

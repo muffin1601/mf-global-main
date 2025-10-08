@@ -23,7 +23,7 @@ const TrendingLeadsTable = () => {
 
   const fetchLeads = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/get-details-clients`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
       const data = response.data.trendingLeads;
       if (Array.isArray(data)) {
         setLeads(data);

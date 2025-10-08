@@ -26,7 +26,7 @@ useEffect(() => {
 
 const fetchLeads = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/new-clients`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/new-clients`);
     const data = response.data;
     if (Array.isArray(data)) {
       setLeads(data);

@@ -8,6 +8,7 @@ const CsvUploadModal = ({ onClose }) => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [skippedData, setSkippedData] = useState(null);
+  const [loading, setLoading] = useState(false); // New state
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -22,6 +23,7 @@ const CsvUploadModal = ({ onClose }) => {
       );
     }
 
+    setLoading(true); // Start loading
     const formData = new FormData();
     formData.append("file", file);
 
@@ -53,6 +55,8 @@ const CsvUploadModal = ({ onClose }) => {
       toast(
         <CustomToast type="error" title="Upload Failed" message={msg} />
       );
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -71,8 +75,12 @@ const CsvUploadModal = ({ onClose }) => {
             onChange={handleFileChange}
             className="csv-file-input"
           />
-          <button onClick={handleUpload} disabled={!file} className="csv-upload-btn">
-            Upload
+          <button 
+            onClick={handleUpload} 
+            disabled={!file || loading} 
+            className="csv-upload-btn"
+          >
+            {loading ? "Uploading..." : "Upload"} {/* Button text changes */}
           </button>
 
           {message && <p className="csv-upload-message">{message}</p>}
@@ -109,6 +117,7 @@ const CsvUploadModal = ({ onClose }) => {
 };
 
 export default CsvUploadModal;
+
 
 const css = `
 .csv-modal-overlay {

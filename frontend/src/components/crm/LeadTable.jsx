@@ -48,8 +48,8 @@ const LeadTable = () => {
 
   const fetchLeads = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/all-clients`);
-      const uniqueClients = response.data || [];
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/all-clients`);
+      const uniqueClients = response.data.data || []
       setLeads(uniqueClients);
       setTotalLeads(uniqueClients.length);
       setFilters({

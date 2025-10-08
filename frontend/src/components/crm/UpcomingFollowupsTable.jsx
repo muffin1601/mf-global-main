@@ -28,7 +28,7 @@ const UpcomingFollowupsTable = () => {
 
 const fetchLeads = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-dashboard-stats/${user.name}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/user-dashboard-stats/${user.name}`);
     const data = response.data.upcomingFollowUps;
     if (Array.isArray(data)) {
       setLeads(data);

@@ -7,8 +7,7 @@ import { generateQuotationPDF } from '../../../utils/pdfGenerator';
 const formatCurrency = (amount) => {
     if (amount === null || amount === undefined || isNaN(amount)) return '—';
     const numericAmount = parseFloat(amount);
-    if (numericAmount === 0) return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(0);
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(numericAmount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(numericAmount || 0);
 };
 
 const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
@@ -21,16 +20,17 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
     const [customerName, setCustomerName] = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const [notes, setNotes] = useState('');
+    const [quotationNumber, setQuotationNumber] = useState('');
+    const [quotationDate, setQuotationDate] = useState(new Date().toISOString().split('T')[0]);
 
     const searchInputRef = useRef(null);
 
     const calculateTotalPrice = (product, quantity) => {
-        const price = product.p_price?.single_price || 0;
-        const gst = product.GST_rate || 0;
-        const numericQuantity = parseInt(quantity) || 0;
-        if (numericQuantity <= 0) return (0).toFixed(2);
-        const total = parseFloat(price) * numericQuantity * (1 + parseFloat(gst) / 100);
-        return total.toFixed(2);
+        const price = parseFloat(product.p_price?.single_price || 0);
+        const gst = parseFloat(product.GST_rate || 0);
+        const qty = parseInt(quantity) || 0;
+        if (qty <= 0) return '0.00';
+        return (price * qty * (1 + gst / 100)).toFixed(2);
     };
 
     useEffect(() => {
@@ -41,95 +41,61 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
             setSearchTerm('');
 
             fetch(`${import.meta.env.VITE_API_URL}/overview/all-clients`)
-                .then(res => {
-                    if (!res.ok) throw new Error('Failed to fetch clients');
-                    return res.json();
-                })
-                .then(data => setAllCustomers(data))
-                .catch(err => {
-                    console.error('Customer fetch error:', err);
-                    toast(<CustomToast type="error" title="Error" message="Could not load customer data." />);
-                });
+                .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch clients'))
+                .then(data => setAllCustomers(data.data || []))
+                .catch(err => toast(<CustomToast type="error" title="Error" message="Could not load customer data." />));
         }
     }, [isOpen]);
 
     useEffect(() => {
         const filtered = allCustomers.filter(
-            (c) =>
-                c.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c => c.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 c.phone?.includes(searchTerm)
         ).slice(0, 5);
         setFilteredCustomers(filtered);
     }, [searchTerm, allCustomers]);
 
     useEffect(() => {
-        if (isOpen && selectedProducts && selectedProducts.length > 0) {
-            const list = selectedProducts.map((p) => ({
+        if (isOpen && selectedProducts?.length > 0) {
+            const list = selectedProducts.map(p => ({
                 ...p,
                 quantity: 1,
-                totalPrice: calculateTotalPrice(p, 1),
+                totalPrice: calculateTotalPrice(p, 1)
             }));
             setQuotationList(list);
             setStep(1);
-        } else if (isOpen && selectedProducts && selectedProducts.length === 0) {
-            setQuotationList([]);
-            setStep(1);
-        }
+        } else setQuotationList([]);
     }, [selectedProducts, isOpen]);
 
     useEffect(() => {
-        const total = quotationList.reduce(
-            (acc, item) => acc + parseFloat(item.totalPrice || 0),
-            0
-        );
+        const total = quotationList.reduce((acc, item) => acc + parseFloat(item.totalPrice || 0), 0);
         setGrandTotal(total.toFixed(2));
     }, [quotationList]);
 
     useEffect(() => {
-        if (step === 2 && searchInputRef.current) {
-            searchInputRef.current.focus();
-        }
+        if (step === 2 && searchInputRef.current) searchInputRef.current.focus();
     }, [step]);
 
     const handleQuantityChange = (index, qty) => {
-        const quantity = parseInt(qty) || 0;
-        if (quantity < 0) return;
-
+        const quantity = Math.max(0, parseInt(qty) || 0);
         const updated = [...quotationList];
-        const safeQuantity = Math.max(0, quantity);
+        updated[index].quantity = quantity;
+        updated[index].totalPrice = calculateTotalPrice(updated[index], quantity);
+        setQuotationList(updated);
+    };
 
-        updated[index].quantity = safeQuantity;
-        updated[index].totalPrice = calculateTotalPrice(updated[index], safeQuantity);
+    const handleProductDetailChange = (index, field, value) => {
+        const updated = [...quotationList];
+        if (field === 'p_name') updated[index].p_name = value;
+        else if (field === 'p_price') updated[index].p_price.single_price = parseFloat(value) || 0;
+        else if (field === 'GST_rate') updated[index].GST_rate = parseFloat(value) || 0;
+        updated[index].totalPrice = calculateTotalPrice(updated[index], updated[index].quantity);
         setQuotationList(updated);
     };
 
     const handleRemoveProduct = (id) => {
-        const updated = quotationList.filter(p => p._id !== id);
-        setQuotationList(updated);
+        setQuotationList(quotationList.filter(p => p._id !== id));
         toast(<CustomToast type="info" title="Removed" message="Product removed from the list." />);
-    };
-
-    const generatePDF = () => {
-        if (quotationList.length === 0) {
-            toast(<CustomToast type="warning" title="Empty List" message="The quotation list is empty. Cannot generate PDF." />);
-            setStep(1);
-            return;
-        }
-        if (!customerName.trim() || !customerAddress.trim()) {
-            toast(<CustomToast type="error" title="Missing Info" message="Please enter Customer Name and Address to proceed." />);
-            return;
-        }
-
-        generateQuotationPDF(
-            quotationList,
-            grandTotal,
-            customerName,
-            customerAddress,
-            notes
-        );
-
-        toast(<CustomToast type="success" title="Success" message="Quotation PDF generated and downloaded successfully!" />);
-        onClose();
     };
 
     const handleSelectCustomer = (customer) => {
@@ -139,6 +105,56 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
         setSearchTerm('');
         setFilteredCustomers([]);
     };
+
+    const generatePDFAndSave = async () => {
+    if (quotationList.length === 0) {
+        toast(<CustomToast type="warning" title="Empty List" message="No products selected." />);
+        setStep(1);
+        return;
+    }
+    if (!customerName.trim() || !customerAddress.trim()) {
+        toast(<CustomToast type="error" title="Missing Info" message="Please enter customer details." />);
+        return;
+    }
+
+    const quotationData = {
+        quotationNumber,
+        quotationDate,
+        customerName,
+        customerAddress,
+        notes,
+        products: quotationList,
+        grandTotal: parseFloat(grandTotal), // ensure number
+    };
+
+    console.log('Sending quotationData:', quotationData);
+
+    try {
+       
+        await generateQuotationPDF(quotationData);
+
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/quotations/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(quotationData),
+        });
+
+        const data = await res.json().catch(() => null); // parse response safely
+
+        if (!res.ok) {
+            console.error('Server responded with error:', data);
+            toast(<CustomToast type="error" title="Server Error" message={data?.message || 'Failed to save quotation'} />);
+            return;
+        }
+
+        toast(<CustomToast type="success" title="Success" message="Quotation PDF generated & saved!" />);
+        onClose();
+    } catch (err) {
+        console.error('Network / JS error:', err);
+        toast(<CustomToast type="error" title="Error" message="Failed to generate or save quotation." />);
+    }
+};
+
 
     if (!isOpen) return null;
 
@@ -152,17 +168,16 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
                     <span className="separator">→</span>
                     <span className={`step ${step === 2 ? 'active' : ''}`}>2. Customer Details & PDF</span>
                 </div>
-                <h3 className="modal-title">{step === 1 ? 'Step 1: Adjust Product Quantities' : 'Step 2: Enter Customer Details'}</h3>
+
+                <h3 className="modal-title">{step === 1 ? 'Step 1: Adjust Product Details & Quantities' : 'Step 2: Enter Customer Details'}</h3>
                 <hr />
 
                 {step === 1 && (
                     <>
                         {isListEmpty ? (
                             <div className="empty-message">
-                                <p>⚠️ No products selected for quotation. Please close the modal, search, and select products first.</p>
-                                <button className="close-btn" onClick={onClose}>
-                                    <FiX size={18} style={{ marginRight: '6px' }} /> Close
-                                </button>
+                                <p>⚠️ No products selected. Close the modal and select products first.</p>
+                                <button className="close-btn" onClick={onClose}><FiX size={18} style={{ marginRight: '6px' }} /> Close</button>
                             </div>
                         ) : (
                             <>
@@ -182,42 +197,21 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
                                         {quotationList.map((p, i) => (
                                             <tr key={p._id || `temp-${i}`}>
                                                 <td>{p.product_code || 'N/A'}</td>
-                                                <td className="product-name">{p.p_name}</td>
-                                                <td>{formatCurrency(p.p_price?.single_price)}</td>
-                                                <td>{p.GST_rate ? `${p.GST_rate}%` : '0%'}</td>
-                                                <td className="qty-col">
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={p.quantity}
-                                                        onChange={(e) => handleQuantityChange(i, e.target.value)}
-                                                        className="quantity-input"
-                                                        required
-                                                    />
-                                                </td>
-                                                <td className="total-price-col">
-                                                    <strong>{formatCurrency(p.totalPrice)}</strong>
-                                                </td>
-                                                <td>
-                                                    <button className="remove-btn" onClick={() => handleRemoveProduct(p._id)}>
-                                                        <FiTrash2 size={16} />
-                                                    </button>
-                                                </td>
+                                                <td><input type="text" value={p.p_name} onChange={e => handleProductDetailChange(i, 'p_name', e.target.value)} className="editable-input" /></td>
+                                                <td><input type="number" min="0" value={p.p_price?.single_price || 0} onChange={e => handleProductDetailChange(i, 'p_price', e.target.value)} className="editable-input" /></td>
+                                                <td><input type="number" min="0" value={p.GST_rate || 0} onChange={e => handleProductDetailChange(i, 'GST_rate', e.target.value)} className="editable-input" /></td>
+                                                <td className="qty-col"><input type="number" min="1" value={p.quantity} onChange={e => handleQuantityChange(i, e.target.value)} className="quantity-input" required /></td>
+                                                <td className="total-price-col"><strong>{formatCurrency(p.totalPrice)}</strong></td>
+                                                <td><button className="remove-btn" onClick={() => handleRemoveProduct(p._id)}><FiTrash2 size={16} /></button></td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
-                                <div className="grand-total">
-                                    <strong>Grand Total (Incl. All Taxes): </strong>
-                                    <span>{formatCurrency(grandTotal)}</span>
-                                </div>
+
+                                <div className="grand-total"><strong>Grand Total: </strong>{formatCurrency(grandTotal)}</div>
                                 <div className="modal-buttons">
-                                    <button className="back-btn" onClick={onClose}>
-                                        <FiX size={18} style={{ marginRight: '6px' }} /> Close
-                                    </button>
-                                    <button className="generate-btn next-step-btn" onClick={() => setStep(2)} disabled={isListEmpty}>
-                                        Proceed to Details <FiArrowRight size={18} style={{ marginLeft: '6px' }} />
-                                    </button>
+                                    <button className="back-btn" onClick={onClose}><FiX size={18} style={{ marginRight: '6px' }} /> Close</button>
+                                    <button className="generate-btn next-step-btn" onClick={() => setStep(2)} disabled={isListEmpty}>Proceed to Details <FiArrowRight size={18} style={{ marginLeft: '6px' }} /></button>
                                 </div>
                             </>
                         )}
@@ -226,67 +220,67 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
 
                 {step === 2 && (
                     <>
-                        <div className="form-group" style={{ position: 'relative' }}>
-                            <label htmlFor="customer-search">Search & Select Customer (Company / Phone)</label>
-                            <input
-                                id="customer-search"
-                                type="text"
-                                ref={searchInputRef}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Start typing company name or phone number..."
-                                autoComplete="off"
-                            />
-                            {filteredCustomers.length > 0 && searchTerm.trim() && (
-                                <ul className="search-dropdown-list">
-                                    {filteredCustomers.map((customer) => (
-                                        <li key={customer._id} onClick={() => handleSelectCustomer(customer)} title={`Select ${customer.company}`}>
-                                            <span>{customer.company}</span>
-                                            <span> - {customer.phone}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
+                        <div className="form-row">
+                            <div className="form-group" style={{ position: 'relative' }}>
+                                <label>Search & Select Customer (Company / Phone)</label>
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    placeholder="Start typing..."
+                                    autoComplete="off"
+                                />
+                                {filteredCustomers.length > 0 && searchTerm.trim() && (
+                                    <ul className="search-dropdown-list">
+                                        {filteredCustomers.map(c => (
+                                            <li key={c._id} onClick={() => handleSelectCustomer(c)}>
+                                                {c.company} - {c.phone}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
 
-                        <div className="form-group">
-                            <label htmlFor="customer-name">Customer Name *</label>
-                            <input
-                                id="customer-name"
-                                type="text"
-                                value={customerName}
-                                onChange={(e) => setCustomerName(e.target.value)}
-                                placeholder="Enter customer name (required)"
-                                required
-                            />
-                        </div>
+                            <div className="form-group">
+                                <label>Quotation No.</label>
+                                <input type="text" value={quotationNumber} onChange={e => setQuotationNumber(e.target.value)} />
+                            </div>
 
-                        <div className="form-group">
-                            <label htmlFor="customer-address">Customer Address *</label>
-                            <textarea
-                                id="customer-address"
-                                value={customerAddress}
-                                onChange={(e) => setCustomerAddress(e.target.value)}
-                                placeholder="Enter customer address for the quotation document (required)"
-                                required
-                            />
-                        </div>
+                            <div className="form-group">
+                                <label>Quotation Date</label>
+                                <input type="date" value={quotationDate} onChange={e => setQuotationDate(e.target.value)} />
+                            </div>
 
-                        <div className="form-group">
-                            <label htmlFor="notes">Notes / Terms (Optional)</label>
-                            <textarea
-                                id="notes"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="E.g., Payment terms, Validity period, Delivery schedule..."
-                            />
+                            <div className="form-group">
+                                <label>Customer Name *</label>
+                                <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} required />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Customer Address *</label>
+                                <textarea value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} required />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Notes / Remarks</label>
+                                <textarea
+                                    value={notes}
+                                    onChange={e => setNotes(e.target.value)}
+                                    placeholder="E.g., delivery location, warranty, etc."
+                                />
+                            </div>
                         </div>
 
                         <div className="modal-buttons">
                             <button className="back-btn" onClick={() => setStep(1)}>
                                 <FiArrowLeft size={18} style={{ marginRight: '6px' }} /> Back to List
                             </button>
-                            <button className="generate-btn" onClick={generatePDF} disabled={!customerName.trim() || !customerAddress.trim()}>
+                            <button
+                                className="generate-btn"
+                                onClick={generatePDFAndSave}
+                                disabled={!customerName.trim() || !customerAddress.trim()}
+                            >
                                 <FiDownload size={18} style={{ marginRight: '6px' }} /> Generate & Download PDF
                             </button>
                         </div>
@@ -300,75 +294,84 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
 export default QuotationModal;
 
 
+
 const css = `
+/* --- Modal Overlay --- */
 .quotation-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(18, 24, 39, 0.85);
+    background: rgba(40, 50, 60, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 99999;
 }
+
+/* --- Modal Content --- */
 .quotation-modal-content {
-    width: 95%;
+    width: 100%;
     max-width: 900px;
-    max-height: 72vh;
+    max-height: 90vh;
     overflow-y: auto;
     background: #ffffff;
-    border-radius: 16px;
-    padding: 3rem 2.5rem;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    font-family: 'Inter', 'Outfit', Arial, sans-serif;
-    border: none;
-    animation: modalScaleIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.25);
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    font-family: 'Outfit', sans-serif;
+    border: 1px solid #e0e0e0;
+    animation: modalScaleIn 0.3s ease-out;
 }
 @keyframes modalScaleIn {
-    from { opacity: 0; transform: scale(0.95); }
+    from { opacity: 0; transform: scale(0.98); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* --- Modal Title --- */
+.modal-title {
+    font-size: 1.8rem;
+    color: #334e68;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 1.5rem 0 !important;
+}
+
+/* --- Step Indicator --- */
 .step-indicator {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 40px;
+    gap: 10px;
+    margin-bottom: 30px;
 }
 .step {
-    padding: 10px 22px;
-    border-radius: 10px;
-    font-weight: 600;
-    color: #475569;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #64748b;
     background: #f8fafc;
-    font-size: 1rem;
-    letter-spacing: 0.01em;
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-    border: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
 }
 .step.active {
-    background: #1e3a8a;
+    background: #4f46e5;
     color: #fff;
-    font-weight: 700;
-    box-shadow: 0 6px 15px rgba(30, 58, 138, 0.4);
-    transform: scale(1.02);
-    border-color: #1e3a8a;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    transform: none;
+    border-color: #4f46e5;
 }
 .separator {
     color: #cbd5e1;
-    font-size: 1.6rem;
-}
-.modal-title {
-    font-size: 2rem;
-    color: #0f172a;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-}
-hr {
-    border: none;
-    border-top: 1px solid #e2e8f0;
-    margin-bottom: 2rem !important;
+    font-size: 1.4rem;
 }
 
 /* --- Table Styles --- */
@@ -377,32 +380,33 @@ hr {
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 1.5rem;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
 }
 .quotation-table thead {
-    background: #1e3a8a;
+    background: #4f46e5;
 }
 .quotation-table th {
     color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
-    padding: 1rem 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.8rem 1rem;
+    text-transform: none;
+    letter-spacing: 0;
 }
 .quotation-table td {
     background: #fff;
-    border-bottom: 1px solid #f1f5f9;
-    padding: 1rem 0.8rem;
+    border-bottom: 1px solid #f5f5f5;
+    padding: 0.8rem 1rem;
     text-align: left;
-    font-size: 0.95rem;
-    color: #334155;
+    font-size: 0.9rem;
+    color: #4b5563;
     vertical-align: middle;
 }
 .quotation-table tr:hover td {
-    background-color: #f8fafc;
+    background-color: #f7f9fc;
 }
 .quotation-table tr:last-child td {
     border-bottom: none;
@@ -411,157 +415,177 @@ hr {
     text-align: center;
 }
 .product-name {
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 500;
+    color: #334e68;
 }
 .quantity-input {
-    width: 70px;
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
+    width: 60px;
+    padding: 0.4rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
     text-align: center;
-    font-size: 1rem;
-    font-weight: 600;
-    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: #fcfcfc;
     transition: all 0.2s;
 }
 .quantity-input:focus {
-    border-color: #1e3a8a;
+    border-color: #4f46e5;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    background: #fff;
 }
 .grand-total {
-    margin-top: 2rem;
-    font-size: 1.4rem;
+    margin-top: 1.5rem;
+    font-size: 1.3rem;
     text-align: right;
-    font-weight: 800;
+    font-weight: 600;
     color: #0f172a;
-    padding: 1.5rem 0;
-    border-top: 2px solid #e2e8f0;
-    letter-spacing: 0.01em;
+    padding: 1.2rem 0;
+    border-top: 1px solid #e5e7eb;
+    letter-spacing: 0;
 }
 .grand-total span {
     color: #b91c1c;
+    font-weight: 700;
     margin-left: 10px;
 }
 .remove-btn {
-    background: #fef2f2;
+    background: #fee2e2;
     color: #dc2626;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid #fca5a5;
-    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    transition: all 0.2s;
 }
 .remove-btn:hover {
-    background: #fee2e2;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.2);
+    background: #fce7e7;
+    transform: none;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
 }
 
 /* --- Form Styles --- */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1.75rem;
-    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    gap: 0.4rem;
 }
 .form-group label {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 1.05rem;
-    margin-bottom: 0.2rem;
+    font-weight: 500;
+    color: #4b5563;
+    font-size: 0.95rem;
+    margin-bottom: 0;
 }
 .form-group input,
 .form-group textarea {
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
-    border: 2px solid #e2e8f0;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
     font-family: inherit;
-    font-size: 1rem;
-    background: #f8fafc;
+    font-size: 0.95rem;
+    background: #fcfcfc;
     color: #1e293b;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    transition: all 0.2s;
 }
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     background: #fff;
-    border-color: #1e3a8a;
-    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 .form-group textarea {
-    min-height: 120px;
+    min-height: 100px;
 }
 
 /* --- Button Styles --- */
 .modal-buttons {
     display: flex;
-    gap: 1.25rem;
+    gap: 1rem;
     justify-content: flex-end;
-    margin-top: 3rem;
+    margin-top: 2.5rem;
 }
 .generate-btn, .close-btn, .back-btn {
     border: none;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-family: inherit;
-    padding: 1rem 2rem;
-    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    font-weight: 700;
-    letter-spacing: 0.03em;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    letter-spacing: 0;
 }
 
 /* Primary Button (Generate PDF) */
 .generate-btn {
-    background: #059669;
+    background: #10b981;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
 }
 .generate-btn:hover {
-    background: #047857;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.5);
+    background: #059669;
+    transform: none;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 .generate-btn:disabled {
-    background: #e2e8f0;
-    color: #94a3b8;
+    background: #e5e7eb;
+    color: #9ca3af;
     cursor: not-allowed;
     box-shadow: none;
-    transform: none;
 }
 
-/* Secondary Button (Close/Back) */
+/* Secondary Button (Back) */
 .back-btn {
-    background: #475569;
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(71, 85, 105, 0.2);
-}
-.back-btn:hover {
-    background: #334155;
-    transform: translateY(-2px);
-}
-.close-btn {
     background: #f1f5f9;
     color: #475569;
-    padding: 0.8rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+.back-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+    transform: none;
+}
+/* Tertiary Button (Close) */
+.close-btn {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1.5rem;
 }
 .close-btn:hover {
-    background: #e2e8f0;
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #334e68;
 }
 
 /* Empty State */
 .empty-message {
     text-align: center;
-    padding: 40px 20px;
-    background: #fefce8;
-    border: 1px solid #fde047;
-    border-radius: 12px;
-    margin-top: 20px;
-    color: #854d0e;
-    font-size: 1.15rem;
-    font-weight: 600;
+    padding: 30px 20px;
+    background: #fffbe6;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    margin-top: 15px;
+    color: #92400e;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 /* Search Dropdown */
@@ -570,26 +594,26 @@ hr {
     top: 100%;
     left: 0;
     right: 0;
-    border: 1px solid #e2e8f0;
-    max-height: 220px;
+    border: 1px solid #e5e7eb;
+    max-height: 200px;
     overflow-y: auto;
     background: white;
     z-index: 10;
-    padding: 5px 0;
-    margin: 8px 0 0 0;
+    padding: 0;
+    margin: 5px 0 0 0;
     list-style: none;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
 }
 .search-dropdown-list li {
-    padding: 12px 18px;
+    padding: 10px 15px;
     cursor: pointer;
-    font-size: 1rem;
-    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f7f7f7;
     transition: background-color 0.2s;
 }
 .search-dropdown-list li:hover {
-    background-color: #eef2ff;
+    background-color: #f5f3ff;
 }
 .search-dropdown-list li:last-child {
     border-bottom: none;
@@ -598,27 +622,43 @@ hr {
     display: inline-block;
 }
 .search-dropdown-list li span:first-child {
-    font-weight: 700;
-    color: #1e3a8a;
+    font-weight: 600;
+    color: #4f46e5;
 }
 .search-dropdown-list li span:last-child {
     color: #64748b;
     margin-left: 10px;
 }
 
+.editable-input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: left;
+    background: #fcfcfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.editable-input:focus {
+    border-color: #4f46e5;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    background: #fff;
+}
 
 /* --- Mobile Responsiveness --- */
 @media (max-width: 768px) {
     .quotation-modal-content {
-        padding: 2rem 1rem;
+        padding: 1.5rem 1rem;
     }
     .modal-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
     .modal-buttons {
         flex-direction: column;
         align-items: stretch;
-        gap: 1rem;
+        gap: 0.6rem;
     }
     .generate-btn, .close-btn, .back-btn {
         width: 100%;
@@ -626,8 +666,8 @@ hr {
     }
     .quotation-table th,
     .quotation-table td {
-        padding: 0.7rem 0.5rem;
-        font-size: 0.9rem;
+        padding: 0.6rem 0.4rem;
+        font-size: 0.8rem;
     }
     .quotation-table th:nth-child(3),
     .quotation-table td:nth-child(3),
@@ -637,7 +677,8 @@ hr {
     }
     .step-indicator {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        margin-bottom: 20px;
     }
     .separator {
         display: none;
@@ -647,7 +688,13 @@ hr {
         text-align: center;
     }
     .grand-total {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
+        padding: 1rem 0;
+    }
+    .form-group input,
+    .form-group textarea {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
     }
 }
 `;

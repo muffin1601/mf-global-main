@@ -40,7 +40,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
   const [showPrice, setShowPrice] = useState(null);
   const [taxRate, setTaxRate] = useState(0);
 
-  // Phase 3 state
+  
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isQuotationOpen, setIsQuotationOpen] = useState(false);
 
@@ -237,43 +237,48 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 export default SearchProductModal;
 
 const css = `
+/* --- Modal Overlay --- */
 .search-product-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.44);
+  background: rgba(40, 50, 60, 0.6);
   display: flex;
   justify-content: center;
-   border-radius:20px;
   align-items: center;
   z-index: 99999;
 }
 
+/* --- Modal Content --- */
 .search-product-modal-content {
-  width: 90%; 
-  max-width: calc(100% - 2rem);
+  width: 90%;
+  max-width: 900px;
   max-height: 90%;
   overflow-y: auto;
-  backdrop-filter: blur(14px) saturate(120%);
-  background: rgba(255, 255, 255, 0.95); 
-  border-radius: 20px;
-  padding: 1.6rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(8px);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
 }
 
+/* --- Modal Title --- */
 .modal-title {
-  font-size: 1.6rem;
-  color: #313131;
-  font-weight: 600;
-  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #334e68;
+  font-weight: 500;
+  margin-bottom: 25px;
   text-align: center;
   font-family: 'Outfit', sans-serif;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
+/* --- Form Layout --- */
 .form-group-row {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group.search-group {
@@ -282,180 +287,186 @@ const css = `
 
 .form-group.tax-group {
   flex-shrink: 0;
-  width: 200px;
+  width: 180px;
 }
 
 .tax-label {
   display: block;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #555;
-  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #64748b;
+  margin-bottom: 0.4rem;
   font-family: 'Outfit', sans-serif;
 }
 
+/* --- Input Field --- */
 .search-input {
-  font-size: 1rem;
-  border-radius: 12px;
+  font-size: 0.95rem;
+  border-radius: 8px;
   width: 100%;
   font-family: 'Outfit', sans-serif;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: #fff;
-  transition: all 0.18s ease;
+  padding: 0.7rem 1rem;
+  border: 1px solid #dcdcdc;
+  background: #fcfcfc;
+  transition: all 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  background: #ffffff;
 }
 
+/* --- Modal Buttons (Action Area) --- */
 .modal-buttons {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 1rem;
-  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
 }
 
+/* --- Primary/Search Button --- */
 .search-btn {
-  padding: 0.55rem 1rem;
-  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
   border: none;
   font-family: 'Outfit', sans-serif;
   cursor: pointer;
-  background: #007bff;
+  background: #3b82f6;
   color: #fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: #2563eb;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.search-btn:disabled {
+  background: #e0e7ff;
+  color: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* --- Secondary Button (Close) --- */
+.close-btn-2 {
+  font-size: 0.9rem;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn-2:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #334e68;
+}
+
+/* --- Quote Show Button (Primary/Action) --- */
+.quote-show {
+  font-size: 0.9rem;
+  color: #fff;
+  background: #10b981;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 15px;
   font-weight: 500;
   transition: background-color 0.2s ease;
 }
 
-.search-btn:hover:not(:disabled) {
-  background: #0056b3;
+.quote-show:hover {
+  background: #059669;
 }
 
-.search-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.close-btn-2 {
-  font-size: 0.95rem;
-  color: #fff;
-  background: #dc3545;
-  border: none;
-  font-family: 'Outfit', sans-serif;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.close-btn-2:hover {
-  background: #c82333;
-}
-
-.quote-show{
-font-size: 0.95rem;
-  color: #fff;
-  background: #42940bff;
-  border: none;
-  font-family: 'Outfit', sans-serif;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top:20px;
-  transition: background-color 0.2s ease;
-}
-  .quote-show:hover{
-  background: #34720bff;
-  }
-
+/* --- Products Table --- */
 .products-table {
   width: 100%;
   border-collapse: collapse;
   font-family: 'Outfit', sans-serif;
-  border: 1px solid rgba(0,0,0,0.1); 
-  border-radius: 10px;
-  overflow: hidden; 
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 1.5rem;
 }
 
-.products-table th, .products-table td {
-  padding: 0.7rem;
+.products-table th,
+.products-table td {
+  padding: 0.8rem 1rem;
   font-size: 0.9rem;
   text-align: left;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .products-table th {
-  font-weight: 600;
-  color: #333;
-  background: #f8f9fa;
-  white-space: nowrap; 
+  font-weight: 500;
+  color: #4b5563;
+  background: #f9fafb;
+  white-space: nowrap;
 }
 
 .products-table tbody tr:hover {
-  background: #f1f1f1;
+  background: #f5f7f9;
 }
 
+/* --- Table Buttons (Price/Add) --- */
 .products-table button {
-  padding: 0.35rem 0.6rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
   border: none;
-  
-  color: #ffffffff;
+  color: #ffffff;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 0.85rem;
   transition: background-color 0.2s ease;
   font-family: 'Outfit', sans-serif;
 }
+
 .price-btn {
- 
-  background: #0246acff;
-  color: #ffffff;
+  background: #4f46e5;
 }
 
 .price-btn:hover {
-  
-  background: #002f83ff;
+  background: #4338ca;
 }
 
 .add-btn {
- 
-  margin-left: 10px;
-  background: #ff3907ff;
-  color: #ffffff; 
+  margin-left: 8px;
+  background: #ef4444;
 }
 
 .add-btn:hover {
-  
-  background: #c83000ff;
+  background: #dc2626;
 }
 
-.modal-content-area {
-  background: #f0f4f8; 
-  border: 1px solid #cbd5e1;
-}
-
-
-.modal-title {
-  color: #334155;
-}
+/* --- No Results Message --- */
 .no-results-message {
   padding: 1.5rem;
-  color: #555;
+  color: #64748b;
   text-align: center;
-  background: #f8f9fa;
-  border-radius: 10px;
-  margin-top: 1rem;
-  border: 1px dashed #ccc;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  border: 1px solid #e5e7eb;
 }
 
+/* --- Price Details Sub-Table --- */
 .price-details-cell {
   padding: 0 !important;
-  background: #fafafa;
+  background: #fcfcfc;
+  border-bottom: none !important;
 }
 
 .price-details-table {
@@ -464,78 +475,56 @@ font-size: 0.95rem;
 }
 
 .price-details-table th {
-  background: #e9ecef;
-  color: #444;
+  background: #eef2ff;
+  color: #4338ca;
   font-weight: 500;
   text-align: left;
-  padding:  0.7rem;
-  
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
 }
 
 .price-details-table td {
-  text-align: center;
-  background: #fafafa;
-  padding: 0.6rem 0.7rem;
   text-align: left;
+  background: #fcfcfc;
+  padding: 0.6rem 1rem;
   border-bottom: none;
-  font-family: monospace; 
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  color: #4b5563;
 }
 
-/* Scrollbar for search-product-modal-content */
+/* --- Scrollbars --- */
 .search-product-modal-content::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 .search-product-modal-content::-webkit-scrollbar-track {
-  background: #f1f1f1; 
-  border-radius: 10px;
+  background: #f7f7f7;
+  border-radius: 8px;
 }
 
 .search-product-modal-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
-  border-radius: 10px;
-  border: 2px solid #f1f1f1; 
+  background: #d1d5db;
+  border-radius: 8px;
+  border: 2px solid #f7f7f7;
 }
 
 .search-product-modal-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
-}
-
-/* Scrollbar for products-table (if table scrolls horizontally) */
-.products-table::-webkit-scrollbar {
-  height: 8px; /* Horizontal scrollbar height */
-}
-
-.products-table::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.products-table::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 6px;
-}
-
-.products-table::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Firefox scrollbar */
 .search-product-modal-content {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f1f1;
+  scrollbar-color: #d1d5db #f7f7f7;
 }
 
-.products-table {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f1f1;
-}
-
-
+/* --- Media Queries --- */
 @media (max-width: 900px) {
   .search-product-modal-content {
-    width: 95%;
+    max-width: 95%;
   }
 }
+
 @media (max-width: 640px) {
   .search-product-modal-content {
     padding: 1rem;
@@ -543,19 +532,33 @@ font-size: 0.95rem;
   }
   .form-group-row {
     flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
   .form-group.tax-group {
     width: 100%;
   }
-  .products-table th, .products-table td {
-    padding: 0.5rem;
+  .products-table th,
+  .products-table td {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .products-table button {
+    padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
+    margin-left: 0;
+    margin-top: 5px;
+  }
+  .products-table td:last-child {
+    display: flex;
+    gap: 5px;
   }
   .modal-buttons {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.5rem;
   }
-  .search-btn, .close-btn {
+  .search-btn, .close-btn-2 {
     width: 100%;
   }
   .price-details-table th, .price-details-table td {

@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error("❌ MongoDB connection error:", err));
 
 // API Routes
+app.use('/api/quotations', require('./routes/quotation'));
 app.use("/api/overview", require("./routes/dashboardoverview"));
 app.use("/api", require("./routes/main/emailRoutes"));
 app.use ("/api/visitors", require("./routes/main/visitor"));

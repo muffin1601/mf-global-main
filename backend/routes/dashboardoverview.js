@@ -94,42 +94,53 @@ router.get("/all-clients", async (req, res) => {
 
 router.get("/get-details-clients", async (req, res) => {
   try {
+    // ✅ Basic validation to ensure Mongo is connected
+    if (!Client) {
+      throw new Error("Client model not found or not imported properly.");
+    }
+
+    // ✅ Fetch client stats safely
     const totalClients = await Client.countDocuments();
 
-    const convertedClients = await Client.find({ status: "Won Lead" })
-      .sort({ createdAt: -1 });
+    // Safely count converted clients (Won Leads)
+    const convertedClients = await Client.countDocuments({ status: "Won Lead" });
 
-    const trendingLeads = await Client.find({ status: "In Progress" })
-      .sort({ createdAt: -1 });
+    // Trending Leads = those marked as In Progress
+    const trendingLeads = await Client.countDocuments({ status: "In Progress" });
 
-    const assignedClients = await Client.find({
-      assignedTo: {
-        $elemMatch: { "user._id": { $exists: true, $ne: null } }
-      }
-    }).sort({ createdAt: -1 });
+    // Assigned Clients = those with assignedTo not empty
+    const assignedClients = await Client.countDocuments({
+      assignedTo: { $exists: true, $ne: [] },
+    });
 
-    const unassignedClients = await Client.find({
+    // Unassigned Clients = those with no assignedTo
+    const unassignedClients = await Client.countDocuments({
       $or: [
         { assignedTo: { $exists: false } },
         { assignedTo: { $size: 0 } },
-        { assignedTo: { $not: { $elemMatch: { "user._id": { $exists: true, $ne: null } } } } }
-      ]
-    }).sort({ createdAt: -1 });
+      ],
+    });
 
+    // ✅ Send structured response
     res.status(200).json({
-      uniqueAssignedClients: assignedClients,
-      uniqueUnassignedClients: unassignedClients,
-      totalClients,
-      convertedClients,
-      trendingLeads,
+      success: true,
+      data: {
+        totalClients,
+        convertedClients,
+        trendingLeads,
+        assignedClients,
+        unassignedClients,
+      },
     });
   } catch (error) {
-    console.error("Error fetching client details:", error);
-    res.status(500).json({ error: "Failed to fetch client details" });
+    console.error("❌ Error fetching client details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch client details",
+      error: error.message,
+    });
   }
 });
-
-
 router.get("/new-clients", async (req, res) => {
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

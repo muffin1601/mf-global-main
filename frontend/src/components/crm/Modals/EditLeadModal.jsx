@@ -52,7 +52,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   const formatDate = (dateString) => (!dateString ? "" : new Date(dateString).toISOString().split("T")[0]);
 
   const saveEditedLead = async () => {
-  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; // <-- include id
+  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; 
   try {
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
 
@@ -99,7 +99,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
                 type={field.includes("Date") ? "date" : "text"}
                 value={field.includes("Date") ? formatDate(editedLead[field]) : (editedLead[field] || "")}
                 onChange={(e) => handleChange(field, e.target.value)}
-                disabled={["name", "email", "phone", "company", "contact"].includes(field) && userRole !== "admin"}
+                disabled={[ "phone", "company", "contact"].includes(field) && userRole !== "admin"}
               />
             </div>
           ))}

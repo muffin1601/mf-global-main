@@ -19,34 +19,28 @@ db.once("open", async () => {
     let updatedCount = 0;
 
     for (const client of clients) {
-      let newCode = "";
+      const updateData = {};
 
-      if (client.countryCode && client.countryCode !== "") {
-        
-        let currentCode = parseInt(client.countryCode.replace("+", ""), 10);
-        if (isNaN(currentCode)) {
-          currentCode = null; 
-        }
-
-        if (currentCode !== null) {
-          newCode = String(currentCode + 1); 
-        } else {
-          newCode = client.countryCode; 
-        }
-      } else {
       
-        newCode = "+91";
+      if (!client.billingAddress) {
+        updateData.billingAddress = client.address || "";
       }
 
-      await ClientData.updateOne(
-        { _id: client._id },
-        { $set: { countryCode: newCode } }
-      );
+      
+      if (!client.shippingAddress) {
+        updateData.shippingAddress = "";
+      }
 
-      updatedCount++;
+      if (Object.keys(updateData).length > 0) {
+        await ClientData.updateOne(
+          { _id: client._id },
+          { $set: updateData }
+        );
+        updatedCount++;
+      }
     }
 
-    console.log(`✅ Processed ${updatedCount} client documents, countryCode updated/kept as is.`);
+    console.log(`✅ Added new address fields to ${updatedCount} client documents.`);
   } catch (err) {
     console.error("❌ Error during migration:", err);
   } finally {

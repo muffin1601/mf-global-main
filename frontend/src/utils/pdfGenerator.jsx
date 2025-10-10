@@ -1,7 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Convert image from public folder to base64
 const getBase64FromPublic = async (imagePath) => {
   const response = await fetch(imagePath);
   const blob = await response.blob();
@@ -29,15 +28,12 @@ export const generateQuotationPDF = async (quotationData) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Brand colors
-  const brandColor = [30, 58, 138]; // Dark Blue
-  const accentColor = [245, 245, 245]; // Light Gray for alternate rows
+  const brandColor = [30, 58, 138];
+  const accentColor = [245, 245, 245];
 
-  // ===== Fetch Images =====
   const companyLogoBase64 = await getBase64FromPublic("/assets/crm/logo.webp");
   const paymentQrBase64 = await getBase64FromPublic("/assets/crm/logo.webp");
 
-  // ===== HEADER =====
   if (companyLogoBase64) doc.addImage(companyLogoBase64, "PNG", 15, 10, 40, 25);
 
   doc.setFont("helvetica", "bold");
@@ -49,12 +45,10 @@ export const generateQuotationPDF = async (quotationData) => {
   doc.text(`Quotation No: ${quotationNumber}`, pageWidth - 15, 15, { align: "right" });
   doc.text(`Date: ${quotationDate}`, pageWidth - 15, 22, { align: "right" });
 
-  // Horizontal line under header
   doc.setDrawColor(brandColor[0], brandColor[1], brandColor[2]);
   doc.setLineWidth(0.8);
   doc.line(15, 35, pageWidth - 15, 35);
 
-  // ===== CUSTOMER DETAILS =====
   let y = 45;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
@@ -62,14 +56,13 @@ export const generateQuotationPDF = async (quotationData) => {
 
   doc.setDrawColor(200);
   doc.setLineWidth(0.5);
-  doc.rect(14, y + 2, pageWidth - 28, 20); // Rectangle around customer details
+  doc.rect(14, y + 2, pageWidth - 28, 20);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text(customerName, 15, y + 8);
   doc.text(customerAddress, 15, y + 14);
 
-  // ===== QUOTATION TERMS =====
   y += 30;
   doc.setFont("helvetica", "bold");
   doc.text("Quotation Details", 15, y);
@@ -83,7 +76,6 @@ export const generateQuotationPDF = async (quotationData) => {
   doc.text(`Payment Terms: ${paymentTerms}`, 15, y + 14);
   doc.text(`Validity Period: ${validityPeriod}`, 15, y + 20);
 
-  // ===== PRODUCT TABLE =====
   y += 35;
   const tableColumn = ["#", "Product", "Quantity", "Unit Price", "Total"];
   const tableRows = products.map((item, index) => {
@@ -116,7 +108,6 @@ export const generateQuotationPDF = async (quotationData) => {
     },
   });
 
-  // ===== GRAND TOTAL =====
   const finalY = doc.lastAutoTable.finalY + 10;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
@@ -125,7 +116,6 @@ export const generateQuotationPDF = async (quotationData) => {
     align: "right",
   });
 
-  // ===== NOTES =====
   if (notes) {
     doc.setFont("helvetica", "bold");
     doc.text("Notes:", 15, finalY + 10);
@@ -134,7 +124,6 @@ export const generateQuotationPDF = async (quotationData) => {
     doc.text(notes, 15, finalY + 16, { maxWidth: pageWidth - 30 });
   }
 
-  // ===== PAYMENT QR =====
   if (paymentQrBase64) {
     doc.addImage(paymentQrBase64, "PNG", pageWidth - 50, finalY + 20, 35, 35);
     doc.setFontSize(9);
@@ -142,7 +131,6 @@ export const generateQuotationPDF = async (quotationData) => {
     doc.text("Scan to Pay", pageWidth - 33, finalY + 60, { align: "center" });
   }
 
-  // ===== FOOTER =====
   doc.setFontSize(9);
   doc.setTextColor(100);
   doc.text(
@@ -152,6 +140,5 @@ export const generateQuotationPDF = async (quotationData) => {
     { align: "center" }
   );
 
-  // ===== SAVE PDF =====
   doc.save(`Quotation_${quotationNumber}.pdf`);
 };

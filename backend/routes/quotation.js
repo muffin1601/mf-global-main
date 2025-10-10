@@ -45,4 +45,38 @@ router.post('/create', async (req, res) => {
     }
 });
 
+router.get("/data/count", async (req, res) => {
+  try {
+    const quotations = await Quotation.find().sort({ createdAt: -1 }); 
+    const count = await Quotation.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      count,
+      quotations,
+    });
+  } catch (error) {
+    console.error("Error fetching quotations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching quotations",
+      error: error.message,
+    });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Quotation.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Quotation not found" });
+    }
+    res.status(200).json({ success: true, message: "Quotation deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting quotation:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 module.exports = router;

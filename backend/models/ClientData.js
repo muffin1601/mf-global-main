@@ -3,7 +3,15 @@ const mongoose = require("mongoose");
 const additionalContactSchema = new mongoose.Schema({
   name: { type: String },
   contact: { type: String },
-  details: { type: String }
+  details: { type: String },
+}, { _id: false });
+
+const addressSchema = new mongoose.Schema({
+  street: { type: String },
+  city: { type: String },
+  state: { type: String },
+  postalCode: { type: String },
+  country: { type: String },
 }, { _id: false });
 
 const clientSchema = new mongoose.Schema(
@@ -23,6 +31,7 @@ const clientSchema = new mongoose.Schema(
     datatype: { type: String },
     callStatus: { type: String, default: "Not Called" },
     followUpDate: { type: Date, default: null },
+
     assignedTo: [
       {
         user: {
@@ -36,15 +45,32 @@ const clientSchema = new mongoose.Schema(
         },
       },
     ],
+
     status: { type: String, default: "New Lead" },
     followUpDateOne: { type: Date, default: null },
     followUpDateTwo: { type: Date, default: null },
     followUpDateThree: { type: Date, default: null },
+    callingdate: { type: Date, default: null },
     inquiryDate: { type: String },
     address: { type: String },
     fileName: { type: String, default: null },
+
     
-    additionalContacts: [additionalContactSchema]
+    billingAddress: {
+      type: addressSchema,
+      default: function () {
+        return {
+          street: this.address || "",
+          city: this.state || "",
+        };
+      },
+    },
+    shippingAddress: {
+      type: addressSchema,
+      default: {},
+    },
+
+    additionalContacts: [additionalContactSchema],
   },
   { timestamps: true }
 );

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaAngleRight, FaAngleDown, FaChartBar, FaUserTie, FaCog } from 'react-icons/fa';
+import { FaHome, FaAngleRight, FaAngleDown, FaChartBar, FaUserTie } from 'react-icons/fa';
 import '../../styles/crm/Sidebar.css';
 
 const Sidebar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDashboardsOpen, setIsDashboardsOpen] = useState(true);
+  const [isSalesOpen, setIsSalesOpen] = useState(true);
+
 
   let user;
   try {
@@ -19,12 +21,20 @@ const Sidebar = () => {
     // { label: "Dashboard Overview", path: "/crm/overview", icon: FaChartBar },
     { label: "User Management", path: "/crm/user-management", icon: FaUserTie, roles: ['admin'] },
     // { label: "Settings", path: "/crm/settings", icon: FaCog },
+    
   ];
 
   const dashboards = [
     { label: "Lead Management", path: "/crm/entrydashboard" },
     ...(user && user.role !== 'user' ? [{ label: "Product Management", path: "/crm/product-dashboard" }] : [])
   ];
+
+  const salesMenu = [
+  { label: "Quotations ", path: "/crm/quotations" },
+  // { label: "Opportunities", path: "/crm/sales/opportunities" },
+  // { label: "Reports", path: "/crm/sales/reports" },
+];
+
 
   return (
     <div className={`app-sidebar ${isMenuOpen ? '' : 'app-sidebar-collapsed'}`}>
@@ -79,6 +89,35 @@ const Sidebar = () => {
           </div>
         )
       ))}
+      <div className="app-sidebar-item">
+  <div className="app-dropdown-header" onClick={() => setIsSalesOpen(!isSalesOpen)}>
+    <FaChartBar className="app-nav-icon" />
+    {isMenuOpen && (
+      <>
+        <span className="app-nav-label">Sales</span>
+        <span className="app-dropdown-indicator">
+          {isSalesOpen ? <FaAngleDown /> : <FaAngleRight />}
+        </span>
+      </>
+    )}
+  </div>
+
+  {isMenuOpen && isSalesOpen && (
+    <ul className="app-sub-menu">
+      {salesMenu.map((item, index) => (
+        <li key={index}>
+          <NavLink
+            to={item.path}
+            className={({ isActive }) => `app-sub-menu-link ${isActive ? 'app-sub-menu-link-active' : ''}`}
+          >
+            {item.label}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
     </div>
   );
 };

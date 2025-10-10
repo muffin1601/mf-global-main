@@ -200,7 +200,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                           >
                             {showPrice === p._id ? 'Hide' : 'Show'} Price
                           </button>
-                          <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button>
+                          {/* <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button> */}
                         </td>
                       </tr>
                       {showPrice === p._id && (
@@ -221,15 +221,15 @@ const SearchProductModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button>
+          {/* <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button> */}
         </div>
       </div>
-
+{/* 
       <QuotationModal
         isOpen={isQuotationOpen}
         onClose={() => setIsQuotationOpen(false)}
         selectedProducts={selectedProducts}
-      />
+      /> */}
     </>
   );
 };
@@ -243,6 +243,7 @@ const css = `
   inset: 0;
   background: rgba(40, 50, 60, 0.6);
   display: flex;
+  border-radius:20px;
   justify-content: center;
   align-items: center;
   z-index: 99999;
@@ -253,10 +254,11 @@ const css = `
   width: 90%;
   max-width: 900px;
   max-height: 90%;
+  
   overflow-y: auto;
   backdrop-filter: blur(8px);
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 19px;
   padding: 1.8rem;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;

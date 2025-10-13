@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import "../../../styles/crm/Dashboard.css";
 import Navbar from "../../../components/crm/Navbar"; 
 import Sidebar from "../../../components/crm/Sidebar";
-import QuotationTable from "../../../components/crm/Product/QuotationTable";
+import QuotationCreate from "../../../components/crm/Product/QuotationCreate";
 
 
-const QuotationPage= () => {
+const CreateQuotation= () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true); 
@@ -63,7 +63,7 @@ const QuotationPage= () => {
       <div className="main-content-wrapper">
         <Navbar />
         <div className="premium-dashboard-main">
-          <QuotationTable />
+          <QuotationCreate />
         </div>
       </div>
     </div>
@@ -72,4 +72,4 @@ const QuotationPage= () => {
         </div></>
   );
 };
-export default QuotationPage;
+export default CreateQuotation;

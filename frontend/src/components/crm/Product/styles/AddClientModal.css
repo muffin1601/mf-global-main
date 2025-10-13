@@ -1,0 +1,72 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content.large {
+  background: #fff;
+  border-radius: 10px;
+  width: 80%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header, .modal-footer {
+  padding: 1rem;
+  background: #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-box {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.client-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.client-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.client-table th, .client-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.btn-select {
+  background: #16a34a;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+.btn-select:hover {
+  background: #15803d;
+}
+.no-results {
+  text-align: center;
+  padding: 1rem;
+  color: #888;
+}

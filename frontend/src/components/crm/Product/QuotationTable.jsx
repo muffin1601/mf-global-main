@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
 import { AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from 'react-icons/ai';
@@ -7,6 +8,7 @@ import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
 
 const QuotationTable = () => {
+  const navigate = useNavigate();
   const [quotations, setQuotations] = useState([]);
   const [totalQuotations, setTotalQuotations] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,7 +80,7 @@ const QuotationTable = () => {
       <div className="lead-header">
         <h5>Quotation Report</h5>
         <div className="lead-btn-group">
-          <button className="btn-add-2" >Create Quotation</button>
+          <button className="btn-add-2" onClick={() => navigate("/crm/quotations/create")} >Create Quotation</button>
         </div>
       </div>
 

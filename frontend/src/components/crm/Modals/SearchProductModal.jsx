@@ -15,19 +15,17 @@ const PriceDetails = ({ product, taxRate }) => (
     <thead>
       <tr>
         <th>Price Code</th>
-        <th>Single Price (Tax Inc.)</th>
-        <th>5–50 Sales (Tax Inc.)</th>
-        <th>50–100 Sales (Tax Inc.)</th>
-        <th>100+ Sales (Tax Inc.)</th>
+        <th>Basic Amount</th>
+        <th>GST%</th>
+        <th>Net Amount</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>{product.p_price?.price_code || '—'}</td>
-        <td>{calculatePriceWithTax(product.p_price?.single_price, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_5_50, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_50_100, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_100_above, taxRate)}</td>
+        <td>{calculatePriceWithTax(product.p_price?.basic_amount, taxRate)}</td>
+        <td>{product.p_price?.GST_rate || '-'}</td>
+        <td>{calculatePriceWithTax(product.p_price?.net_amount, taxRate)}</td>
       </tr>
     </tbody>
   </table>
@@ -41,8 +39,8 @@ const SearchProductModal = ({ isOpen, onClose }) => {
   const [taxRate, setTaxRate] = useState(0);
 
   
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isQuotationOpen, setIsQuotationOpen] = useState(false);
+  // const [selectedProducts, setSelectedProducts] = useState([]);
+  // const [isQuotationOpen, setIsQuotationOpen] = useState(false);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -96,26 +94,26 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const addToQuotation = (product) => {
-    if (selectedProducts.find((p) => p._id === product._id)) {
-      toast(
-        <CustomToast
-          type="warning"
-          title="Already Added"
-          message={`${product.p_name} is already added to the quotation.`}
-        />
-      );
-      return;
-    }
-    setSelectedProducts([...selectedProducts, product]);
-    toast(
-      <CustomToast
-        type="success"
-        title="Added to Quotation"
-        message={`${product.p_name} added successfully.`}
-      />
-    );
-  };
+  // const addToQuotation = (product) => {
+  //   if (selectedProducts.find((p) => p._id === product._id)) {
+  //     toast(
+  //       <CustomToast
+  //         type="warning"
+  //         title="Already Added"
+  //         message={`${product.p_name} is already added to the quotation.`}
+  //       />
+  //     );
+  //     return;
+  //   }
+  //   setSelectedProducts([...selectedProducts, product]);
+  //   toast(
+  //     <CustomToast
+  //       type="success"
+  //       title="Added to Quotation"
+  //       message={`${product.p_name} added successfully.`}
+  //     />
+  //   );
+  // };
 
   if (!isOpen) return null;
 
@@ -175,7 +173,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                     <th>Type</th>
                     <th>Color</th>
                     <th>HSN</th>
-                    <th>GST Rate</th>
+                    
                     <th>Description</th>
                     <th>Action</th>
                   </tr>
@@ -184,12 +182,12 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                   {products.map((p) => (
                     <React.Fragment key={p._id}>
                       <tr>
-                        <td>{p.product_code}</td>
+                        <td>{p.p_code}</td>
                         <td>{p.p_name}</td>
                         <td>{p.p_type}</td>
                         <td>{p.p_color}</td>
                         <td>{p.HSN_code}</td>
-                        <td>{p.GST_rate}%</td>
+                       
                         <td>{p.p_description || '—'}</td>
                         <td>
                           <button

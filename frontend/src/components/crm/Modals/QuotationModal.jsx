@@ -293,8 +293,6 @@ const QuotationModal = ({ isOpen, onClose, selectedProducts }) => {
 
 export default QuotationModal;
 
-
-
 const css = `
 /* --- Modal Overlay --- */
 .quotation-modal-overlay {

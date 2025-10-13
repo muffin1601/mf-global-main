@@ -106,7 +106,7 @@ const handleDeleteProduct = async () => {
               <th>Type</th>
               <th>Color</th>
               <th>Description</th>
-              <th>Image</th>
+              
               <th>Action</th>
             </tr>
           </thead>
@@ -114,18 +114,12 @@ const handleDeleteProduct = async () => {
             {getPaginatedProducts().map((product, index) => (
               <tr key={product._id}>
                 <td>{(currentPage - 1) * productsPerPage + index + 1}</td>
-                <td>{product.product_code}</td>
+                <td>{product.p_code}</td>
                 <td>{product.p_name}</td>
                 <td>{product.p_type}</td>
                 <td>{product.p_color}</td>
                 <td>{product.p_description}</td>
-                <td>
-                  {product.p_image ? (
-                    <img src={product.p_image} alt={product.p_name} style={{ width: '40px', height: '40px' }} />
-                  ) : (
-                    'N/A'
-                  )}
-                </td>
+                
                 <td>
                   <div className="lead-actions">
                     {/* <button className="btn-view" title="View" onClick={() => setSelectedProduct(product)}><AiOutlineEye /></button> */}

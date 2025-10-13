@@ -78,7 +78,7 @@ const QuotationTable = () => {
       <div className="lead-header">
         <h5>Quotation Report</h5>
         <div className="lead-btn-group">
-          <button className="btn-add-2" onClick={handleAddVendor}>Create Quotation</button>
+          <button className="btn-add-2" >Create Quotation</button>
         </div>
       </div>
 

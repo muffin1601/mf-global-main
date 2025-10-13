@@ -8,41 +8,80 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const db = mongoose.connection;
 
-const clientSchema = new mongoose.Schema({}, { strict: false });
+const additionalContactSchema = new mongoose.Schema({
+  name: { type: String },
+  contact: { type: String },
+  details: { type: String },
+}, { _id: false });
+
+const addressSchema = new mongoose.Schema({
+  street: { type: String },
+  city: { type: String },
+  state: { type: String },
+  postalCode: { type: String },
+  country: { type: String },
+}, { _id: false });
+
+const clientSchema = new mongoose.Schema(
+  {
+    name: { type: String },
+    company: { type: String },
+    email: { type: String },
+    countryCode: { type: String },
+    phone: { type: String },
+    contact: { type: String },
+    location: { type: String },
+    state: { type: String },
+    category: { type: String },
+    quantity: { type: Number },
+    requirements: { type: String },
+    remarks: { type: String },
+    datatype: { type: String },
+    callStatus: { type: String, default: "Not Called" },
+    followUpDate: { type: Date, default: null },
+    assignedTo: [
+      {
+        user: {
+          _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+          name: { type: String, required: true },
+        },
+        permissions: {
+          view: { type: Boolean, default: false },
+          update: { type: Boolean, default: false },
+          delete: { type: Boolean, default: false },
+        },
+      },
+    ],
+    status: { type: String, default: "New Lead" },
+    followUpDateOne: { type: Date, default: null },
+    followUpDateTwo: { type: Date, default: null },
+    followUpDateThree: { type: Date, default: null },
+    callingdate: { type: Date, default: null },
+    inquiryDate: { type: String },
+    address: { type: String },
+    fileName: { type: String, default: null },
+    billingAddress: { type: addressSchema, default: {} },
+    shippingAddress: { type: addressSchema, default: {} },
+    additionalContacts: [additionalContactSchema],
+  },
+  { timestamps: true }
+);
+
 const ClientData = mongoose.model("ClientData", clientSchema);
 
 db.once("open", async () => {
   console.log("✅ Connected to MongoDB");
 
   try {
-    const clients = await ClientData.find({});
-    let updatedCount = 0;
+    
+    const result = await ClientData.updateMany(
+      { callingdate: { $exists: false } }, 
+      { $set: { callingdate: new Date() } }
+    );
 
-    for (const client of clients) {
-      const updateData = {};
-
-      
-      if (!client.billingAddress) {
-        updateData.billingAddress = client.address || "";
-      }
-
-      
-      if (!client.shippingAddress) {
-        updateData.shippingAddress = "";
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await ClientData.updateOne(
-          { _id: client._id },
-          { $set: updateData }
-        );
-        updatedCount++;
-      }
-    }
-
-    console.log(`✅ Added new address fields to ${updatedCount} client documents.`);
+    console.log(`✅ Updated ${result.modifiedCount} documents with a new callingdate.`);
   } catch (err) {
-    console.error("❌ Error during migration:", err);
+    console.error("❌ Error updating callingdate:", err);
   } finally {
     mongoose.disconnect();
   }

@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
 
-// Utility: clean and trim filter values
+
 const cleanFilter = (arr) =>
   arr
-    .filter((v) => v != null) // remove null/undefined
+    .filter((v) => v != null)
     .map((v) => String(v).trim());
 
-// Utility: build field query supporting blank-only and case-insensitive matching
+
 const buildFieldQuery = (field, arr) => {
   if (!arr || !arr.length) return null;
 
@@ -29,7 +29,6 @@ const buildFieldQuery = (field, arr) => {
   return orClauses.length === 1 ? orClauses[0] : { $or: orClauses };
 };
 
-// =================== General Filter ===================
 router.post("/clients/filter", async (req, res) => {
   try {
     const {
@@ -70,7 +69,7 @@ router.post("/clients/filter", async (req, res) => {
   }
 });
 
-// =================== Assigned Filter ===================
+
 router.post("/clients/assigned/:userName/filter", async (req, res) => {
   const { userName } = req.params;
   const filters = req.body;
@@ -103,9 +102,9 @@ router.post("/clients/unassigned/filter", async (req, res) => {
       $and: [
         {
           $or: [
-            { assignedTo: { $exists: false } },           // no assignedTo field
-            { assignedTo: { $size: 0 } },                 // empty array
-            { "assignedTo.user._id": { $exists: false } } // array exists but no valid user
+            { assignedTo: { $exists: false } },           
+            { assignedTo: { $size: 0 } },                 
+            { "assignedTo.user._id": { $exists: false } } 
           ]
         }
       ]

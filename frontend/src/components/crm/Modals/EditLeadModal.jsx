@@ -92,7 +92,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
         </div>
 
         <div className="glasso-modal-body grid">
-          {["name", "email", "phone", "company", "contact", "location", "state","category", "inquiryDate", "address"].map((field) => (
+          {["name", "email", "phone", "company", "contact", "location", "state","category",  "address"].map((field) => (
             <div className={`glasso-input-group glasso-${field}`} key={field}>
               <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
               <input
@@ -139,6 +139,10 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
           <div className="glasso-input-group glasso-followup">
             <label>Follow Up Date</label>
             <input type="date" value={formatDate(editedLead.followUpDate)} onChange={(e) => handleChange("followUpDate", e.target.value)} />
+          </div>
+          <div className="glasso-input-group glasso-followup">
+            <label>Calling Date</label>
+            <input type="date" value={formatDate(editedLead.callingdate)} onChange={(e) => handleChange("callingdate", e.target.value)} />
           </div>
         </div>
 

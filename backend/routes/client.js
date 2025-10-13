@@ -129,9 +129,24 @@ const buildFollowUpDateFields = (client, newFollowUpDate) => {
   }
 };
 
+const buildBillingAddress = (client, billingAddress, addressField) => {
+  if (billingAddress && typeof billingAddress === "object") return billingAddress;
+  
+  if (client.billingAddress) return client.billingAddress;
+
+  return {
+    street: addressField || client.address || "",
+    city: client.state || "",
+    state: client.state || "",
+    postalCode: "",
+    country: "",
+  };
+};
+
 router.post("/save-all-updates", async (req, res) => {
   try {
     const { updates } = req.body;
+
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "No updates to apply" });
     }
@@ -139,7 +154,7 @@ router.post("/save-all-updates", async (req, res) => {
     const updatePromises = updates.map(async (update) => {
       try {
         const {
-          id, 
+          id,
           name,
           email,
           phone,
@@ -157,6 +172,7 @@ router.post("/save-all-updates", async (req, res) => {
           status,
           inquiryDate,
           address,
+          billingAddress,
         } = update;
 
         if (!id && !phone && !contact) return null;
@@ -168,10 +184,12 @@ router.post("/save-all-updates", async (req, res) => {
         const client = await Client.findOne(query);
         if (!client) return null;
 
+       
         const cleanDatatype = removeIcons(datatype);
         const cleanCallStatus = removeIcons(callStatus);
         const cleanStatus = removeIcons(status);
 
+        
         let assignedToTransformed = [];
         if (Array.isArray(assignedTo) && assignedTo.length > 0) {
           assignedToTransformed = assignedTo
@@ -187,6 +205,7 @@ router.post("/save-all-updates", async (req, res) => {
         }
 
         const followUpFields = buildFollowUpDateFields(client, followUpDate);
+        const billingAddressObj = buildBillingAddress(client, billingAddress, address);
 
         const updateFields = {
           ...(name !== undefined && { name }),
@@ -207,6 +226,7 @@ router.post("/save-all-updates", async (req, res) => {
           additionalContacts: Array.isArray(additionalContacts)
             ? additionalContacts
             : client.additionalContacts,
+          billingAddress: billingAddressObj,
           ...followUpFields,
         };
 

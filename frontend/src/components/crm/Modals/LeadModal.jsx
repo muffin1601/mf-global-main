@@ -73,8 +73,8 @@ const LeadModal = ({ lead, onClose }) => {
             <span className="glasso-lead-value">{formatDate(lead.followUpDate)}</span>
           </div>
           <div className="glasso-lead-detail-group">
-            <span className="glasso-lead-label">Inquiry Date</span>
-            <span className="glasso-lead-value">{formatDate(lead.inquiryDate)}</span>
+            <span className="glasso-lead-label">Calling Date</span>
+            <span className="glasso-lead-value">{formatDate(lead.callingdate)}</span>
           </div>
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Updated</span>

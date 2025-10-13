@@ -33,16 +33,17 @@ const ConvertedLeadsTable = () => {
   useEffect(() => {
     fetchLeads();
   }, []);
-  const fetchLeads = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
-        const data = response.data ;
-        setLeads(data.uniqueConvertedClients);
-        setTotalLeads(data.uniqueConvertedClients.length);
-      } catch (error) {
-        toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
-      }
-    };
+ const fetchLeads = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/converted-clients`);
+    
+    const clients = response.data || []; 
+    setLeads(clients);
+    setTotalLeads(clients.length);
+  } catch (error) {
+    toast(<CustomToast type="error" title="Error" message="Error fetching converted leads" />);
+  }
+};
 
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
 

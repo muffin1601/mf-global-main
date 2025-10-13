@@ -39,16 +39,18 @@ const AssignedLeadsTable = () => {
     fetchLeads();
   }, []);
 
-  const fetchLeads = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
-      const data = response.data;
-      setLeads(data.uniqueAssignedClients);
-      setTotalLeads(data.uniqueAssignedClients.length);
-    } catch (error) {
-      toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
-    }
-  };
+const fetchLeads = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/assigned-clients`);
+    
+    const clients = response.data || []; 
+    setLeads(clients);
+    setTotalLeads(clients.length);
+  } catch (error) {
+    console.error("Error in fetchLeads:", error); 
+    toast(<CustomToast type="error" title="Error" message="Error fetching assigned leads" />);
+  }
+};
 
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
 

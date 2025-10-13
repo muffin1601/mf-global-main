@@ -21,23 +21,17 @@ const TrendingLeadsTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'));
 
-  const fetchLeads = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
-      const data = response.data.trendingLeads;
-      if (Array.isArray(data)) {
-        setLeads(data);
-        setTotalLeads(data.length);
-      } else {
-        setLeads([]);
-        setTotalLeads(0);
-        toast(<CustomToast type="error" title="Error" message="Invalid data format received from the server." />);
-      }
-    } catch (error) {
-      console.error(error);
-      toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
-    }
-  };
+ const fetchLeads = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/trending-leads`);
+    
+    const clients = response.data || []; 
+    setLeads(clients);
+    setTotalLeads(clients.length);
+  } catch (error) {
+    toast(<CustomToast type="error" title="Error" message="Error fetching trending leads" />);
+  }
+};
 
   useEffect(() => {
     fetchLeads();

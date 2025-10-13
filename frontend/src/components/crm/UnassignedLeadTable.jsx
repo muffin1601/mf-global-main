@@ -47,15 +47,17 @@ useEffect(() => {
 
 const fetchLeads = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/get-details-clients`);
-    const data = response.data;
-    setLeads(data.uniqueUnassignedClients);
-    setTotalLeads(data.uniqueUnassignedClients.length);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/unassigned-clients`);
+    
+    const clients = response.data || []; 
+    setLeads(clients);
+    setTotalLeads(clients.length);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching leads:", error);
     toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
   }
 };
+
 
 const totalPages = Math.ceil(totalLeads / leadsPerPage);
 
@@ -85,7 +87,6 @@ const filterForAssign = async (incomingFilters = filters) => {
         )
       : options;
 
-  
   const normalizeFilters = (filterObj) => {
     const fields = ["datatype", "status", "callStatus", "category", "location", "state", "fileName"];
     const normalized = {};
@@ -144,8 +145,8 @@ const handleDeleteLead = async () => {
 
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
-    setLeadforDelete(null); // close modal
-    filterLeads(); // refresh
+    setLeadforDelete(null); 
+    filterLeads(); 
   } catch (error) {
     console.error("Error deleting lead:", error);
     toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);

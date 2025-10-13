@@ -95,8 +95,6 @@ router.post("/clients/delete", async (req, res) => {
   }
 });
 
-
-
 const removeIcons = (value) => {
   return typeof value === "string"
     ? value.replace(/^[^\w]*\s*/, "").trim()

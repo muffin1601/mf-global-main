@@ -1,3 +1,4 @@
+// updateAllAddresses.js
 const mongoose = require("mongoose");
 require("dotenv").config();
 
@@ -8,18 +9,18 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const db = mongoose.connection;
 
-const additionalContactSchema = new mongoose.Schema({
-  name: { type: String },
-  contact: { type: String },
-  details: { type: String },
-}, { _id: false });
-
 const addressSchema = new mongoose.Schema({
   street: { type: String },
   city: { type: String },
   state: { type: String },
   postalCode: { type: String },
   country: { type: String },
+}, { _id: false });
+
+const additionalContactSchema = new mongoose.Schema({
+  name: { type: String },
+  contact: { type: String },
+  details: { type: String },
 }, { _id: false });
 
 const clientSchema = new mongoose.Schema(
@@ -60,8 +61,8 @@ const clientSchema = new mongoose.Schema(
     inquiryDate: { type: String },
     address: { type: String },
     fileName: { type: String, default: null },
-    billingAddress: { type: addressSchema, default: {} },
-    shippingAddress: { type: addressSchema, default: {} },
+    billingAddress: { type: addressSchema, default: null },
+    shippingAddress: { type: addressSchema, default: null },
     additionalContacts: [additionalContactSchema],
   },
   { timestamps: true }
@@ -73,15 +74,14 @@ db.once("open", async () => {
   console.log("✅ Connected to MongoDB");
 
   try {
-    
     const result = await ClientData.updateMany(
-      { callingdate: { $exists: false } }, 
-      { $set: { callingdate: new Date() } }
+      {}, // all documents
+      { $set: { billingAddress: null, shippingAddress: null } }
     );
 
-    console.log(`✅ Updated ${result.modifiedCount} documents with a new callingdate.`);
+    console.log(`✅ Updated ${result.modifiedCount} documents to have nullable addresses.`);
   } catch (err) {
-    console.error("❌ Error updating callingdate:", err);
+    console.error("❌ Error updating addresses:", err);
   } finally {
     mongoose.disconnect();
   }

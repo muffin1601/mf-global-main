@@ -22,8 +22,6 @@ const productSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
-  product_code: {
-    type: String, },
   p_name: {
     type: String,
     required: true
@@ -38,7 +36,7 @@ const productSchema = new mongoose.Schema({
   p_price: priceSchema
 });
 
-// Pre-save hook to auto-generate p_code and price_code
+
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
     // Auto-generate p_code

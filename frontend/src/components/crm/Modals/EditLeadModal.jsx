@@ -56,15 +56,24 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   try {
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
 
-    const assignedUser = editedLead.assignedTo?.[0]?.user;
+   
+const assignedUser = editedLead.assignedTo?.[0]?.user;
+
+
     if (assignedUser && assignedUser._id) {
-      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+
+      const userIdToAssign = assignedUser._id;
+
+
+      const permissionsToAssign = editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false };
+
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign/single`, {
         Leads: [editedLead._id],
-        userIds: [assignedUser._id],
-        permissions: editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false },
+        userIds: [userIdToAssign],
+        permissions: permissionsToAssign,
       });
     }
-
     toast(<CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />);
     await logActivity("Edited Lead", { leadId: editedLead._id });
     onSave(res.data.updates?.[0] || updates);

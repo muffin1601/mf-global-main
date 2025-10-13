@@ -58,16 +58,11 @@ const clientSchema = new mongoose.Schema(
     
     billingAddress: {
       type: addressSchema,
-      default: function () {
-        return {
-          street: this.address || "",
-          city: this.state || "",
-        };
-      },
+      default: null,
     },
     shippingAddress: {
       type: addressSchema,
-      default: {},
+      default: null,
     },
 
     additionalContacts: [additionalContactSchema],

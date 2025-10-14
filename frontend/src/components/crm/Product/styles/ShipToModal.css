@@ -1,0 +1,139 @@
+.ship-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+.ship-modal-content {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    width: 420px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #ffffff;
+    font-family: "Outfit", sans-serif;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    animation: slideUp 0.3s ease;
+}
+
+.ship-modal-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+}
+
+.ship-count {
+    font-size: 0.9rem;
+    color: #cfcfcf;
+    margin-left: 5px;
+}
+
+.ship-modal-subtitle {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 1.2rem;
+}
+
+.ship-address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.ship-address-card {
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.ship-address-card:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+}
+
+.ship-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.ship-card-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.select-tag {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-weight: 500;
+}
+
+.ship-address-card p {
+    margin: 4px 0;
+    color: #ddd;
+    font-size: 0.9rem;
+}
+
+.ship-close-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    background: #dc3545;
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.ship-close-btn:hover {
+    background: #b52c3a;
+}
+
+/* =============== ANIMATIONS =============== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .ship-modal-content {
+        width: 90%;
+        padding: 1.5rem;
+    }
+
+    .ship-card-header h4 {
+        font-size: 0.95rem;
+    }
+
+    .ship-modal-title {
+        font-size: 1.3rem;
+    }
+}

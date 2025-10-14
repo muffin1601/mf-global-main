@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-
+import { AiOutlineDelete } from 'react-icons/ai';
 import AddClientModal from "./AddClientModal";
 import AddItemModal from "./AddItemModal";
-import "./styles/QuotationCreate.css"; 
+import "./styles/QuotationCreate.css";
 import ShipToModal from "./ShipToModal";
 
 const initialBankDetails = {
@@ -243,6 +243,7 @@ const QuotationCreate = () => {
                         {party && party.selectedShippingAddress ? (
                             <div className="party-info">
                                 <strong>{party.selectedShippingAddress.name}</strong>
+                                <p>Phone Number: {party.phone}</p>
                                 <p>ADDRESS: {party.selectedShippingAddress.address}</p>
                                 <p>State: {party.selectedShippingAddress.state}</p>
                             </div>
@@ -265,64 +266,172 @@ const QuotationCreate = () => {
                 />
             </div>
 
-            {/* Items Table */}
-            <div className="items-section">
-                <table className="quotation-table">
+            <div className="qtn-items-section">
+                <table className="qtn-quotation-table">
                     <thead>
                         <tr>
-                            <th className="no">No</th>
-                            <th className="items-services">Items / Services</th>
-                            <th className="hsn-sac">HSN/SAC</th>
-                            <th className="qty">Qty</th>
-                            <th className="price">Price/Item (₹)</th>
-                            <th className="discount">Discount</th>
-                            <th className="tax">Tax</th>
-                            <th className="amount">Amount (₹)</th>
-                            <th className="actions"></th>
+                            <th className="qtn-no">No</th>
+                            <th className="qtn-items-services">Products</th>
+                            <th className="qtn-hsn-sac">HSN</th>
+                            <th className="qtn-qty">Qty</th>
+                            <th className="qtn-price">Price/Item (₹)</th>
+                            <th className="qtn-discount">Discount</th>
+                            <th className="qtn-tax">GST%</th>
+                            <th className="qtn-amount">Amount (₹)</th>
+                            <th className="qtn-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {items.length > 0 && items.map((item, index) => {
-                            const itemCalc = calculateItemAmount(item);
-                            return (
-                                <tr key={index}>
-                                    <td>{index + 1}</td>
-                                    <td>
-                                        <div className="item-name-box">
-                                            {item.name}
-                                            <input type="text" value={item.description || "Enter Description (optional)"} className="item-description-input" disabled />
-                                        </div>
-                                    </td>
-                                    <td><input type="text" value={item.hsn || "-"} className="item-input" /></td>
-                                    <td><input type="number" value={item.qty} className="item-input input-qty" /> PCS</td>
-                                    <td><input type="number" value={item.price.toFixed(2)} className="item-input input-price" /></td>
-                                    <td><input type="number" value={item.discount || 0} className="item-input input-disc" />%</td>
-                                    <td>
-                                        <input type="number" value={item.tax || 0} className="item-input input-tax" />%
-                                        <p className="tax-breakdown">(₹ {itemCalc.taxAmount.toFixed(2)})</p>
-                                    </td>
-                                    <td className="amount-cell">{itemCalc.total.toFixed(2)}</td>
-                                    <td className="actions-cell">
-                                        <i className="fas fa-trash-alt delete-item" onClick={() => handleRemoveItem(index)}></i>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                        {items.length > 0 &&
+                            items.map((item, index) => {
+                                const itemCalc = calculateItemAmount(item);
+
+                                return (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>
+                                            <div className="qtn-item-name-box">
+                                                <input
+                                                    type="text"
+                                                    value={item.name}
+                                                    onChange={(e) =>
+                                                        setItems((prev) =>
+                                                            prev.map((it, i) =>
+                                                                i === index ? { ...it, name: e.target.value } : it
+                                                            )
+                                                        )
+                                                    }
+                                                    className="qtn-item-input"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter Description (optional)"
+                                                    value={item.description || ""}
+                                                    onChange={(e) =>
+                                                        setItems((prev) =>
+                                                            prev.map((it, i) =>
+                                                                i === index ? { ...it, description: e.target.value } : it
+                                                            )
+                                                        )
+                                                    }
+                                                    className="qtn-item-description-input"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={item.hsn || ""}
+                                                onChange={(e) =>
+                                                    setItems((prev) =>
+                                                        prev.map((it, i) =>
+                                                            i === index ? { ...it, hsn: e.target.value } : it
+                                                        )
+                                                    )
+                                                }
+                                                className="qtn-item-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={item.qty}
+                                                onChange={(e) =>
+                                                    setItems((prev) =>
+                                                        prev.map((it, i) =>
+                                                            i === index ? { ...it, qty: Number(e.target.value) } : it
+                                                        )
+                                                    )
+                                                }
+                                                className="qtn-item-input qtn-input-qty"
+                                            />{" "}
+                                            PCS
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={item.price}
+                                                onChange={(e) =>
+                                                    setItems((prev) =>
+                                                        prev.map((it, i) =>
+                                                            i === index ? { ...it, price: Number(e.target.value) } : it
+                                                        )
+                                                    )
+                                                }
+                                                className="qtn-item-input qtn-input-price"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={item.discount}
+                                                onChange={(e) =>
+                                                    setItems((prev) =>
+                                                        prev.map((it, i) =>
+                                                            i === index ? { ...it, discount: Number(e.target.value) } : it
+                                                        )
+                                                    )
+                                                }
+                                                className="qtn-item-input qtn-input-disc"
+                                            />%
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={item.tax}
+                                                onChange={(e) =>
+                                                    setItems((prev) =>
+                                                        prev.map((it, i) =>
+                                                            i === index ? { ...it, tax: Number(e.target.value) } : it
+                                                        )
+                                                    )
+                                                }
+                                                className="qtn-item-input qtn-input-tax"
+                                            />%
+                                            <p className="qtn-tax-breakdown">(₹ {itemCalc.taxAmount.toFixed(2)})</p>
+                                        </td>
+                                        <td className="qtn-amount-cell">{itemCalc.total.toFixed(2)}</td>
+                                        <td className="qtn-actions-cell">
+                                            <button
+                                                className="qtn-delete-item-btn"
+                                                onClick={() => handleRemoveItem(index)}
+                                            >
+                                                <AiOutlineDelete className="icon-del" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+
                         {/* Add Item Row */}
-                        <tr className="input-row">
+                        <tr className="qtn-input-row">
                             <td colSpan="2">
-                                <button className="create-item-btn" onClick={() => setShowItemModal(true)}>+ Create Item</button>
+                                <button
+                                    className="qtn-create-item-btn"
+                                    onClick={() => setShowItemModal(true)}
+                                >
+                                    + Create Item
+                                </button>
                             </td>
                             <td></td>
-                            <td><span className="free-qty-link">+ Free Qty</span></td>
+                            <td>
+                                <span className="qtn-free-qty-link">+ Free Qty</span>
+                            </td>
                             <td colSpan="3"></td>
-                            <td><i className="fas fa-qrcode scan-barcode"></i> Scan Barcode</td>
-                            <td><i className="fas fa-plus add-item-icon" onClick={() => setShowItemModal(true)}></i></td>
+                            <td>
+                                <i
+                                    className="fas fa-plus qtn-add-item-icon"
+                                    onClick={() => setShowItemModal(true)}
+                                ></i>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-
             {/* Totals, Terms, and Bank Details */}
             <div className="bottom-sections-grid">
                 <div className="left-column">

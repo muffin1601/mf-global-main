@@ -42,8 +42,6 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true }); 
 
 
-
-
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
     // Auto-generate p_code

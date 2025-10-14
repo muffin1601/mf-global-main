@@ -52,23 +52,16 @@ module.exports = router;
 
 router.get("/products", async (req, res) => {
   try {
-    const products = await Product.find().lean();
-    // const uniqueProductsMap = new Map();
+    
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
 
-    // clients.forEach(client => {
-    //   const phoneKey = client.phone || client.contact; // use whichever field exists
-    //   if (phoneKey && !uniqueClientsMap.has(phoneKey)) {
-    //     uniqueClientsMap.set(phoneKey, client);
-    //   }
-    // });
-
-    // const uniqueClients = Array.from(uniqueClientsMap.values());
     res.status(200).json({ products });
   } catch (error) {
-    console.error("Error fetching unique clients:", error);
-    res.status(500).json({ error: "Failed to fetch clients" });
+    console.error("Error fetching products:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 });
+
 
 router.post('/categories/add', async (req, res) => {
   try {

@@ -14,33 +14,54 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     cat_id: '',
     p_description: '',
     p_price: {
+      purchase_price: '',
       basic_amount: '',
       GST_rate: '',
-      net_amount: ''
-    }
+      net_amount: '',
+    },
   });
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`)
-      .then(res => setCategoryNames(res.data.cat_names))
-      .catch(err => console.error("Failed to fetch categories:", err));
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/products/meta`)
+      .then((res) => setCategoryNames(res.data.cat_names))
+      .catch((err) => console.error('Failed to fetch categories:', err));
   }, []);
+
+
+  useEffect(() => {
+    const { basic_amount, GST_rate } = formData.p_price;
+
+    if (basic_amount && GST_rate) {
+      const basic = parseFloat(basic_amount);
+      const gst = parseFloat(GST_rate);
+
+      const net = basic + (basic * gst) / 100;
+      setFormData((prev) => ({
+        ...prev,
+        p_price: {
+          ...prev.p_price,
+          net_amount: net.toFixed(2),
+        },
+      }));
+    }
+  }, [formData.p_price.basic_amount, formData.p_price.GST_rate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name in formData.p_price) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         p_price: {
           ...prev.p_price,
-          [name]: value
-        }
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -52,7 +73,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error('Failed to add product');
@@ -85,19 +106,22 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <div className="fe-modal-overlay" onClick={onClose}>
-      <div className="fe-modal-container" onClick={e => e.stopPropagation()}>
+      <div className="fe-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="fe-modal-header">
           <h3 className="fe-modal-title">Add New Product</h3>
-          <button className="fe-modal-close" onClick={onClose}>×</button>
+          <button className="fe-modal-close" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="fe-modal-body">
+            
             {[
-              { label: "Product Name", name: "p_name", required: true },
-              { label: "Type", name: "p_type" },
-              { label: "Color", name: "p_color" },
-              { label: "HSN Code", name: "HSN_code" }
+              { label: 'Product Name', name: 'p_name', required: true },
+              { label: 'Type', name: 'p_type' },
+              { label: 'Color', name: 'p_color' },
+              { label: 'HSN Code', name: 'HSN_code' },
             ].map(({ label, name, required }) => (
               <div className="fe-input-group" key={name}>
                 <label>{label}</label>
@@ -111,6 +135,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
             ))}
 
+    
             <div className="fe-input-group">
               <label>Category</label>
               <select
@@ -120,14 +145,18 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 required
               >
                 <option value="">Select Category</option>
-                {categoryNames.map(cat => (
-                  <option key={cat._id || cat.id || cat} value={cat._id || cat.id || cat}>
+                {categoryNames.map((cat) => (
+                  <option
+                    key={cat._id || cat.id || cat}
+                    value={cat._id || cat.id || cat}
+                  >
                     {cat.name || cat.label || cat}
                   </option>
                 ))}
               </select>
             </div>
 
+       
             <div className="fe-input-group" style={{ gridColumn: 'span 2' }}>
               <label>Description</label>
               <textarea
@@ -137,27 +166,64 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
               />
             </div>
 
-            {[
-              { label: "Basic Amount", name: "basic_amount", required: true },
-              { label: "GST Rate (%)", name: "GST_rate", required: true },
-              { label: "Net Amount", name: "net_amount", required: true }
-            ].map(({ label, name, required }) => (
-              <div className="fe-input-group" key={name}>
-                <label>{label}</label>
-                <input
-                  type="number"
-                  name={name}
-                  value={formData.p_price[name]}
-                  onChange={handleChange}
-                  required={required}
-                />
-              </div>
-            ))}
+         
+            <div className="fe-input-group">
+              <label>Purchase Amount</label>
+              <input
+                type="number"
+                name="purchase_price"
+                value={formData.p_price.purchase_price}
+                onChange={handleChange}
+              />
+            </div>
+
+           
+            <div className="fe-input-group">
+              <label>Basic Amount</label>
+              <input
+                type="number"
+                name="basic_amount"
+                value={formData.p_price.basic_amount}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+           
+            <div className="fe-input-group">
+              <label>GST Rate (%)</label>
+              <select
+                name="GST_rate"
+                value={formData.p_price.GST_rate}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select GST</option>
+                <option value="5">5%</option>
+                <option value="18">18%</option>
+              </select>
+            </div>
+
+           
+            <div className="fe-input-group">
+              <label>Net Amount</label>
+              <input
+                type="number"
+                name="net_amount"
+                value={formData.p_price.net_amount}
+                readOnly
+                style={{ backgroundColor: '#f5f5f5' }}
+              />
+            </div>
           </div>
 
           <div className="fe-footer-buttons fe-action-buttons">
-            <button type="button" className="fe-btn-close" onClick={onClose}>Cancel</button>
-            <button type="submit" className="fe-btn-submit">Save Product</button>
+            <button type="button" className="fe-btn-close" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="fe-btn-submit">
+              Save Product
+            </button>
           </div>
         </form>
       </div>

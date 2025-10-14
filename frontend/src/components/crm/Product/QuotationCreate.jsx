@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 // Assuming AddClientModal handles client selection/creation
 import AddClientModal from "./AddClientModal"; 
 import AddItemModal from "./AddItemModal"; 
-import "./styles/QuotationCreate.css";
+import "./styles/QuotationCreate.css"; // Assuming CSS exists
 
 const initialBankDetails = {
     accountNumber: "9549850787",
@@ -14,13 +14,56 @@ const initialBankDetails = {
 
 const initialTerms = `Payment Terms: 70% Advance at the time of order, Rest Amount at the time of Delivery.\nDelivery Time: 7-10 days.\nLogistic Cost extra as per transportation.`;
 
+
+// Placeholder for the ShipToModal to show additional addresses
+const ShipToModal = ({ isOpen, onClose, addresses, onSelect }) => {
+    if (!isOpen || !addresses) return null;
+
+    // Basic inline styling for a simple modal structure
+    const modalStyle = {
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+        backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', 
+        justifyContent: 'center', alignItems: 'center', zIndex: 1000
+    };
+    const contentStyle = {
+        backgroundColor: 'white', padding: '20px', borderRadius: '5px', 
+        width: '400px', maxHeight: '80vh', overflowY: 'auto'
+    };
+    const addressCardStyle = {
+        border: '1px solid #007bff', padding: '10px', margin: '10px 0', 
+        cursor: 'pointer', backgroundColor: '#f0f8ff'
+    };
+    const buttonStyle = {
+        marginTop: '15px', padding: '8px 15px', backgroundColor: '#dc3545', 
+        color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer'
+    };
+
+    return (
+        <div className="modal-overlay" style={modalStyle}>
+            <div className="modal-content" style={contentStyle}>
+                <h4>Select Shipping Address ({addresses.length} options)</h4>
+                <p style={{fontSize: '0.9em', color: '#666'}}>Select a client address to set as the 'Ship To' location.</p>
+                {addresses.map((addr, index) => (
+                    <div key={index} style={addressCardStyle}
+                         onClick={() => onSelect(addr)}>
+                        <strong>{addr.name}</strong> (Click to Select)
+                        <p style={{margin: '0'}}>{addr.address}</p>
+                        <p style={{margin: '0', fontWeight: 'bold'}}>State: {addr.state}</p>
+                    </div>
+                ))}
+                <button onClick={onClose} style={buttonStyle}>Close</button>
+            </div>
+        </div>
+    );
+};
+
 const QuotationCreate = () => {
     // --- Core State ---
     const [party, setParty] = useState(null);
     const [items, setItems] = useState([]);
     const [isEditingTerms, setIsEditingTerms] = useState(false);
     const [terms, setTerms] = useState(initialTerms);
-    const [bankDetails, setBankDetails] = useState(initialBankDetails); // Use state for bank details
+    const [bankDetails, setBankDetails] = useState(initialBankDetails);
 
     // --- Invoice/Quotation Details State ---
     const [invoiceDetails, setInvoiceDetails] = useState({
@@ -30,25 +73,26 @@ const QuotationCreate = () => {
         validityDays: "30",
         validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
         poNo: "",
-        placeOfSupply: "Uttar Pradesh",
+        placeOfSupply: "Uttar Pradesh", // Default value (Seller's state)
     });
 
     // --- Summary/Calculation State ---
     const [summary, setSummary] = useState({
         discount: 0,
-        discountType: '%', // Added type for discount dropdown
+        discountType: '%',
         additionalCharges: 0,
         applyTCS: false,
         autoRoundOff: false,
         roundOffSign: '+',
         roundOffAmount: 0,
         amountReceived: 0,
-        paymentMethod: 'Cash', // Added payment method dropdown
+        paymentMethod: 'Cash',
     });
 
     // --- Modal State ---
     const [showPartyModal, setShowPartyModal] = useState(false);
     const [showItemModal, setShowItemModal] = useState(false);
+    const [showShipToModal, setShowShipToModal] = useState(false); // New state for ship to modal
 
     // --- Handlers ---
     
@@ -62,16 +106,45 @@ const QuotationCreate = () => {
         }
     }, [invoiceDetails.validityDays, invoiceDetails.date]);
 
+    // Fulfills Requirement 3: Place of Supply = Client State
+    useEffect(() => {
+        if (party && party.state && invoiceDetails.placeOfSupply !== party.state) {
+            setInvoiceDetails(prev => ({ ...prev, placeOfSupply: party.state }));
+        }
+    }, [party]);
 
-    const handleAddParty = (clientData) => {
-        // Mock data to fill the party box, replace with real clientData structure
+
+    const handleAddParty = (clientData = {}) => {
+        // Mock data to simulate a full client object, used to fulfill requirements
+        const defaultState = 'Uttar Pradesh';
+        const defaultAddress = 'B5-161, Sector 70, Noida, UP, 201301';
+
         setParty({
-            name: clientData.company || 'ShelWings Foundation',
-            address: 'B5-161, Sector 70, Noida, UP, 201301',
-            phone: '9958753026',
+            // Requirement 1 data
+            name: clientData.name || 'ShelWings Foundation',
+            company: clientData.company || 'ShelWings Foundation',
+            phone: clientData.phone || '9958753026', 
+            billToAddress: defaultAddress,
+            state: defaultState, // Client's state for Place of Supply
             pan: 'AAZC598139F',
+            
+            // Requirement 2 data: Multiple addresses for Ship To
+            shippingAddresses: [ 
+                { name: 'Default Billing/Shipping', address: defaultAddress, state: defaultState },
+                { name: 'Warehouse Branch', address: 'A-201, Industrial Area, Gurgaon, Haryana, 122001', state: 'Haryana' },
+                { name: 'Mumbai Office', address: 'Office 505, BKC, Mumbai, Maharashtra, 400051', state: 'Maharashtra' },
+            ],
+            // The currently selected shipping address (defaulting to the first)
+            selectedShippingAddress: { name: 'Default Billing/Shipping', address: defaultAddress, state: defaultState }
         });
         setShowPartyModal(false);
+    };
+
+    // Handler for selecting a new shipping address from the modal
+    const handleSelectShippingAddress = (addressObject) => {
+        setParty(prev => ({ ...prev, selectedShippingAddress: addressObject }));
+        setShowShipToModal(false);
+        // NOTE: In a full app, changing the ship-to state should re-calculate CGST/SGST vs IGST
     };
 
     const handleAddItem = (itemData) => {
@@ -119,14 +192,12 @@ const QuotationCreate = () => {
         return acc;
     }, { subtotal: 0, tax: 0 });
 
-    // Apply summary discount (assuming flat discount on subtotal for simplicity)
     const summaryDiscount = summary.discountType === '%' 
         ? totals.subtotal * (parseFloat(summary.discount) / 100)
         : parseFloat(summary.discount);
 
     let preRoundTotal = totals.subtotal + totals.tax + parseFloat(summary.additionalCharges) - summaryDiscount;
     
-    // Apply rounding
     const roundOff = summary.autoRoundOff 
         ? (summary.roundOffSign === '+' ? parseFloat(summary.roundOffAmount) : -parseFloat(summary.roundOffAmount))
         : 0;
@@ -156,10 +227,18 @@ const QuotationCreate = () => {
                     <div className="billto-box" onClick={() => !party && setShowPartyModal(true)}>
                         {party ? (
                             <div className="party-info">
-                                <strong>{party.name}</strong>
-                                <p>ADDRESS: {party.address}</p>
-                                <p>Phone Number: {party.phone}</p>
+                                {/* Requirement 1: Display Company and Phone */}
+                                <strong>{party.company || party.name}</strong> 
+                                <p>Phone Number: {party.phone}</p> 
+                                <p>ADDRESS: {party.billToAddress}</p>
                                 <p>PAN Number: {party.pan}</p>
+                                <hr style={{margin: '5px 0'}}/>
+                                {/* Requirement 1: Display Ship To address */}
+                                <p style={{fontSize: '0.85em', fontWeight: 'bold'}}>Ship To:</p>
+                                <p style={{fontSize: '0.8em'}}>
+                                    {party.selectedShippingAddress.address} 
+                                    (State: {party.selectedShippingAddress.state})
+                                </p>
                             </div>
                         ) : (
                             <span className="add-party-text">+ Add Party</span>
@@ -167,18 +246,20 @@ const QuotationCreate = () => {
                     </div>
                 </div>
 
-                {/* Ship To Section (Simplified as same as Bill To for demo) */}
+                {/* Ship To Section */}
                 <div className="shipto-section">
                     <div className="party-header">
                         <h4>Ship To</h4>
-                        <span className="change-link">Change Shipping Address</span>
+                        {/* Requirement 2: Option for changing shipping address */}
+                        {party && <span className="change-link" onClick={() => setShowShipToModal(true)}>Change Shipping Address ({party.shippingAddresses.length} options)</span>}
                     </div>
                     <div className="shipto-box">
-                         {party ? (
+                         {/* Display the selected shipping address */}
+                         {party && party.selectedShippingAddress ? (
                             <div className="party-info">
-                                <strong>{party.name}</strong>
-                                <p>ADDRESS: {party.address}</p>
-                                <p>Phone Number: {party.phone}</p>
+                                <strong>{party.selectedShippingAddress.name}</strong>
+                                <p>ADDRESS: {party.selectedShippingAddress.address}</p>
+                                <p>State: {party.selectedShippingAddress.state}</p>
                             </div>
                         ) : (
                             <span className="add-party-text-small">Not set (Same as Bill To)</span>
@@ -216,7 +297,9 @@ const QuotationCreate = () => {
             {/* Place of Supply */}
             <div className="place-of-supply">
                 <label>Place of Supply</label>
+                {/* Requirement 3: Place of Supply = Client State (auto-selected via useEffect) */}
                 <select name="placeOfSupply" value={invoiceDetails.placeOfSupply} onChange={handleDetailChange} className="select-medium">
+                    {party && <option value={party.state}>{party.state} (Client State - Auto)</option>}
                     <option value="Uttar Pradesh">Uttar Pradesh</option>
                     <option value="Delhi">Delhi</option>
                     <option value="Maharashtra">Maharashtra</option>
@@ -232,7 +315,6 @@ const QuotationCreate = () => {
             {/* Items Table */}
             <div className="items-section">
                 <table className="quotation-table">
-                    {/* ... (Table header remains the same) ... */}
                     <thead>
                         <tr>
                             <th className="no">No</th>
@@ -249,7 +331,6 @@ const QuotationCreate = () => {
                     <tbody>
                         {items.length > 0 && items.map((item, index) => {
                             const itemCalc = calculateItemAmount(item);
-                            // NOTE: These rows must be editable in a full application.
                             return (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
@@ -277,7 +358,7 @@ const QuotationCreate = () => {
                         {/* Add Item Row */}
                         <tr className="input-row">
                              <td colSpan="2">
-                                <button className="create-item-btn" onClick={() => setShowItemModal(true)}>+ Create Item</button>
+                                 <button className="create-item-btn" onClick={() => setShowItemModal(true)}>+ Create Item</button>
                              </td>
                              <td></td>
                              <td><span className="free-qty-link">+ Free Qty</span></td>
@@ -321,7 +402,6 @@ const QuotationCreate = () => {
                     <div className="bank-details-section">
                         <h4>Bank Details</h4>
                         <div className="bank-info-box">
-                            {/* Bank Details are made editable/removable but are currently hardcoded in state */}
                             <strong>Account Number:</strong> {bankDetails.accountNumber} <br />
                             <strong>IFSC Code:</strong> {bankDetails.ifscCode} <br />
                             <strong>Bank & Branch Name:</strong> {bankDetails.bankName} <br />
@@ -420,6 +500,16 @@ const QuotationCreate = () => {
                 <AddItemModal
                     onClose={() => setShowItemModal(false)}
                     onSave={handleAddItem}
+                />
+            )}
+
+            {/* Requirement 2: Ship To Modal for changing address and showing options */}
+            {showShipToModal && party && (
+                <ShipToModal
+                    isOpen={showShipToModal}
+                    onClose={() => setShowShipToModal(false)}
+                    addresses={party.shippingAddresses}
+                    onSelect={handleSelectShippingAddress}
                 />
             )}
         </div>

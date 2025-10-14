@@ -1,50 +1,35 @@
-
 const mongoose = require('mongoose');
 
 const priceSchema = new mongoose.Schema({
   price_code: {
     type: String,
     unique: true,
-    
   },
-  
- 
-  single_price: { 
+  purchase_price: {
     type: Number,
-    
   },
-
   sales_5_50: Number,
   sales_50_100: Number,
   sales_100_above: Number,
-
- 
-  GST_rate: { 
+  GST_rate: {
     type: Number,
-   
-    min: 0
+    min: 0,
   },
-
-  basic_amount: { 
+  basic_amount: {
     type: Number,
-    
   },
-
-  net_amount: { 
+  net_amount: {
     type: Number,
-    
   },
-  
-}, { _id: false });
+}, { _id: false }); 
+
 
 const productSchema = new mongoose.Schema({
   p_code: {
     type: String,
-    
   },
   p_name: {
     type: String,
-   
   },
   cat_id: String,
   p_image: String,
@@ -53,8 +38,10 @@ const productSchema = new mongoose.Schema({
   p_color: String,
   HSN_code: String,
   GST_rate: Number,
-  p_price: priceSchema
-});
+  p_price: priceSchema,
+}, { timestamps: true }); 
+
+
 
 
 productSchema.pre('save', async function (next) {

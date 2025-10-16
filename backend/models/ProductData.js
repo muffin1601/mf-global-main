@@ -1,32 +1,35 @@
-// models/Product.js
-
 const mongoose = require('mongoose');
 
-// Nested price schema
 const priceSchema = new mongoose.Schema({
   price_code: {
     type: String,
-    unique: true
+    unique: true,
   },
-  single_price: {
+  purchase_price: {
     type: Number,
-    required: true
   },
   sales_5_50: Number,
   sales_50_100: Number,
-  sales_100_above: Number
-}, { _id: false });
+  sales_100_above: Number,
+  GST_rate: {
+    type: Number,
+    min: 0,
+  },
+  basic_amount: {
+    type: Number,
+  },
+  net_amount: {
+    type: Number,
+  },
+}, { _id: false }); 
+
 
 const productSchema = new mongoose.Schema({
   p_code: {
     type: String,
-    unique: true
   },
-  product_code: {
-    type: String, },
   p_name: {
     type: String,
-    required: true
   },
   cat_id: String,
   p_image: String,
@@ -35,10 +38,10 @@ const productSchema = new mongoose.Schema({
   p_color: String,
   HSN_code: String,
   GST_rate: Number,
-  p_price: priceSchema
-});
+  p_price: priceSchema,
+}, { timestamps: true }); 
 
-// Pre-save hook to auto-generate p_code and price_code
+
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
     // Auto-generate p_code

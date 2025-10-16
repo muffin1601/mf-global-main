@@ -29,6 +29,10 @@ import ProductPage from "./pages/crm/ProductManage/ProductPage";
 import VendorPage from "./pages/crm/ProductManage/VendorPage";
 import TrendingLeads from "./pages/crm/TrendingLeads";
 import MyTrendingLeads from "./pages/crm/Mytrending";
+import Quotations from "./pages/crm/ProductManage/Quotations";
+import CreateQuotation from "./pages/crm/ProductManage/CreateQuotation"
+import QuotationEditPage from './pages/crm/ProductManage/QuotationEditPage';
+
 
 const App = () => {
   const showSuccess = () =>
@@ -71,6 +75,9 @@ const App = () => {
         <Route path="/crm/product-dashboard" element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>} />
         <Route path="/crm/product-management" element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>} />
         <Route path="/crm/vendor-management" element={<ProtectedRoute role="admin"><VendorPage /></ProtectedRoute>} />
+        <Route path="/crm/quotations" element={<ProtectedRoute role={["user", "admin"]}><Quotations /></ProtectedRoute>} />
+        <Route path="/crm/quotations/create" element={<ProtectedRoute role={["user", "admin"]}><CreateQuotation /></ProtectedRoute>} />
+        <Route path="/crm/quotations/edit/:id" element={<ProtectedRoute role={["user", "admin"]}><QuotationEditPage /></ProtectedRoute>} />
       </Routes>
       <ToastContainer
         position="top-center"

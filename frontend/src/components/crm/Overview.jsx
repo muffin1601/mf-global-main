@@ -180,7 +180,7 @@ const Overview = () => {
       icon: icons.ChartBar,
       styleClass: 'card-total-leads',
       route: '/crm/lead-management',
-      role: 'both',
+      role: 'admin',
       disabled: user.role === 'user'
     },
     {

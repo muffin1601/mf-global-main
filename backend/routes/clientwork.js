@@ -75,8 +75,6 @@ router.get("/clients/assigned/:userId/filtered", async (req, res) => {
   }
 });
 
-
-
 router.put("/clients/:id", async (req, res) => {
   const { name, remarks, callStatus, requirements, location, category } = req.body;
 
@@ -98,6 +96,24 @@ router.put("/clients/:id", async (req, res) => {
   }
 });
 
+const formatDate = d => (d ? new Date(d).toISOString().split("T")[0] : "");
+
+
+const formatBillingAddress = addr => {
+  if (!addr) return "";
+  return `${addr.street || ""}, ${addr.city || ""}, ${addr.state || ""}, ${addr.postalCode || ""}, ${addr.country || ""}`
+    .replace(/(^, )|(, $)/g, "")
+    .trim();
+};
+
+const formatAssignedTo = assignedTo => {
+  if (!Array.isArray(assignedTo)) return "";
+  return assignedTo
+    .map(a => a?.user?.name)
+    .filter(name => typeof name === "string" && name.trim().length > 0)
+    .join(", ");
+};
+
 router.get("/clients/report/:userId/download-csv", async (req, res) => {
   const { userId } = req.params;
   const { from, to } = req.query;
@@ -113,9 +129,7 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
     const permissions = await ClientPermission.find({ userId }).populate({
       path: "clientId",
       model: "ClientData",
-      match: {
-        followUpDate: { $gte: fromDate, $lte: toDate },
-      },
+      match: { followUpDate: { $gte: fromDate, $lte: toDate } },
       options: { lean: true },
     });
 
@@ -123,7 +137,6 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
       .filter(p => p.clientId)
       .map(p => {
         const c = p.clientId;
-        const format = d => (d ? new Date(d).toISOString().split("T")[0] : "");
         return {
           name: c.name,
           company: c.company,
@@ -134,21 +147,25 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
           datatype: c.datatype,
           location: c.location,
           state: c.state,
+          address: c.address,
           status: c.status,
           remarks: c.remarks,
-          followUpDate: format(c.followUpDate),
-          followUpDateOne: format(c.followUpDateOne),
-          followUpDateTwo: format(c.followUpDateTwo),
-          followUpDateThree: format(c.followUpDateThree),
+          followUpDate: formatDate(c.followUpDate),
+          followUpDateOne: formatDate(c.followUpDateOne),
+          followUpDateTwo: formatDate(c.followUpDateTwo),
+          followUpDateThree: formatDate(c.followUpDateThree),
+          callingdate: formatDate(c.callingdate),
+          billingAddress: formatBillingAddress(c.billingAddress),
+          assignedTo: formatAssignedTo(c.assignedTo),
         };
       });
 
-      const uniqueClients = clients.filter((client, index, self) =>
-        index === self.findIndex(c =>
+    const uniqueClients = clients.filter((client, index, self) =>
+      index === self.findIndex(c =>
         (c.phone && client.phone && c.phone === client.phone) ||
         (c.contact && client.contact && c.contact === client.contact)
-        )
-      );
+      )
+    );
 
     const parser = new Parser();
     const csv = parser.parse(uniqueClients);
@@ -162,16 +179,13 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
   }
 });
 
+// --------- /leads/report/download ---------
 router.post("/leads/report/download", async (req, res) => {
   const { from, to, type, leads } = req.body;
 
-  console.log("Received report download request:", { from, to, type, leadsCount: leads?.length });
-
-  const allowedFields = ["followUpDate", "createdAt"];
-  if (!allowedFields.includes(type)) {
+  if (!["followUpDate", "createdAt"].includes(type)) {
     return res.status(400).json({ message: "Invalid date field type." });
   }
-
   if (!Array.isArray(leads) || leads.length === 0) {
     return res.status(400).json({ message: "Leads array is missing or empty." });
   }
@@ -184,9 +198,6 @@ router.post("/leads/report/download", async (req, res) => {
       return res.status(400).json({ message: "Invalid date format." });
     }
 
-    const formatDate = d => (d ? new Date(d).toISOString().split("T")[0] : "");
-
-    
     const filteredLeads = leads.filter(lead => {
       const rawDate = lead[type];
       if (!rawDate) return false;
@@ -204,6 +215,7 @@ router.post("/leads/report/download", async (req, res) => {
       datatype: c.datatype || "",
       location: c.location || "",
       state: c.state || "",
+      address: c.address || "",
       status: c.status || "",
       remarks: c.remarks || "",
       followUpDate: formatDate(c.followUpDate),
@@ -211,12 +223,9 @@ router.post("/leads/report/download", async (req, res) => {
       followUpDateTwo: formatDate(c.followUpDateTwo),
       followUpDateThree: formatDate(c.followUpDateThree),
       createdAt: formatDate(c.createdAt),
-      assignedTo: Array.isArray(c.assignedTo)
-        ? c.assignedTo
-            .map(a => a?.user?.name)
-            .filter(name => typeof name === "string" && name.trim().length > 0)
-            .join(", ")
-        : "",
+      callingdate: formatDate(c.callingdate),
+      billingAddress: formatBillingAddress(c.billingAddress),
+      assignedTo: formatAssignedTo(c.assignedTo),
     }));
 
     const uniqueLeads = formattedLeads.filter((lead, index, self) =>
@@ -242,6 +251,7 @@ router.post("/leads/report/download", async (req, res) => {
   }
 });
 
+// --------- /leads/report/download-by-leads ---------
 router.post("/leads/report/download-by-leads", async (req, res) => {
   try {
     const { leads } = req.body;
@@ -249,9 +259,6 @@ router.post("/leads/report/download-by-leads", async (req, res) => {
     if (!Array.isArray(leads) || leads.length === 0) {
       return res.status(400).json({ message: "No leads provided." });
     }
-
-    const formatDate = d =>
-      d ? new Date(d).toISOString().split("T")[0] : "";
 
     const formattedLeads = leads.map(c => ({
       name: c.name,
@@ -263,6 +270,7 @@ router.post("/leads/report/download-by-leads", async (req, res) => {
       datatype: c.datatype,
       location: c.location,
       state: c.state,
+      address: c.address,
       status: c.status,
       remarks: c.remarks,
       followUpDate: formatDate(c.followUpDate),
@@ -270,12 +278,9 @@ router.post("/leads/report/download-by-leads", async (req, res) => {
       followUpDateTwo: formatDate(c.followUpDateTwo),
       followUpDateThree: formatDate(c.followUpDateThree),
       createdAt: formatDate(c.createdAt),
-      assignedTo: Array.isArray(c.assignedTo)
-        ? c.assignedTo
-          .map(a => a?.user?.name)
-          .filter(name => typeof name === "string" && name.trim().length > 0)
-          .join(", ")
-        : "",
+      callingdate: formatDate(c.callingdate),
+      billingAddress: formatBillingAddress(c.billingAddress),
+      assignedTo: formatAssignedTo(c.assignedTo),
     }));
 
     const uniqueLeads = formattedLeads.filter((lead, index, self) =>

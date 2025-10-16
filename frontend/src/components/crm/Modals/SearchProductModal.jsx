@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import QuotationModal from './QuotationModal';
+
 
 const calculatePriceWithTax = (basePrice, taxRate) => {
   if (!basePrice) return '—';
@@ -15,19 +15,17 @@ const PriceDetails = ({ product, taxRate }) => (
     <thead>
       <tr>
         <th>Price Code</th>
-        <th>Single Price (Tax Inc.)</th>
-        <th>5–50 Sales (Tax Inc.)</th>
-        <th>50–100 Sales (Tax Inc.)</th>
-        <th>100+ Sales (Tax Inc.)</th>
+        <th>Basic Amount</th>
+        <th>GST%</th>
+        <th>Net Amount</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>{product.p_price?.price_code || '—'}</td>
-        <td>{calculatePriceWithTax(product.p_price?.single_price, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_5_50, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_50_100, taxRate)}</td>
-        <td>{calculatePriceWithTax(product.p_price?.sales_100_above, taxRate)}</td>
+        <td>{calculatePriceWithTax(product.p_price?.basic_amount, taxRate)}</td>
+        <td>{product.p_price?.GST_rate || '-'}</td>
+        <td>{calculatePriceWithTax(product.p_price?.net_amount, taxRate)}</td>
       </tr>
     </tbody>
   </table>
@@ -41,8 +39,8 @@ const SearchProductModal = ({ isOpen, onClose }) => {
   const [taxRate, setTaxRate] = useState(0);
 
   
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isQuotationOpen, setIsQuotationOpen] = useState(false);
+  // const [selectedProducts, setSelectedProducts] = useState([]);
+  // const [isQuotationOpen, setIsQuotationOpen] = useState(false);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -96,26 +94,26 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const addToQuotation = (product) => {
-    if (selectedProducts.find((p) => p._id === product._id)) {
-      toast(
-        <CustomToast
-          type="warning"
-          title="Already Added"
-          message={`${product.p_name} is already added to the quotation.`}
-        />
-      );
-      return;
-    }
-    setSelectedProducts([...selectedProducts, product]);
-    toast(
-      <CustomToast
-        type="success"
-        title="Added to Quotation"
-        message={`${product.p_name} added successfully.`}
-      />
-    );
-  };
+  // const addToQuotation = (product) => {
+  //   if (selectedProducts.find((p) => p._id === product._id)) {
+  //     toast(
+  //       <CustomToast
+  //         type="warning"
+  //         title="Already Added"
+  //         message={`${product.p_name} is already added to the quotation.`}
+  //       />
+  //     );
+  //     return;
+  //   }
+  //   setSelectedProducts([...selectedProducts, product]);
+  //   toast(
+  //     <CustomToast
+  //       type="success"
+  //       title="Added to Quotation"
+  //       message={`${product.p_name} added successfully.`}
+  //     />
+  //   );
+  // };
 
   if (!isOpen) return null;
 
@@ -175,7 +173,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                     <th>Type</th>
                     <th>Color</th>
                     <th>HSN</th>
-                    <th>GST Rate</th>
+                    
                     <th>Description</th>
                     <th>Action</th>
                   </tr>
@@ -184,12 +182,12 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                   {products.map((p) => (
                     <React.Fragment key={p._id}>
                       <tr>
-                        <td>{p.product_code}</td>
+                        <td>{p.p_code}</td>
                         <td>{p.p_name}</td>
                         <td>{p.p_type}</td>
                         <td>{p.p_color}</td>
                         <td>{p.HSN_code}</td>
-                        <td>{p.GST_rate}%</td>
+                       
                         <td>{p.p_description || '—'}</td>
                         <td>
                           <button
@@ -200,7 +198,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                           >
                             {showPrice === p._id ? 'Hide' : 'Show'} Price
                           </button>
-                          <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button>
+                          {/* <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button> */}
                         </td>
                       </tr>
                       {showPrice === p._id && (
@@ -221,15 +219,15 @@ const SearchProductModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button>
+          {/* <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button> */}
         </div>
       </div>
-
+{/* 
       <QuotationModal
         isOpen={isQuotationOpen}
         onClose={() => setIsQuotationOpen(false)}
         selectedProducts={selectedProducts}
-      />
+      /> */}
     </>
   );
 };
@@ -237,7 +235,6 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 export default SearchProductModal;
 
 const css = `
-/* --- Modal Overlay --- */
 .search-product-modal-overlay {
   position: fixed;
   inset: 0;
@@ -246,9 +243,9 @@ const css = `
   justify-content: center;
   align-items: center;
   z-index: 99999;
+  padding: 1rem;
 }
 
-/* --- Modal Content --- */
 .search-product-modal-content {
   width: 90%;
   max-width: 900px;
@@ -256,38 +253,39 @@ const css = `
   overflow-y: auto;
   backdrop-filter: blur(8px);
   background: #ffffff;
-  border-radius: 12px;
-  padding: 1.8rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* --- Modal Title --- */
 .modal-title {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   color: #334e68;
   font-weight: 500;
-  margin-bottom: 25px;
   text-align: center;
   font-family: 'Outfit', sans-serif;
-  padding-bottom: 10px;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
-/* --- Form Layout --- */
 .form-group-row {
   display: flex;
-  gap: 1.2rem;
-  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .form-group.search-group {
-  flex-grow: 1;
+  flex: 1 1 60%;
+  min-width: 200px;
 }
 
 .form-group.tax-group {
-  flex-shrink: 0;
-  width: 180px;
+  flex: 1 1 35%;
+  min-width: 120px;
 }
 
 .tax-label {
@@ -299,7 +297,6 @@ const css = `
   font-family: 'Outfit', sans-serif;
 }
 
-/* --- Input Field --- */
 .search-input {
   font-size: 0.95rem;
   border-radius: 8px;
@@ -318,19 +315,15 @@ const css = `
   background: #ffffff;
 }
 
-/* --- Modal Buttons (Action Area) --- */
 .modal-buttons {
   display: flex;
   gap: 0.6rem;
   justify-content: flex-end;
-  align-items: center;
-  margin-top: 1.5rem;
-  margin-bottom: 0;
+  flex-wrap: wrap;
 }
 
-/* --- Primary/Search Button --- */
 .search-btn {
-  padding: 0.6rem 1.2rem;
+  padding: 0.65rem 1.3rem;
   border-radius: 8px;
   border: none;
   font-family: 'Outfit', sans-serif;
@@ -353,7 +346,6 @@ const css = `
   cursor: not-allowed;
 }
 
-/* --- Secondary Button (Close) --- */
 .close-btn-2 {
   font-size: 0.9rem;
   color: #64748b;
@@ -372,26 +364,6 @@ const css = `
   color: #334e68;
 }
 
-/* --- Quote Show Button (Primary/Action) --- */
-.quote-show {
-  font-size: 0.9rem;
-  color: #fff;
-  background: #10b981;
-  border: none;
-  font-family: 'Outfit', sans-serif;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 15px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.quote-show:hover {
-  background: #059669;
-}
-
-/* --- Products Table --- */
 .products-table {
   width: 100%;
   border-collapse: collapse;
@@ -400,11 +372,13 @@ const css = `
   border-radius: 8px;
   overflow: hidden;
   margin-top: 1.5rem;
+  table-layout: auto;
+  word-break: break-word;
 }
 
 .products-table th,
 .products-table td {
-  padding: 0.8rem 1rem;
+  padding: 0.7rem 0.9rem;
   font-size: 0.9rem;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
@@ -414,24 +388,20 @@ const css = `
   font-weight: 500;
   color: #4b5563;
   background: #f9fafb;
-  white-space: nowrap;
 }
 
 .products-table tbody tr:hover {
   background: #f5f7f9;
 }
 
-/* --- Table Buttons (Price/Add) --- */
 .products-table button {
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 6px;
   border: none;
   color: #ffffff;
   cursor: pointer;
   font-weight: 400;
   font-size: 0.85rem;
-  transition: background-color 0.2s ease;
-  font-family: 'Outfit', sans-serif;
 }
 
 .price-btn {
@@ -451,7 +421,36 @@ const css = `
   background: #dc2626;
 }
 
-/* --- No Results Message --- */
+.price-details-cell {
+  padding: 0 !important;
+  background: #fcfcfc;
+  border-bottom: none !important;
+}
+
+.price-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Outfit', sans-serif;
+}
+
+.price-details-table th {
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 500;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.price-details-table td {
+  text-align: left;
+  background: #fcfcfc;
+  padding: 0.6rem 0.9rem;
+  border-bottom: none;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
 .no-results-message {
   padding: 1.5rem;
   color: #64748b;
@@ -462,38 +461,6 @@ const css = `
   border: 1px solid #e5e7eb;
 }
 
-/* --- Price Details Sub-Table --- */
-.price-details-cell {
-  padding: 0 !important;
-  background: #fcfcfc;
-  border-bottom: none !important;
-}
-
-.price-details-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.price-details-table th {
-  background: #eef2ff;
-  color: #4338ca;
-  font-weight: 500;
-  text-align: left;
-  padding: 0.7rem 1rem;
-  font-size: 0.85rem;
-}
-
-.price-details-table td {
-  text-align: left;
-  background: #fcfcfc;
-  padding: 0.6rem 1rem;
-  border-bottom: none;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  color: #4b5563;
-}
-
-/* --- Scrollbars --- */
 .search-product-modal-content::-webkit-scrollbar {
   width: 8px;
 }
@@ -518,51 +485,76 @@ const css = `
   scrollbar-color: #d1d5db #f7f7f7;
 }
 
-/* --- Media Queries --- */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .search-product-modal-content {
     max-width: 95%;
+    padding: 1.5rem;
+  }
+
+  .form-group-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-group.tax-group {
+    width: 100%;
+  }
+
+  .products-table th,
+  .products-table td {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .products-table button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .search-btn,
+  .close-btn-2 {
+    width: 100%;
+  }
+
+  .price-details-table th,
+  .price-details-table td {
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 640px) {
   .search-product-modal-content {
+    width: 95%;
     padding: 1rem;
-    width: calc(100% - 2rem);
   }
-  .form-group-row {
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .form-group.tax-group {
-    width: 100%;
-  }
+
   .products-table th,
   .products-table td {
-    padding: 0.6rem;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
+
   .products-table button {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-    margin-left: 0;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
     margin-top: 5px;
   }
-  .products-table td:last-child {
-    display: flex;
-    gap: 5px;
-  }
+
   .modal-buttons {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
   }
-  .search-btn, .close-btn-2 {
-    width: 100%;
+
+  .form-group-row {
+    gap: 0.8rem;
   }
-  .price-details-table th, .price-details-table td {
-    font-size: 0.75rem;
+
+  .price-details-table th,
+  .price-details-table td {
+    font-size: 0.7rem;
   }
 }
 `;

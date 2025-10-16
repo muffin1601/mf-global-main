@@ -12,7 +12,6 @@ const categorySchema = new mongoose.Schema({
   }
 });
 
-// Auto-generate cat_id before saving
 categorySchema.pre('save', async function (next) {
   if (this.cat_id || !this.name) return next();
 

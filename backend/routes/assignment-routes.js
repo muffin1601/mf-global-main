@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData"); 
 const User = require('../models/User');
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 router.post("/leads/assign", async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
@@ -41,6 +43,73 @@ router.post("/leads/assign", async (req, res) => {
   }
 });
 
+router.post("/leads/assign/single", async (req, res) => {
+ 
+  const { Leads, userIds, permissions } = req.body;
+  
+  const leadId = Leads?.[0];
+  const userId = userIds?.[0];
+
+
+  if (!leadId || !userId) {
+    return res.status(400).json({ error: "Lead ID or User ID is missing for single assignment." });
+  }
+
+  try {
+    
+    const objectUserId = new ObjectId(userId);
+    const user = await User.findById(objectUserId, "_id name");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    
+    const objectLeadId = new ObjectId(leadId);
+    const lead = await Client.findById(objectLeadId);
+    
+    if (!lead) {
+        return res.status(404).json({ error: "Lead not found." });
+    }
+
+    const updatedAssignments = new Map();
+
+    
+    (lead.assignedTo || []).forEach((a) => {
+      if (a.user && a.user._id) {
+        updatedAssignments.set(a.user._id.toString(), a);
+      }
+    });
+
+    
+    const safePermissions = {
+      view: !!permissions?.view,
+      update: !!permissions?.update,
+      delete: !!permissions?.delete
+    };
+
+    updatedAssignments.set(user._id.toString(), {
+      
+      user: { _id: user._id, name: user.name }, 
+      permissions: safePermissions
+    });
+
+    
+    lead.assignedTo = Array.from(updatedAssignments.values());
+    await lead.save();
+
+    res.json({ message: "Lead assigned successfully." });
+  } catch (error) {
+    console.error("Single lead assignment error:", error);
+    
+    if (error.name === 'CastError') {
+         return res.status(400).json({ error: "Invalid ID format provided." });
+    }
+    res.status(500).json({ error: "Assignment failed due to a server error." });
+  }
+});
+
+
 router.post('/leads/remove-assignments', async (req, res) => {
   const { Leads } = req.body; 
 
@@ -66,8 +135,7 @@ router.post('/leads/remove-assignments', async (req, res) => {
 
 
 router.post("/leads/transfer-assignments", async (req, res) => {
-  const { Leads, newUserName } = req.body; // accept name instead of _id
-
+  const { Leads, newUserName } = req.body; 
   if (!Leads || !Array.isArray(Leads) || Leads.length === 0) {
     return res.status(400).json({ error: "No leads provided" });
   }

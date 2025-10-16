@@ -92,40 +92,53 @@ router.get("/all-clients", async (req, res) => {
   }
 });
 
-router.get("/get-details-clients", async (req, res) => {
+router.get("/converted-clients", async (req, res) => {
   try {
-    const totalClients = await Client.countDocuments();
+    const convertedClients = await Client.find({ status: "Won Lead" });
+    res.status(200).json(convertedClients);
+  } catch (error) {
+    console.error("Error fetching converted clients:", error);
+    res.status(500).json({ error: "Failed to fetch converted clients" });
+  }
+});
 
-    const convertedClients = await Client.find({ status: "Won Lead" })
-      .sort({ createdAt: -1 });
+router.get("/trending-leads", async (req, res) => {
+  try {
+    const trendingLeads = await Client.find({ status: "In Progress" });
+    res.status(200).json(trendingLeads);
+  } catch (error) {
+    console.error("Error fetching trending leads:", error);
+    res.status(500).json({ error: "Failed to fetch trending leads" });
+  }
+});
 
-    const trendingLeads = await Client.find({ status: "In Progress" })
-      .sort({ createdAt: -1 });
-
+router.get("/assigned-clients", async (req, res) => {
+  try {
     const assignedClients = await Client.find({
-      assignedTo: {
-        $elemMatch: { "user._id": { $exists: true, $ne: null } }
-      }
-    }).sort({ createdAt: -1 });
+      "assignedTo.0": { $exists: true }  
+    });
 
+    res.status(200).json(assignedClients);
+  } catch (error) {
+    console.error("Error fetching assigned clients:", error);
+    res.status(500).json({ error: "Failed to fetch assigned clients" });
+  }
+});
+
+router.get("/unassigned-clients", async (req, res) => {
+  try {
     const unassignedClients = await Client.find({
       $or: [
         { assignedTo: { $exists: false } },
         { assignedTo: { $size: 0 } },
         { assignedTo: { $not: { $elemMatch: { "user._id": { $exists: true, $ne: null } } } } }
       ]
-    }).sort({ createdAt: -1 });
-
-    res.status(200).json({
-      uniqueAssignedClients: assignedClients,
-      uniqueUnassignedClients: unassignedClients,
-      totalClients,
-      convertedClients,
-      trendingLeads,
     });
+
+    res.status(200).json(unassignedClients);
   } catch (error) {
-    console.error("Error fetching client details:", error);
-    res.status(500).json({ error: "Failed to fetch client details" });
+    console.error("Error fetching unassigned clients:", error);
+    res.status(500).json({ error: "Failed to fetch unassigned clients" });
   }
 });
 
@@ -143,7 +156,6 @@ router.get("/new-clients", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch new clients" });
   }
 });
-
 
 router.get('/user-dashboard-stats/:username', async (req, res) => {
   const username = decodeURIComponent(req.params.username);

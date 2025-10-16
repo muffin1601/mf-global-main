@@ -52,19 +52,28 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   const formatDate = (dateString) => (!dateString ? "" : new Date(dateString).toISOString().split("T")[0]);
 
   const saveEditedLead = async () => {
-  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; // <-- include id
+  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; 
   try {
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
 
-    const assignedUser = editedLead.assignedTo?.[0]?.user;
+   
+const assignedUser = editedLead.assignedTo?.[0]?.user;
+
+
     if (assignedUser && assignedUser._id) {
-      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
+
+      const userIdToAssign = assignedUser._id;
+
+
+      const permissionsToAssign = editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false };
+
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign/single`, {
         Leads: [editedLead._id],
-        userIds: [assignedUser._id],
-        permissions: editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false },
+        userIds: [userIdToAssign],
+        permissions: permissionsToAssign,
       });
     }
-
     toast(<CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />);
     await logActivity("Edited Lead", { leadId: editedLead._id });
     onSave(res.data.updates?.[0] || updates);
@@ -92,14 +101,14 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
         </div>
 
         <div className="glasso-modal-body grid">
-          {["name", "email", "phone", "company", "contact", "location", "state","category", "inquiryDate", "address"].map((field) => (
+          {["name", "email", "phone", "company", "contact", "location", "state","category",  "address"].map((field) => (
             <div className={`glasso-input-group glasso-${field}`} key={field}>
               <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
               <input
                 type={field.includes("Date") ? "date" : "text"}
                 value={field.includes("Date") ? formatDate(editedLead[field]) : (editedLead[field] || "")}
                 onChange={(e) => handleChange(field, e.target.value)}
-                disabled={["name", "email", "phone", "company", "contact"].includes(field) && userRole !== "admin"}
+                disabled={[ "phone", "company", "contact"].includes(field) && userRole !== "admin"}
               />
             </div>
           ))}
@@ -139,6 +148,10 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
           <div className="glasso-input-group glasso-followup">
             <label>Follow Up Date</label>
             <input type="date" value={formatDate(editedLead.followUpDate)} onChange={(e) => handleChange("followUpDate", e.target.value)} />
+          </div>
+          <div className="glasso-input-group glasso-followup">
+            <label>Calling Date</label>
+            <input type="date" value={formatDate(editedLead.callingdate)} onChange={(e) => handleChange("callingdate", e.target.value)} />
           </div>
         </div>
 

@@ -17,20 +17,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, 
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     cb(null, file.mimetype === "text/csv" || file.originalname.endsWith(".csv"));
   },
 });
 
 const PHONE_REGEX = /^[6-9][0-9]{9}$/;
-// const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 
 const cleanInput = (input) => {
   return input
-    .replace(/[^\x20-\x7E]/g, "")  
-    .trim();  
+    .replace(/[^\x20-\x7E]/g, "")
+    .trim();
+};
+
+const addSkippedData = ({ phone = null, contact = null, company = null, location = null, state = null, category = null, datatype = null, reason }, skippedData, skipped) => {
+  skipped++;
+  skippedData.push({ phone, contact, company, location, state, category, datatype, reason });
+  return skipped;
 };
 
 router.post("/upload-csv", upload.single("file"), async (req, res) => {
@@ -40,13 +44,12 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
 
   const filePath = req.file.path;
   const results = [];
-  const skippedData = [];
+  let skippedData = [];
   let skipped = 0;
   let aborted = false;
 
-  const addSkipped = ({ phone = null, contact = null, company = null, location = null, state = null, category = null, datatype = null, reason }) => {
-    skipped++;
-    skippedData.push({ phone, contact, company, location, state, category, datatype, reason });
+  const addSkipped = (data) => {
+    skipped = addSkippedData(data, skippedData, skipped);
   };
 
   const parser = csv();
@@ -57,7 +60,7 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       const normalized = headers.map(h => h.trim().toLowerCase());
       if (!normalized.includes("company") || (!normalized.includes("phone") && !normalized.includes("contact"))) {
         aborted = true;
-        parser.emit("error", new Error("Missing required headers"));
+        parser.emit("error", new Error("Missing required headers: must include 'company' and either 'phone' or 'contact'."));
       }
     })
     .on("data", (row) => {
@@ -68,11 +71,8 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
         normalizedRow[key.trim().toLowerCase()] = cleanInput(row[key]);
       }
 
-      if (normalizedRow["contact"]) {
-        normalizedRow["contact"] = normalizedRow["contact"].replace(/\s+/g, "");
-      }
-      const phone = normalizedRow["phone"] ? normalizedRow["phone"].replace(/\s+/g, "") : null;
-      const contact = normalizedRow["contact"] || null;
+      const phone = (normalizedRow["phone"] || "").replace(/\s+/g, "");
+      const contact = (normalizedRow["contact"] || "").replace(/\s+/g, "");
       const company = normalizedRow["company"] || null;
       const location = normalizedRow["location"] || null;
       const state = normalizedRow["state"] || null;
@@ -85,69 +85,55 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
       if (!phone && !contact) {
         return addSkipped({ phone, contact, company, location, category, datatype, reason: "Missing phone and contact" });
       }
-
       if (phone && !PHONE_REGEX.test(phone)) {
-        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Invalid phone format" });
+        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Invalid 10-digit phone format" });
       }
 
-      if (category && category.length > 15) {
-        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Category exceeds 15 characters" });
-      }
-
-      if (location && location.length > 15) {
-        return addSkipped({ phone, contact, company, location, category, datatype, reason: "Location exceeds 15 characters" });
-      }
-
-      if (state && state.length > 15) {
-        return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "State exceeds 15 characters" });
-      }
-      if (company && company.length > 50) {
-        return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "Company exceeds 50 characters" });
-      }
-
-      const validDatatypes = [
-        "IndiaMart",
-        "Offline",
-        "TradeIndia",
-        "JustDial",
-        "WebPortals",
-        "Other",
+      const maxLenChecks = [
+          { field: category, max: 15, name: "Category" },
+          { field: location, max: 15, name: "Location" },
+          { field: state, max: 15, name: "State" },
+          { field: company, max: 50, name: "Company" },
       ];
-
-      if (!validDatatypes.includes(normalizedRow["datatype"])) {
-        return addSkipped({
-          phone,
-          contact,
-          company,
-          location,
-          state,
-          category,
-          datatype,
-          reason: "Invalid datatype",
-        });
+      
+      for (const check of maxLenChecks) {
+          if (check.field && check.field.length > check.max) {
+              return addSkipped({ phone, contact, company, location, state, category, datatype, reason: `${check.name} exceeds ${check.max} characters` });
+          }
       }
+
+      const validDatatypes = [ "IndiaMart", "Offline", "TradeIndia", "JustDial", "WebPortals", "Other" ];
+      if (!validDatatypes.includes(datatype)) {
+        return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "Invalid datatype" });
+      }
+
+      const inquiryDateValue = normalizedRow["inquiry date"] ? new Date(normalizedRow["inquiry date"]) : new Date();
+      const followUpDateValue = normalizedRow["follow up date"] ? new Date(normalizedRow["follow up date"]) : null;
 
       results.push({
         name: normalizedRow["name"] || "",
         company,
         email: normalizedRow["email"] || null,
-        phone,
-        contact,
+        phone: phone || null,
+        contact: contact || null,
         location,
         state,
         category,
         quantity: Number(normalizedRow["quantity"]) || 0,
+        requirements: normalizedRow["requirements"] || "",
         remarks: normalizedRow["remarks"] || "",
-        datatype: (normalizedRow["datatype"] || "").trim(),
+        datatype: (datatype || "").trim(),
         callStatus: normalizedRow["call status"] || "Not Called",
-        followUpDate: normalizedRow["follow up date"] ? new Date(normalizedRow["follow up date"]) : null,
-        assignedTo: null,
+        followUpDate: followUpDateValue,
+        assignedTo: [],
         status: "New Lead",
-        followUpDateOne: null,
-        followUpDateTwo: null,
-        followUpDateThree: null,
-        inquiryDate: new Date(),
-        address: normalizedRow["address"] || "",
+        
+        billingAddress: {
+          street: normalizedRow["address"] || "",
+          state: state || "",
+        },
+        
+        inquiryDate: inquiryDateValue.toISOString(),
         fileName: req.file.originalname,
       });
     })
@@ -206,16 +192,17 @@ router.post("/upload-csv", upload.single("file"), async (req, res) => {
         fs.unlink(filePath, () => {});
         console.error("DB Insert Error:", err);
         res.status(500).json({
-          message: "Database error",
+          message: "Database error during insert",
           error: err.message || err.toString(),
         });
       }
     })
     .on("error", (err) => {
+      if (aborted) return;
       fs.unlink(filePath, () => {});
       console.error("CSV Parse Error:", err);
       res.status(400).json({
-        message: "CSV parse error",
+        message: "CSV parsing failed unexpectedly",
         error: err.message || err.toString(),
       });
     });

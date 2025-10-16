@@ -1,3 +1,4 @@
+// updateAllAddresses.js
 const mongoose = require("mongoose");
 require("dotenv").config();
 
@@ -8,47 +9,79 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const db = mongoose.connection;
 
-const clientSchema = new mongoose.Schema({}, { strict: false });
+const addressSchema = new mongoose.Schema({
+  street: { type: String },
+  city: { type: String },
+  state: { type: String },
+  postalCode: { type: String },
+  country: { type: String },
+}, { _id: false });
+
+const additionalContactSchema = new mongoose.Schema({
+  name: { type: String },
+  contact: { type: String },
+  details: { type: String },
+}, { _id: false });
+
+const clientSchema = new mongoose.Schema(
+  {
+    name: { type: String },
+    company: { type: String },
+    email: { type: String },
+    countryCode: { type: String },
+    phone: { type: String },
+    contact: { type: String },
+    location: { type: String },
+    state: { type: String },
+    category: { type: String },
+    quantity: { type: Number },
+    requirements: { type: String },
+    remarks: { type: String },
+    datatype: { type: String },
+    callStatus: { type: String, default: "Not Called" },
+    followUpDate: { type: Date, default: null },
+    assignedTo: [
+      {
+        user: {
+          _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+          name: { type: String, required: true },
+        },
+        permissions: {
+          view: { type: Boolean, default: false },
+          update: { type: Boolean, default: false },
+          delete: { type: Boolean, default: false },
+        },
+      },
+    ],
+    status: { type: String, default: "New Lead" },
+    followUpDateOne: { type: Date, default: null },
+    followUpDateTwo: { type: Date, default: null },
+    followUpDateThree: { type: Date, default: null },
+    callingdate: { type: Date, default: null },
+    inquiryDate: { type: String },
+    address: { type: String },
+    fileName: { type: String, default: null },
+    billingAddress: { type: addressSchema, default: null },
+    shippingAddress: { type: addressSchema, default: null },
+    additionalContacts: [additionalContactSchema],
+  },
+  { timestamps: true }
+);
+
 const ClientData = mongoose.model("ClientData", clientSchema);
 
 db.once("open", async () => {
   console.log("✅ Connected to MongoDB");
 
   try {
-    const clients = await ClientData.find({});
-    let updatedCount = 0;
+    const result = await ClientData.updateMany(
+      {}, // all documents
+      { $set: { billingAddress: null, shippingAddress: null } }
+    );
 
-    for (const client of clients) {
-      let newCode = "";
-
-      if (client.countryCode && client.countryCode !== "") {
-        
-        let currentCode = parseInt(client.countryCode.replace("+", ""), 10);
-        if (isNaN(currentCode)) {
-          currentCode = null; 
-        }
-
-        if (currentCode !== null) {
-          newCode = String(currentCode + 1); 
-        } else {
-          newCode = client.countryCode; 
-        }
-      } else {
-      
-        newCode = "+91";
-      }
-
-      await ClientData.updateOne(
-        { _id: client._id },
-        { $set: { countryCode: newCode } }
-      );
-
-      updatedCount++;
-    }
-
-    console.log(`✅ Processed ${updatedCount} client documents, countryCode updated/kept as is.`);
+    console.log(`✅ Updated ${result.modifiedCount} documents to have nullable addresses.`);
   } catch (err) {
-    console.error("❌ Error during migration:", err);
+    console.error("❌ Error updating addresses:", err);
   } finally {
     mongoose.disconnect();
   }

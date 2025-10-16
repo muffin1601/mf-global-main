@@ -10,6 +10,7 @@ const LeadModal = ({ lead, onClose }) => {
   const displayFields = [
     'name',
     'email',
+    'countryCode',
     'phone',
     'company',
     'contact',
@@ -57,7 +58,6 @@ const LeadModal = ({ lead, onClose }) => {
               </div>
             </div>
           )}
-
          
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Assigned To</span>
@@ -68,14 +68,13 @@ const LeadModal = ({ lead, onClose }) => {
             </span>
           </div>
 
-          
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Follow-Up Date</span>
             <span className="glasso-lead-value">{formatDate(lead.followUpDate)}</span>
           </div>
           <div className="glasso-lead-detail-group">
-            <span className="glasso-lead-label">Inquiry Date</span>
-            <span className="glasso-lead-value">{formatDate(lead.inquiryDate)}</span>
+            <span className="glasso-lead-label">Calling Date</span>
+            <span className="glasso-lead-value">{formatDate(lead.callingdate)}</span>
           </div>
           <div className="glasso-lead-detail-group">
             <span className="glasso-lead-label">Updated</span>

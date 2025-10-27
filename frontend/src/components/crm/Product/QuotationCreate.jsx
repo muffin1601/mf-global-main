@@ -7,7 +7,7 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import { generateQuotationPDF } from "../../../utils/quotationPdf";
+import { generateQuotationPDF } from "../../../utils/quotationpdf";
 
 const initialBankDetails = {
     accountNumber: "9549850787",
@@ -118,10 +118,25 @@ const QuotationCreate = () => {
 
             console.log("Saved Quotation:", response.data);
 
-            generateQuotationPDF(
-                { party, items, terms, bankDetails, invoiceDetails, summary }
-              );
-
+            generateQuotationPDF({
+                party,
+                items,
+                terms,
+                notes,
+                bankDetails,
+                invoiceDetails,
+                summary: {
+                    ...summary,
+                    subtotal: totals.subtotal.toFixed(2),
+                    tax: totals.tax.toFixed(2),
+                    total: finalTotal.toFixed(2),
+                    discount: summaryDiscount.toFixed(2),
+                    additionalCharges: summary.additionalCharges || 0,
+                    roundOff: roundOff.toFixed(2),
+                    balanceAmount: balanceAmount.toFixed(2),
+                },
+                qrCodeDataUrl: null,
+            });
         } catch (err) {
             console.error(err);
             toast(

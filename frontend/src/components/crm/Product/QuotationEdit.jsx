@@ -7,7 +7,7 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import { generateQuotationPDF } from "../../../utils/quotationPdf";
+import { generateQuotationPDF } from "../../../utils/quotationpdf";
 
 import "./styles/QuotationCreate.css";
 
@@ -22,7 +22,7 @@ const initialBankDetails = {
 const initialTerms = `Payment Terms: 70% Advance at the time of order, Rest Amount at the time of Delivery.\nDelivery Time: 7-10 days.\nLogistic Cost extra as per transportation.`;
 
 const QuotationEdit = () => {
-    const { id } = useParams(); 
+    const { id } = useParams();
 
     const [party, setParty] = useState(null);
     const [items, setItems] = useState([]);
@@ -58,7 +58,7 @@ const QuotationEdit = () => {
     const [showItemModal, setShowItemModal] = useState(false);
     const [showShipToModal, setShowShipToModal] = useState(false);
 
-   
+
     useEffect(() => {
         const fetchQuotation = async () => {
             try {
@@ -89,7 +89,7 @@ const QuotationEdit = () => {
         fetchQuotation();
     }, [id]);
 
-    
+
     useEffect(() => {
         const days = parseInt(invoiceDetails.validityDays);
         if (!isNaN(days) && days >= 0) {
@@ -99,7 +99,7 @@ const QuotationEdit = () => {
         }
     }, [invoiceDetails.validityDays, invoiceDetails.date]);
 
- 
+
     useEffect(() => {
         if (party && party.state && invoiceDetails.placeOfSupply !== party.state) {
             setInvoiceDetails(prev => ({ ...prev, placeOfSupply: party.state }));
@@ -119,7 +119,7 @@ const QuotationEdit = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/quotations/create`, 
+                `${import.meta.env.VITE_API_URL}/quotations/create`,
                 { party, items, terms, notes, bankDetails, invoiceDetails, summary },
                 { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
             );
@@ -131,11 +131,25 @@ const QuotationEdit = () => {
                     message={`Quotation "${response.data._id}" updated successfully!`}
                 />
             );
-
-            generateQuotationPDF(
-    { party, items, terms, bankDetails, invoiceDetails, summary }
-  );
-
+            generateQuotationPDF({
+                party,
+                items,
+                terms,
+                notes,
+                bankDetails,
+                invoiceDetails,
+                summary: {
+                    ...summary,
+                    subtotal: totals.subtotal.toFixed(2),
+                    tax: totals.tax.toFixed(2),
+                    total: finalTotal.toFixed(2),
+                    discount: summaryDiscount.toFixed(2),
+                    additionalCharges: summary.additionalCharges || 0,
+                    roundOff: roundOff.toFixed(2),
+                    balanceAmount: balanceAmount.toFixed(2),
+                },
+                qrCodeDataUrl: null,
+            });
         } catch (err) {
             console.error(err);
             toast(<CustomToast type="error" title="Save Failed" message="Failed to save quotation." />);

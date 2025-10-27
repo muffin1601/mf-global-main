@@ -1,7 +1,8 @@
 import html2pdf from "html2pdf.js";
-import "./quotation-pdf.css"; // Make sure this path is correct
+import "./quotation-pdf.css";
+import logoDataUrl from "/assets/crm/logo.webp";
 
-export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl) => {
+export const generateQuotationPDF = async (quotation) => {
   if (!quotation) return;
 
   let {
@@ -10,28 +11,40 @@ export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl
     invoiceDetails = {},
     terms = [],
     bankDetails = {},
-    summary = {}
-  } = quotation || {};
+    summary = {},
+  } = quotation;
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   if (typeof terms === "string") {
     terms = terms.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
-  } else if (!Array.isArray(terms)) {
-    terms = [];
   }
-
+  if (!Array.isArray(terms)) terms = [];
   if (!Array.isArray(items)) items = [];
 
-  // 🧩 Create visible but off-screen container
   const container = document.createElement("div");
-  container.className = "mfq-wrapper";
-  container.style.position = "fixed";
-  container.style.top = "100vh"; // off-screen vertically (but still rendered)
-  container.style.left = "0";
-  container.style.width = "100%";
-  container.style.background = "#fff";
-  container.style.zIndex = "-1";
+  container.id = "pdf-preview-container";
+  container.style.cssText = `
+    position: relative;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    color: #000;
+    font-family: 'Outfit', sans-serif;
+    overflow: visible;
+    padding: 25px;
+  `;
 
-  // 🧾 HTML layout
   container.innerHTML = `
     <div class="mfq-container">
       <header class="mfq-header">
@@ -53,17 +66,15 @@ export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl
       </header>
 
       <section class="mfq-info-section">
-        <table class="mfq-info-table">
-          <thead>
-            <tr>
-              <th>Quotation No.</th><th>Date</th><th>Valid Till</th>
-            </tr>
+        <table class="mfq-info-table" cellspacing="0" cellpadding="6">
+          <thead style="background:#e11d48; color:#fff;">
+            <tr><th>Quotation No.</th><th>Date</th><th>Valid Till</th></tr>
           </thead>
           <tbody>
             <tr>
               <td>${invoiceDetails?.prefix || ""}${invoiceDetails?.number || ""}</td>
-              <td>${invoiceDetails?.date || ""}</td>
-              <td>${invoiceDetails?.validityDate || ""}</td>
+              <td>${formatDate(invoiceDetails?.date)}</td>
+              <td>${formatDate(invoiceDetails?.validityDate)}</td>
             </tr>
           </tbody>
         </table>
@@ -73,40 +84,57 @@ export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl
         <div class="mfq-party-card">
           <h3>BILL TO</h3>
           <p><strong>${party?.company || party?.name || ""}</strong></p>
-          <p>${Array.isArray(party?.billToAddress)
-            ? party.billToAddress.join(", ")
-            : party?.billToAddress || ""}</p>
-          <p><strong>Place of Supply:</strong> ${invoiceDetails?.placeOfSupply || ""}</p>
+          <p>${
+            Array.isArray(party?.billToAddress)
+              ? party.billToAddress.join(", ")
+              : party?.billToAddress || ""
+          }</p>
         </div>
+
         <div class="mfq-party-card">
           <h3>SHIP TO</h3>
-          <p>${Array.isArray(party?.selectedShippingAddress?.lines)
-            ? party.selectedShippingAddress.lines.join(", ")
-            : party?.selectedShippingAddress?.lines || ""}</p>
+          <p>${
+            party?.selectedShippingAddress?.lines?.length
+              ? (
+                  Array.isArray(party.selectedShippingAddress.lines)
+                    ? party.selectedShippingAddress.lines.join(", ")
+                    : party.selectedShippingAddress.lines
+                )
+              : (
+                  Array.isArray(party?.billToAddress)
+                    ? party.billToAddress.join(", ")
+                    : party?.billToAddress || "Same as Bill To"
+                )
+          }</p>
         </div>
       </section>
 
       <section class="mfq-items-section">
-        <table class="mfq-items-table">
+        <table class="mfq-items-table" cellspacing="0" cellpadding="6">
           <thead>
-            <tr>
-              <th>No</th><th>Item Description</th><th>Qty</th>
-              <th>Rate (₹)</th><th>Taxable Amt (₹)</th><th>Total (₹)</th>
+            <tr style="background:#f8f8f8; border-bottom:2px solid #e11d48;">
+              <th>No</th>
+              <th>Item Description</th>
+              <th>Qty</th>
+              <th>Rate (₹)</th>
+              <th>Taxable Amt (₹)</th>
+              <th>Total (₹)</th>
             </tr>
           </thead>
           <tbody>
             ${
               items.length
                 ? items.map((item, idx) => `
-                  <tr>
-                    <td>${idx + 1}</td>
-                    <td>${item.name || ""}</td>
-                    <td>${item.qty || 0}</td>
-                    <td>${item.price || 0}</td>
-                    <td>${((item.qty || 0) * (item.price || 0)).toFixed(2)}</td>
-                    <td>${((item.qty || 0) * (item.price || 0) * 1.18).toFixed(2)}</td>
-                  </tr>`).join("")
-                : `<tr><td colspan="6">No items found</td></tr>`
+                    <tr>
+                      <td>${idx + 1}</td>
+                      <td>${item.name || ""}</td>
+                      <td>${item.qty || 0}</td>
+                      <td>${item.price || 0}</td>
+                      <td>${((item.qty || 0) * (item.price || 0)).toFixed(2)}</td>
+                      <td>${((item.qty || 0) * (item.price || 0) * 1.18).toFixed(2)}</td>
+                    </tr>
+                  `).join("")
+                : `<tr><td colspan="6" style="text-align:center;">No items found</td></tr>`
             }
           </tbody>
         </table>
@@ -116,11 +144,12 @@ export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl
         <div class="mfq-summary-left">
           <h4>Terms & Conditions</h4>
           <ul>
-            ${terms.length
-              ? terms.map(t => `<li>${t}</li>`).join("")
-              : `<li>No terms specified</li>`}
+            ${
+              terms.length
+                ? terms.map(t => `<li>${t}</li>`).join("")
+                : `<li>No terms specified</li>`
+            }
           </ul>
-          <p><strong>Total in Words:</strong> ${summary?.amountInWords || ""}</p>
         </div>
         <div class="mfq-summary-right">
           <table>
@@ -149,19 +178,28 @@ export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl
 
   document.body.appendChild(container);
 
-  // ⏳ Give browser a short pause to ensure rendering and CSS load
-  await new Promise(r => setTimeout(r, 300));
+  const imgs = container.querySelectorAll("img");
+  await Promise.all([...imgs].map(
+    img => new Promise(res => {
+      if (img.complete) res();
+      else img.onload = img.onerror = res;
+    })
+  ));
+
+  await new Promise(res => setTimeout(res, 700));
 
   const options = {
-    margin: 0.5,
+    margin: [10, 10],
     filename: `Quotation_${invoiceDetails?.prefix || ""}${invoiceDetails?.number || ""}.pdf`,
     image: { type: "jpeg", quality: 1 },
-    html2canvas: { scale: 2, useCORS: true, logging: true },
-    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: "#fff" },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
   };
 
   try {
     await html2pdf().set(options).from(container).save();
+  } catch (err) {
+    console.error("PDF generation failed:", err);
   } finally {
     container.remove();
   }

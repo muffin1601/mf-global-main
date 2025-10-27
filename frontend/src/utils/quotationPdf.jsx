@@ -1,304 +1,168 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import html2pdf from "html2pdf.js";
+import "./quotation-pdf.css"; // Make sure this path is correct
 
-// --- Custom Helper Functions ---
+export const generateQuotationPDF = async (quotation, logoDataUrl, qrCodeDataUrl) => {
+  if (!quotation) return;
 
-/**
- * Formats a raw date string (YYYY-MM-DDTHH:MM:SS.000Z) to DD-MM-YYYY.
- */
-const formatDate = (dateString) => {
-    if (!dateString) return '—';
-    try {
-        const date = new Date(dateString.split('T')[0]);
-        // Use 'en-GB' for DD/MM/YYYY format, then replace slashes with hyphens
-        return date.toLocaleDateString('en-GB').replace(/\//g, '-');
-    } catch (e) {
-        return dateString;
-    }
-};
+  let {
+    party = {},
+    items = [],
+    invoiceDetails = {},
+    terms = [],
+    bankDetails = {},
+    summary = {}
+  } = quotation || {};
 
-/**
- * Formats a number to currency string (e.g., 12,345.67).
- */
-const formatCurrency = (number) => {
-    const num = typeof number === 'number' ? number : parseFloat(number) || 0;
-    
-    return num.toLocaleString('en-IN', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-};
+  if (typeof terms === "string") {
+    terms = terms.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+  } else if (!Array.isArray(terms)) {
+    terms = [];
+  }
 
-// --- Main PDF Generation Function (Revised for Aesthetic Match) ---
+  if (!Array.isArray(items)) items = [];
 
-export const generateQuotationPDF = (quotation, logoDataUrl, qrCodeDataUrl) => {
-    const {
-        party = {},
-        items = [],
-        invoiceDetails = {},
-        terms = [],
-        bankDetails = {},
-        summary = {},
-    } = quotation || {};
+  // 🧩 Create visible but off-screen container
+  const container = document.createElement("div");
+  container.className = "mfq-wrapper";
+  container.style.position = "fixed";
+  container.style.top = "100vh"; // off-screen vertically (but still rendered)
+  container.style.left = "0";
+  container.style.width = "100%";
+  container.style.background = "#fff";
+  container.style.zIndex = "-1";
 
-    const doc = new jsPDF("p", "pt", "a4");
-    const pageWidth = doc.internal.pageSize.width;
-    const margin = 40;
-    let y = 40;
-    const bodyTextColor = [50, 50, 50];
+  // 🧾 HTML layout
+  container.innerHTML = `
+    <div class="mfq-container">
+      <header class="mfq-header">
+        <div class="mfq-header-left">
+          <h1 class="mfq-company-name">MF GLOBAL SERVICES</h1>
+          <p class="mfq-contact-line">
+            📞 ${invoiceDetails?.phone || "1147563596"} &nbsp;|&nbsp;
+            ✉ ${invoiceDetails?.email || "mfglobalservices18@gmail.com"} &nbsp;|&nbsp;
+            🌐 ${invoiceDetails?.website || "www.mfglobalservices.com"}
+          </p>
+          <p class="mfq-company-address">
+            ${invoiceDetails?.officeAddress ||
+              "F-901, Okhla Industrial Area Phase 1, New Delhi, 110025"}
+          </p>
+        </div>
+        <div class="mfq-header-right">
+          ${logoDataUrl ? `<img src="${logoDataUrl}" class="mfq-company-logo" />` : ""}
+        </div>
+      </header>
 
-    doc.setTextColor(...bodyTextColor);
-    doc.setFont("helvetica", "normal");
+      <section class="mfq-info-section">
+        <table class="mfq-info-table">
+          <thead>
+            <tr>
+              <th>Quotation No.</th><th>Date</th><th>Valid Till</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${invoiceDetails?.prefix || ""}${invoiceDetails?.number || ""}</td>
+              <td>${invoiceDetails?.date || ""}</td>
+              <td>${invoiceDetails?.validityDate || ""}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    // --- 1. Header: Company Info & Quotation Title (Tighter Alignment) ---
+      <section class="mfq-party-section">
+        <div class="mfq-party-card">
+          <h3>BILL TO</h3>
+          <p><strong>${party?.company || party?.name || ""}</strong></p>
+          <p>${Array.isArray(party?.billToAddress)
+            ? party.billToAddress.join(", ")
+            : party?.billToAddress || ""}</p>
+          <p><strong>Place of Supply:</strong> ${invoiceDetails?.placeOfSupply || ""}</p>
+        </div>
+        <div class="mfq-party-card">
+          <h3>SHIP TO</h3>
+          <p>${Array.isArray(party?.selectedShippingAddress?.lines)
+            ? party.selectedShippingAddress.lines.join(", ")
+            : party?.selectedShippingAddress?.lines || ""}</p>
+        </div>
+      </section>
 
-    // Company Name (Left Side)
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("MF GLOBAL SERVICES", margin, y + 15);
-    y += 25;
+      <section class="mfq-items-section">
+        <table class="mfq-items-table">
+          <thead>
+            <tr>
+              <th>No</th><th>Item Description</th><th>Qty</th>
+              <th>Rate (₹)</th><th>Taxable Amt (₹)</th><th>Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              items.length
+                ? items.map((item, idx) => `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${item.name || ""}</td>
+                    <td>${item.qty || 0}</td>
+                    <td>${item.price || 0}</td>
+                    <td>${((item.qty || 0) * (item.price || 0)).toFixed(2)}</td>
+                    <td>${((item.qty || 0) * (item.price || 0) * 1.18).toFixed(2)}</td>
+                  </tr>`).join("")
+                : `<tr><td colspan="6">No items found</td></tr>`
+            }
+          </tbody>
+        </table>
+      </section>
 
-    // Company Contact and Registration Details
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    const companyDetails = [
-        // `GSTIN: ${invoiceDetails.gstin || "07ABJFM2334H1ZC"} | PAN: ${invoiceDetails.pan || "ABJFM2334H"} | UDYAM: ${invoiceDetails.udyam || "DL-08-0024532"}`,
-        `📞 ${invoiceDetails.phone || "1147563596"} | ✉ ${invoiceDetails.email || "mfglobalservices18@gmail.com"} | 🌐 ${invoiceDetails.website || "www.mfglobalservices.com"}`,
-        `Corporate Office: ${invoiceDetails.officeAddress || "F-901, Okhla Industrial Area Phase 1, New Delhi, 110025"}`,
-    ];
+      <section class="mfq-summary-section">
+        <div class="mfq-summary-left">
+          <h4>Terms & Conditions</h4>
+          <ul>
+            ${terms.length
+              ? terms.map(t => `<li>${t}</li>`).join("")
+              : `<li>No terms specified</li>`}
+          </ul>
+          <p><strong>Total in Words:</strong> ${summary?.amountInWords || ""}</p>
+        </div>
+        <div class="mfq-summary-right">
+          <table>
+            <tr><td>Subtotal:</td><td>₹${summary?.subtotal || 0}</td></tr>
+            <tr><td>Tax:</td><td>₹${summary?.tax || 0}</td></tr>
+            <tr><td><b>Total:</b></td><td><b>₹${summary?.total || 0}</b></td></tr>
+          </table>
+        </div>
+      </section>
 
-    let detailY = y;
-    companyDetails.forEach(line => {
-        doc.text(line, margin, detailY);
-        detailY += 9; // Tighter vertical spacing for details
-    });
-    
-    // Logo (Right Side - if used)
-    const logoWidth = 80;
-    const logoHeight = 50;
-    if (logoDataUrl) {
-        doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoWidth, 40, logoWidth, logoHeight);
-    }
-    
-    y = detailY + 15;
+      <footer class="mfq-footer">
+        <div>
+          <h4>Bank Details</h4>
+          <p><b>Bank:</b> ${bankDetails?.bankName || ""}</p>
+          <p><b>A/C No:</b> ${bankDetails?.accountNumber || ""}</p>
+          <p><b>IFSC:</b> ${bankDetails?.ifscCode || ""}</p>
+        </div>
+        <div>
+          <p>For ${invoiceDetails?.companyName || "MF GLOBAL SERVICES"}</p>
+          <div class="mfq-sign-line"></div>
+          <p>Authorized Signature</p>
+        </div>
+      </footer>
+    </div>
+  `;
 
-    // --- 2. Quotation Info Table (Standard Grid/Box Look) ---
-    const quotationData = [
-        ['Quotation No.', 'Quotation Date', 'Payment Due'],
-        [`${invoiceDetails.prefix || ""}${invoiceDetails.number || ""}`, formatDate(invoiceDetails.date), formatDate(invoiceDetails.validityDate)],
-    ];
-    
-    autoTable(doc, {
-        startY: y,
-        head: [quotationData[0]],
-        body: [quotationData[1]],
-        theme: "grid",
-        styles: { fontSize: 10, cellPadding: 3, textColor: bodyTextColor },
-        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: "bold", halign: "center" },
-        bodyStyles: { halign: "center" },
-        columnStyles: { 0: { cellWidth: 150 }, 1: { cellWidth: 150 }, 2: { cellWidth: 150 } },
-        margin: { left: pageWidth - margin - 450 }, // Position on the right
-        tableLineColor: 180,
-        tableLineWidth: 0.5,
-    });
+  document.body.appendChild(container);
 
-    y = doc.lastAutoTable.finalY + 10;
+  // ⏳ Give browser a short pause to ensure rendering and CSS load
+  await new Promise(r => setTimeout(r, 300));
 
-    // --- 3. Bill To / Ship To (CRITICAL FIXES for Address Visibility) ---
-    
-    // Convert address lines array back to a single string for better autoTable wrapping
-    const formatAddressLines = (lines) => {
-        if (!Array.isArray(lines)) return '—';
-        return lines.join('\n');
-    };
+  const options = {
+    margin: 0.5,
+    filename: `Quotation_${invoiceDetails?.prefix || ""}${invoiceDetails?.number || ""}.pdf`,
+    image: { type: "jpeg", quality: 1 },
+    html2canvas: { scale: 2, useCORS: true, logging: true },
+    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+  };
 
-    const billToLines = [
-        `**${party.company || party.name || "—"}**`,
-        formatAddressLines(party.billToAddress),
-        `Place of Supply: ${invoiceDetails.placeOfSupply || "—"}`
-    ].join('\n');
-
-    const shipToLines = [
-        `**${party.company || party.name || "—"}**`,
-        formatAddressLines(party.selectedShippingAddress?.lines || []),
-    ].join('\n');
-
-    autoTable(doc, {
-        startY: y,
-        theme: "grid",
-        head: [["BILL TO", "SHIP TO"]],
-        body: [[billToLines, shipToLines]],
-        styles: { 
-            fontSize: 10, 
-            textColor: bodyTextColor, 
-            cellW: 'wrap', 
-            lineWidth: 0.5,
-            cellPadding: 8, // Tighter padding to match the image
-        },
-        headStyles: { 
-            fillColor: [230, 230, 230], 
-            textColor: [0, 0, 0], 
-            fontStyle: "bold", 
-            halign: "center" 
-        },
-        columnStyles: { 0: { cellWidth: (pageWidth - 2 * margin) / 2 }, 1: { cellWidth: (pageWidth - 2 * margin) / 2 } },
-        bodyStyles: { 
-            valign: "top", 
-            minCellHeight: 45, // Set minimum height, but allow wrapping to ensure all address lines show
-            // The key is that `party.billToAddress` and `party.selectedShippingAddress.lines` must be correct arrays/strings.
-        },
-        useHtml: true
-    });
-
-    y = doc.lastAutoTable.finalY; // Keep items table immediately below Bill To/Ship To
-
-    // --- 4. Items Table (Final Adjustment) ---
-    
-    let calculatedSubtotal = 0;
-    let calculatedTax = 0;
-
-    const itemData = items.map((item, idx) => {
-        const price = item.price ?? 0;
-        const qty = item.qty ?? 0;
-        const taxRate = (item.tax ?? 0) / 100;
-        
-        const taxableAmount = qty * price;
-        const taxAmount = taxableAmount * taxRate;
-        const total = taxableAmount + taxAmount;
-
-        calculatedSubtotal += taxableAmount;
-        calculatedTax += taxAmount;
-        
-        // Ensure item details are included in the cell content
-        const itemDescription = item.name + (item.details?.length ? `\n${item.details.join("\n")}` : "");
-
-        return [
-            idx + 1,
-            itemDescription,
-            qty.toFixed(0),
-            formatCurrency(price),
-            formatCurrency(taxableAmount),
-            formatCurrency(total)
-        ];
-    });
-
-    autoTable(doc, {
-        startY: y,
-        head: [["No", "Item Description", "Qty", "Rate (₹)", "Taxable Amt (₹)", "Total (₹)"]],
-        body: itemData,
-        theme: "grid",
-        styles: { fontSize: 9, cellPadding: 5, textColor: bodyTextColor },
-        headStyles: { 
-            fillColor: [31, 73, 125], 
-            textColor: 255, 
-            fontStyle: "bold",
-            lineWidth: 0.5 
-        },
-        columnStyles: {
-            0: { halign: "center", cellWidth: 30 },
-            1: { cellWidth: 200 }, 
-            2: { halign: "center", cellWidth: 50 },
-            3: { halign: "right", cellWidth: 70 },
-            4: { halign: "right", cellWidth: 85 },
-            5: { halign: "right", cellWidth: 85, fontStyle: "bold" }
-        },
-        bodyStyles: { valign: "top" }
-    });
-
-    y = doc.lastAutoTable.finalY; // Start new section right after item table
-
-    // --- 5. Summary, Terms & Bank Details (Side-by-Side Arrangement) ---
-    
-    // Set a baseline for the total summary box on the right
-    const summaryXStart = pageWidth - margin - 200; // Start of the summary box
-    const summaryValueX = pageWidth - margin;     // Right edge of the page
-
-    // --- Right Side: Totals Summary ---
-    
-    const finalSubtotal = summary.subtotal ?? calculatedSubtotal;
-    const finalTax = summary.tax ?? calculatedTax;
-    const finalTotal = summary.total ?? (finalSubtotal + finalTax);
-
-    let summaryY = y + 10;
-    
-    // Subtotal
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Taxable Subtotal:`, summaryXStart, summaryY);
-    doc.text(`₹${formatCurrency(finalSubtotal)}`, summaryValueX, summaryY, { align: "right" });
-    summaryY += 12;
-
-    // Tax
-    doc.text(`IGST @18%:`, summaryXStart, summaryY);
-    doc.text(`₹${formatCurrency(finalTax)}`, summaryValueX, summaryY, { align: "right" });
-    summaryY += 15;
-
-    // Total Amount (in bold box - matching the image style)
-    doc.setFillColor(230, 230, 230);
-    doc.rect(summaryXStart - 5, summaryY - 3, 205, 15, "F"); // Background box for total
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL AMOUNT (₹):`, summaryXStart, summaryY);
-    doc.text(`₹${formatCurrency(finalTotal)}`, summaryValueX, summaryY, { align: "right" });
-    summaryY += 25;
-
-
-    // --- Left Side: Terms, Bank, and QR Code ---
-    
-    let termsY = y + 10; // Start terms at the same Y as subtotal
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Terms & Conditions:", margin, termsY);
-    termsY += 12;
-    doc.setFont("helvetica", "normal");
-    
-    const termsArray = Array.isArray(terms) ? terms : [terms].filter(Boolean);
-    termsArray.forEach(line => {
-        doc.setFontSize(8); 
-        const lines = doc.splitTextToSize(line, (pageWidth / 2) - margin - 20); 
-        doc.text(lines, margin, termsY);
-        termsY += (lines.length * 9); 
-    });
-    
-    // Total Amount in Words (Below Terms)
-    termsY += 10;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total Amount (in words):`, margin, termsY);
-    doc.setFont("helvetica", "normal");
-    doc.text(summary.amountInWords || "—", margin, termsY + 12);
-    termsY += 30; // Terms Y is now below amount in words
-
-    // --- Bank Details (Tightly placed) ---
-    const bankY = termsY; 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bank Details:", margin, bankY);
-    doc.setFont("helvetica", "normal");
-    
-    doc.text(`Bank: ${bankDetails.bankName || "—"}`, margin, bankY + 15);
-    doc.text(`A/C No: ${bankDetails.accountNumber || "—"}`, margin, bankY + 30);
-    doc.text(`IFSC: ${bankDetails.ifscCode || "—"}`, margin, bankY + 45);
-    doc.text(`UPI: ${bankDetails.upiId || "—"}`, margin + 150, bankY + 30); // UPI next to A/C No.
-
-    // --- Signature (Bottom Right) ---
-    let signatureY = Math.max(summaryY + 10, bankY + 60); // Place signature below totals or bank details, whichever is lower
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`For ${invoiceDetails.companyName || "MF GLOBAL SERVICES"}`, summaryValueX, signatureY, { align: "right" });
-    
-    // Signature Line
-    doc.line(summaryValueX - 150, signatureY + 40, summaryValueX, signatureY + 40); 
-    doc.setFontSize(9);
-    doc.text("Authorized Signature", summaryValueX, signatureY + 50, { align: "right" });
-
-    // --- QR Code (Bottom Left) ---
-    if (qrCodeDataUrl) {
-        // Place QR code below the bank details
-        doc.addImage(qrCodeDataUrl, "PNG", margin, bankY + 60, 50, 50);
-    }
-
-    // --- Save PDF ---
-    doc.save(`Quotation_${invoiceDetails.prefix || ""}${invoiceDetails.number || ""}.pdf`);
+  try {
+    await html2pdf().set(options).from(container).save();
+  } finally {
+    container.remove();
+  }
 };

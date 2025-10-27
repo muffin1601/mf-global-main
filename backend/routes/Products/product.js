@@ -7,6 +7,7 @@ router.post('/add-product', async (req, res) => {
   try {
     const {
       p_name,
+      s_code,
       cat_id,
       p_description,
       p_type,
@@ -23,6 +24,7 @@ router.post('/add-product', async (req, res) => {
 
     const newProduct = new Product({
       p_name,
+      s_code,
       cat_id,
       p_description,
       p_type,
@@ -92,6 +94,7 @@ router.get('/products/search', async (req, res) => {
       $or: [
         { product_code: searchTerm },
         { p_name: { $regex: new RegExp(searchTerm, 'i') } },
+        { s_code: { $regex: new RegExp(searchTerm, 'i') } },
         { p_type: { $regex: new RegExp(searchTerm, 'i') } },
         { p_color: { $regex: new RegExp(searchTerm, 'i') } },
         { GST_rate: !isNaN(Number(searchTerm)) ? Number(searchTerm) : -1 }
@@ -120,6 +123,7 @@ router.post('/products/update', async (req, res) => {
     }
     const updateData = {
       p_name,
+      s_code: req.body.s_code,
       p_type,
       p_color,
       HSN_code,

@@ -8,6 +8,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
 import { generateQuotationPDF } from "../../../utils/quotationPdf";
+
 import "./styles/QuotationCreate.css";
 
 const initialBankDetails = {
@@ -131,7 +132,9 @@ const QuotationEdit = () => {
                 />
             );
 
-            generateQuotationPDF({ party, items, terms, notes, bankDetails, invoiceDetails, summary });
+            generateQuotationPDF(
+    { party, items, terms, bankDetails, invoiceDetails, summary }
+  );
 
         } catch (err) {
             console.error(err);

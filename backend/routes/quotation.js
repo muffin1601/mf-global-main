@@ -79,7 +79,6 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-
 router.get("/fetch/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;

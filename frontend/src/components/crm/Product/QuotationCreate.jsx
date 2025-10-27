@@ -118,16 +118,9 @@ const QuotationCreate = () => {
 
             console.log("Saved Quotation:", response.data);
 
-            // --- Generate PDF after saving ---
-            generateQuotationPDF({
-                party,
-                items,
-                terms,
-                notes,
-                bankDetails,
-                invoiceDetails,
-                summary,
-            });
+            generateQuotationPDF(
+                { party, items, terms, bankDetails, invoiceDetails, summary }
+              );
 
         } catch (err) {
             console.error(err);

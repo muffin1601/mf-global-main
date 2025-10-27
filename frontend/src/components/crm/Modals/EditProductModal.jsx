@@ -5,6 +5,7 @@ import CustomToast from '../CustomToast';
 
 const EditProductModal = ({ product, onClose, onSave }) => {
   const [editedProduct, setEditedProduct] = useState({
+    s_code: '',
     p_name: '',
     p_type: '',
     p_color: '',
@@ -25,6 +26,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
   useEffect(() => {
     if (product) {
       setEditedProduct({
+        s_code: product.s_code || '',
         p_name: product.p_name || '',
         p_type: product.p_type || '',
         p_color: product.p_color || '',
@@ -129,6 +131,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
         <div className="glasso-modal-body">
           
           {[
+            { label: 'Style Code', name: 's_code' },
             { label: 'Product Name', name: 'p_name' },
             { label: 'Type', name: 'p_type' },
             { label: 'Color', name: 'p_color' },

@@ -168,13 +168,14 @@ const SearchProductModal = ({ isOpen, onClose }) => {
               <table className="products-table">
                 <thead>
                   <tr>
-                    <th>Code</th>
+                    <th>Item Code</th>
+                    <th>Style Code</th>
                     <th>Name</th>
                     <th>Type</th>
                     <th>Color</th>
                     <th>HSN</th>
                     
-                    <th>Description</th>
+                    {/* <th>Description</th> */}
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -183,12 +184,13 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                     <React.Fragment key={p._id}>
                       <tr>
                         <td>{p.p_code}</td>
+                        <td>{p.s_code}</td>
                         <td>{p.p_name}</td>
                         <td>{p.p_type}</td>
                         <td>{p.p_color}</td>
                         <td>{p.HSN_code}</td>
                        
-                        <td>{p.p_description || '—'}</td>
+                        {/* <td>{p.p_description || '—'}</td> */}
                         <td>
                           <button
                             className="price-btn"
@@ -405,6 +407,7 @@ const css = `
 }
 
 .price-btn {
+font-family: 'Outfit', sans-serif;
   background: #4f46e5;
 }
 

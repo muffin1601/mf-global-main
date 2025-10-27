@@ -7,6 +7,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryNames, setCategoryNames] = useState([]);
 
   const [formData, setFormData] = useState({
+    s_code: '',
     p_name: '',
     p_type: '',
     p_color: '',
@@ -118,6 +119,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
           <div className="fe-modal-body">
             
             {[
+              { label: 'Style Code', name: 's_code', required: true },
               { label: 'Product Name', name: 'p_name', required: true },
               { label: 'Type', name: 'p_type' },
               { label: 'Color', name: 'p_color' },

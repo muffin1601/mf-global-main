@@ -19,10 +19,10 @@ const ShipToModal = ({ isOpen, onClose, addresses = [], onSelect, onAdd }) => {
     const updatedList = [...addressList, newAddress];
     setAddressList(updatedList);
 
-    // Optional callback to parent (if saving in backend)
+    
     if (onAdd) onAdd(newAddress);
 
-    // Reset form
+    
     setNewAddress({ name: "", address: "", state: "" });
     setShowForm(false);
   };

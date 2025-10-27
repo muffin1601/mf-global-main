@@ -1,0 +1,254 @@
+/* === QUOTATION PDF LAYOUT === */
+.mfq-container {
+  font-family: "Poppins", "Helvetica", sans-serif;
+  color: #222;
+  background: #fff;
+  width: 8.3in;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+/* === HEADER === */
+.mfq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #e11d48;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.mfq-company-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e11d48;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.mfq-contact-line {
+  font-size: 12px;
+  color: #444;
+  margin-top: 6px;
+}
+
+.mfq-company-address {
+  font-size: 12px;
+  color: #666;
+  max-width: 350px;
+  margin-top: 4px;
+}
+
+.mfq-company-logo {
+  height: 70px;
+  object-fit: contain;
+}
+
+/* === QUOTATION INFO TABLE === */
+.mfq-info-section {
+  margin-bottom: 25px;
+}
+
+.mfq-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.mfq-info-th {
+  background: #e11d48;
+  color: #fff;
+  text-align: left;
+  padding: 6px 10px;
+}
+
+.mfq-info-td {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  color: #333;
+}
+
+/* === PARTY DETAILS === */
+.mfq-party-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.mfq-party-card {
+  width: 48%;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.mfq-party-title {
+  color: #e11d48;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mfq-party-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.mfq-party-address,
+.mfq-ship-address,
+.mfq-party-supply {
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+/* === ITEMS TABLE === */
+.mfq-items-section {
+  margin-bottom: 25px;
+}
+
+.mfq-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.mfq-item-th {
+  background: #f8f8f8;
+  border-bottom: 2px solid #e11d48;
+  text-align: left;
+  padding: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mfq-item-td {
+  border-bottom: 1px solid #eee;
+  padding: 8px;
+}
+
+.mfq-item-row:nth-child(even) {
+  background: #fcfcfc;
+}
+
+/* === SUMMARY SECTION === */
+.mfq-summary-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.mfq-summary-left {
+  width: 60%;
+}
+
+.mfq-terms-title,
+.mfq-amount-title {
+  color: #e11d48;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.mfq-terms-list {
+  padding-left: 16px;
+  font-size: 12px;
+  margin: 6px 0 12px;
+  color: #444;
+}
+
+.mfq-terms-item {
+  margin-bottom: 4px;
+}
+
+.mfq-amount-words {
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+  background: #fafafa;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.mfq-summary-right {
+  width: 35%;
+}
+
+.mfq-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mfq-summary-row td,
+.mfq-summary-label,
+.mfq-summary-value {
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.mfq-summary-row {
+  border-bottom: 1px dashed #ccc;
+}
+
+.mfq-total-row td {
+  font-weight: 700;
+  font-size: 14px;
+  border-top: 2px solid #e11d48;
+  color: #e11d48;
+}
+
+/* === FOOTER === */
+.mfq-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  border-top: 2px solid #e11d48;
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.mfq-footer-left {
+  width: 60%;
+}
+
+.mfq-bank-title {
+  color: #e11d48;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mfq-bank-line {
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.mfq-footer-right {
+  text-align: right;
+  width: 35%;
+}
+
+.mfq-sign-for {
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.mfq-sign-line {
+  margin-top: 20px;
+  border-bottom: 1px solid #222;
+  width: 200px;
+  margin-left: auto;
+}
+
+.mfq-sign-label {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+}

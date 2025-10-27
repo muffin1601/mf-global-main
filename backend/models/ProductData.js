@@ -28,6 +28,9 @@ const productSchema = new mongoose.Schema({
   p_code: {
     type: String,
   },
+  s_code: {
+    type: String,
+  },
   p_name: {
     type: String,
   },
@@ -44,19 +47,24 @@ const productSchema = new mongoose.Schema({
 
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
-    // Auto-generate p_code
-    if (!this.p_code && this.p_name) {
-      const firstLetter = this.p_name[0].toUpperCase();
-      const regex = new RegExp(`^P${firstLetter}(\\d+)$`);
-      
-      const lastProduct = await mongoose.model('Product').find({ p_code: regex }).sort({ p_code: -1 }).limit(1);
-      
+
+    if (!this.p_code) {
+      const prefix = "MF";
+      const regex = new RegExp(`^${prefix}(\\d+)$`);
+
+     
+      const lastProduct = await mongoose.model('Product')
+        .find({ p_code: { $regex: regex } })
+        .sort({ p_code: -1 })
+        .limit(1);
+
       let nextNum = 1;
       if (lastProduct.length && lastProduct[0].p_code) {
-        const numPart = parseInt(lastProduct[0].p_code.slice(2));
+        const numPart = parseInt(lastProduct[0].p_code.replace(prefix, ''), 10);
         if (!isNaN(numPart)) nextNum = numPart + 1;
       }
-      this.p_code = `P${firstLetter}${String(nextNum).padStart(3, '0')}`;
+
+      this.p_code = `${prefix}${String(nextNum).padStart(4, '0')}`;
     }
 
     // Auto-generate price_code

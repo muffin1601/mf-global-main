@@ -443,402 +443,216 @@ background: rgba(0, 0, 0, 0.267);
 /* --- Bottom Sections (Terms, Bank, Summary) --- */
 /* ---------------------------------------------------------------------------------- */
 
+/* ------------------------- Bottom Sections Updated ------------------------- */
+
+/* BOTTOM SECTION GRID */
 .bottom-sections-grid {
     display: flex;
     gap: 2rem;
     margin-top: 2rem;
+    flex-wrap: wrap;
+    font-family: 'Outfit', sans-serif;
 }
 
+/* LEFT COLUMN */
 .left-column {
-    flex: 3;
-}
-
-.right-column {
-    flex: 1.5;
+    flex: 1;
     min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-/* Terms and Conditions (User provided .terms styles adapted) */
-.notes-terms {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 1.2rem;
-    margin-bottom: 1.5rem;
+/* EDITABLE SECTIONS (Terms, Notes, Bank) */
+.editable-section {
+    background: rgba(78, 78, 78, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.37);
+    color: #fff;
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.notes-terms h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-    color: #ffffff;
-}
-
-.edit-icon {
-    color: #999;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: 0.2s;
-}
-.edit-icon:hover {
-    color: #3b82f6;
-}
-
-.terms-text {
-    color: #cccccc;
-    line-height: 1.6;
-    font-size: 0.9rem;
-    white-space: pre-wrap;
-    cursor: text;
-}
-
-.terms-textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #3b82f6;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 0.9rem;
-    color: #fff;
-    resize: vertical;
-}
-
-.add-notes-link {
-    color: #3b82f6;
-    font-size: 0.85rem;
-    cursor: pointer;
-    margin-top: 10px;
-    display: inline-block;
-}
-
-/* Bank Details (User provided .bank-details styles adapted) */
-.bank-details-section {
-    margin-top: 0; /* Handled by grid gap */
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1.2rem;
-    color: #cccccc;
-}
-
-.bank-details-section h4 {
-    color: #ffffff;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.bank-info-box {
-    line-height: 1.8;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-}
-
-.bank-info-box strong {
+.section-header h4 {
+    font-size: 1.2rem;
+    font-weight: 500;
     color: #fff;
 }
 
-.bank-actions .change-link, .bank-actions .remove-link {
-    font-size: 0.85rem;
-    color: #3b82f6;
-    cursor: pointer;
-    margin-right: 15px;
-    transition: 0.2s;
-}
-
-.bank-actions .remove-link {
-    color: #dc3545;
-}
-.bank-actions .remove-link:hover, .bank-actions .change-link:hover {
-    opacity: 0.7;
-}
-
-/* Summary Calculations (Adaptation of User's .amount-summary) */
-.summary-calculations {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 1.2rem;
-    margin-bottom: 15px;
-}
-
-.summary-row { /* Provided by User */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-    color: #ffffff;
-    font-size: 0.95rem;
-}
-
-.summary-row span, .summary-row label {
-    color: #ccc;
-}
-
-.subtotal-row span:last-child {
-    font-weight: 600;
-    color: #fff;
-}
-
-.tax-row span:last-child {
-    font-weight: 600;
-    color: #fff;
-}
-
-.add-link {
-    color: #10b981;
-    cursor: pointer;
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-
-.right-align {
-    text-align: right;
-}
-
-.select-tiny {
-    width: 45px;
-    padding: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    margin-left: 5px;
-}
-
-.check-row {
-    margin-bottom: 10px;
-    align-items: flex-start;
-}
-
-.check-row input[type="checkbox"] {
-    margin-right: 8px;
-    width: 14px;
-    height: 14px;
+.edit-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 0.5rem 1.2rem;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Outfit';
+    transition: all 0.25s ease;
 }
 
-.round-off-options {
+.edit-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.editable-textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(48, 48, 48, 0.4);
+    color: #fff;
+    padding: 10px;
+    font-family: 'Outfit';
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+}
+
+.editable-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+}
+
+.section-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #f0f0f0;
+}
+
+.placeholder-text {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* BANK GRID */
+.bank-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.bank-edit-grid input {
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(48, 48, 48, 0.4);
+    color: #fff;
+    font-family: 'Outfit';
+    font-size: 0.9rem;
+}
+
+.bank-edit-grid input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+}
+
+.bank-display p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+/* RIGHT COLUMN */
+.right-column {
+    flex: 1;
+    min-width: 250px;
     display: flex;
-    gap: 5px;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-/* Total Amount Box */
-.total-amount-box {
-    background-color: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    padding: 15px 20px;
+/* SUMMARY CARD */
+.summary-card {
+    background: rgba(78, 78, 78, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.37);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    border-radius: 10px;
-}
-
-.final-total {
-    color: #3b82f6;
-}
-
-/* Amount Received */
-.amount-received-section {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 1.2rem;
-    margin-bottom: 20px;
-}
-
-.amount-received-section .input-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.amount-received-section .input-group label {
     font-size: 0.95rem;
     color: #fff;
-    font-weight: 500;
-    white-space: nowrap;
 }
 
-.amount-received-section input {
-    flex-grow: 1;
-    max-width: 120px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 8px 10px;
-    color: #fff;
+.summary-row input,
+.summary-row select {
+    padding: 0.4rem 0.7rem;
     border-radius: 8px;
-    font-size: 0.9rem;
-}
-.input-medium {
-    flex-grow: 1;
-}
-
-.mark-paid-link {
-    color: #10b981;
-    font-size: 0.85rem;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.balance-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    padding-top: 10px;
-}
-
-.balance-amount {
-    color: #10b981;
-}
-
-/* Signatory (Provided by User) */
-.signatory {
-    margin-top: 1.5rem;
-    text-align: right;
-    font-size: 0.9rem;
-    color: #ffffff;
-    font-weight: 500;
-    opacity: 0.8;
-    padding-right: 1.2rem;
-}
-
-
-/* ---------------------------------------------------------------------------------- */
-/* --- Modal Base Styles (Need to ensure they match the dark theme) --- */
-/* ---------------------------------------------------------------------------------- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    /* Glassmorphism style for modal */
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 30px;
-    width: 450px;
+    background: rgba(48, 48, 48, 0.4);
     color: #fff;
+    font-family: 'Outfit';
+    font-size: 0.9rem;
+    outline: none;
 }
 
-.modal-content h3 {
-    margin-top: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+.summary-row input:focus,
+.summary-row select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+}
+
+.summary-inline {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.total-row,
+.balance-row {
+    font-size: 1rem;
+    color: #f0f0f0;
+}
+
+.total-row strong,
+.balance-row strong {
     font-weight: 600;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 0.9rem;
+/* SIGNATORY */
+.signatory {
+    font-size: 0.95rem;
+    color: #fff;
+    text-align: right;
+    margin-top: 1rem;
     font-weight: 500;
-    margin-bottom: 5px;
-    color: #ccc;
 }
 
-.form-group input, .form-group textarea, .modal-content select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    font-size: 0.9rem;
-}
-
-.modal-row {
-    display: flex;
-    gap: 15px;
-}
-
-.modal-row .form-group {
-    flex: 1;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.cancel-btn {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-}
-
-.save-btn { /* Reusing the save-btn style */
-    padding: 10px 20px;
-}
-
-
-/* ---------------------------------------------------------------------------------- */
-/* --- Responsive Adjustments (Provided by User) --- */
-/* ---------------------------------------------------------------------------------- */
-@media (max-width: 992px) {
-    .invoice-details-grid {
-        grid-template-columns: 1fr; /* Stack top sections */
-    }
-
+/* RESPONSIVE */
+@media (max-width: 1024px) {
     .bottom-sections-grid {
         flex-direction: column;
     }
-
-    .right-column {
-        min-width: unset;
-        width: 100%;
+    .bank-edit-grid {
+        grid-template-columns: 1fr;
     }
-}
-
-@media (max-width: 768px) { /* Provided by User */
-    .quotation-header {
+    .summary-row {
         flex-direction: column;
-        gap: 1rem;
+        align-items: flex-start;
+        gap: 0.3rem;
     }
-
-    .summary-section {
-        flex-direction: column;
-    }
-
-    .amount-summary {
+    .summary-inline {
         width: 100%;
+        gap: 0.5rem;
     }
 }

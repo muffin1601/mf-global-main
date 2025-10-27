@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import QuotationModal from './QuotationModal';
+
 
 const calculatePriceWithTax = (basePrice, taxRate) => {
   if (!basePrice) return '—';

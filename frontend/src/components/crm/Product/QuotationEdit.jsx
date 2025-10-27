@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { AiOutlineDelete } from 'react-icons/ai';
 import AddClientModal from "./AddClientModal";
 import AddItemModal from "./AddItemModal";
-import "./styles/QuotationCreate.css";
 import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
 import { generateQuotationPDF } from "../../../utils/quotationPdf";
+import "./styles/QuotationCreate.css";
 
 const initialBankDetails = {
     accountNumber: "9549850787",
@@ -17,34 +18,29 @@ const initialBankDetails = {
     upiId: "8750708222-1@okbizaxis",
 };
 
-const user = JSON.parse(localStorage.getItem('user'));
-
 const initialTerms = `Payment Terms: 70% Advance at the time of order, Rest Amount at the time of Delivery.\nDelivery Time: 7-10 days.\nLogistic Cost extra as per transportation.`;
 
-const QuotationCreate = () => {
+const QuotationEdit = () => {
+    const { id } = useParams(); 
 
     const [party, setParty] = useState(null);
     const [items, setItems] = useState([]);
     const [isEditingTerms, setIsEditingTerms] = useState(false);
     const [terms, setTerms] = useState(initialTerms);
-    const [bankDetails, setBankDetails] = useState(initialBankDetails);
     const [notes, setNotes] = useState("");
     const [notesEditing, setNotesEditing] = useState(false);
     const [editingBank, setEditingBank] = useState(false);
 
-
-
+    const [bankDetails, setBankDetails] = useState(initialBankDetails);
     const [invoiceDetails, setInvoiceDetails] = useState({
         prefix: "MF/Q/25-26/",
-        number: "1571",
+        number: "",
         date: new Date().toISOString().substring(0, 10),
         validityDays: "30",
         validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
         poNo: "",
         placeOfSupply: "Uttar Pradesh",
     });
-
-
     const [summary, setSummary] = useState({
         discount: 0,
         discountType: '%',
@@ -57,87 +53,89 @@ const QuotationCreate = () => {
         paymentMethod: 'Cash',
     });
 
-
     const [showPartyModal, setShowPartyModal] = useState(false);
     const [showItemModal, setShowItemModal] = useState(false);
     const [showShipToModal, setShowShipToModal] = useState(false);
 
+   
+    useEffect(() => {
+        const fetchQuotation = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/quotations/fetch/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = res.data;
+
+                setParty(data.party);
+                setItems(data.items || []);
+                setTerms(data.terms || initialTerms);
+                setNotes(data.notes || "");
+                setBankDetails(data.bankDetails || initialBankDetails);
+                setInvoiceDetails(data.invoiceDetails || invoiceDetails);
+                setSummary(data.summary || summary);
+            } catch (error) {
+                console.error("Error fetching quotation:", error);
+                toast(
+                    <CustomToast
+                        type="error"
+                        title="Fetch Failed"
+                        message="Unable to load quotation details."
+                    />
+                );
+            }
+        };
+        fetchQuotation();
+    }, [id]);
+
+    
+    useEffect(() => {
+        const days = parseInt(invoiceDetails.validityDays);
+        if (!isNaN(days) && days >= 0) {
+            const date = new Date(invoiceDetails.date);
+            date.setDate(date.getDate() + days);
+            setInvoiceDetails(prev => ({ ...prev, validityDate: date.toISOString().substring(0, 10) }));
+        }
+    }, [invoiceDetails.validityDays, invoiceDetails.date]);
+
+ 
+    useEffect(() => {
+        if (party && party.state && invoiceDetails.placeOfSupply !== party.state) {
+            setInvoiceDetails(prev => ({ ...prev, placeOfSupply: party.state }));
+        }
+    }, [party]);
 
     const handleSaveQuotation = async () => {
         if (!party) {
-            toast(
-                <CustomToast
-                    type="error"
-                    title="Client Missing"
-                    message="Please add a client first!"
-                />
-            );
+            toast(<CustomToast type="error" title="Client Missing" message="Please add a client first!" />);
             return;
         }
-
         if (!items || items.length === 0) {
-            toast(
-                <CustomToast
-                    type="error"
-                    title="No Items"
-                    message="Please add at least one item!"
-                />
-            );
+            toast(<CustomToast type="error" title="No Items" message="Please add at least one item!" />);
             return;
         }
 
         try {
             const token = localStorage.getItem("token");
-
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/quotations/create`,
-                {
-                    party,
-                    items,
-                    terms,
-                    notes,
-                    bankDetails,
-                    invoiceDetails,
-                    summary,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                }
+                `${import.meta.env.VITE_API_URL}/quotations/create`, 
+                { party, items, terms, notes, bankDetails, invoiceDetails, summary },
+                { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
             );
 
             toast(
                 <CustomToast
                     type="success"
-                    title="Quotation Saved"
-                    message={`Quotation "${response.data._id}" saved successfully!`}
+                    title="Quotation Updated"
+                    message={`Quotation "${response.data._id}" updated successfully!`}
                 />
             );
 
-            console.log("Saved Quotation:", response.data);
-
-            // --- Generate PDF after saving ---
-            generateQuotationPDF({
-                party,
-                items,
-                terms,
-                notes,
-                bankDetails,
-                invoiceDetails,
-                summary,
-            });
+            generateQuotationPDF({ party, items, terms, notes, bankDetails, invoiceDetails, summary });
 
         } catch (err) {
             console.error(err);
-            toast(
-                <CustomToast
-                    type="error"
-                    title="Save Failed"
-                    message="Failed to save quotation. Please try again."
-                />
-            );
+            toast(<CustomToast type="error" title="Save Failed" message="Failed to save quotation." />);
         }
     };
 
@@ -261,7 +259,7 @@ const QuotationCreate = () => {
     return (
         <div className="quotation-container">
             <div className="quotation-header">
-                <h3>Create Sales Quotation</h3>
+                <h3>Edit Sales Quotation</h3>
                 <div className="header-actions">
                     {/* <button className="settings-btn"><i className="fas fa-cog"></i> Settings</button> */}
                     <button className="save-btn" onClick={handleSaveQuotation} >Save Quotation</button>
@@ -745,4 +743,4 @@ const QuotationCreate = () => {
     );
 };
 
-export default QuotationCreate;
+export default QuotationEdit;

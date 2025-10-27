@@ -1,53 +1,53 @@
 const express = require('express');
 const router = express.Router();
 const Quotation = require('../models/Quote');
+const authMiddleware= require("../middleware/auth.js");
+const User = require('../models/User');
 
+router.post("/create", authMiddleware, async (req, res) => {
+  try {
+    const {
+      party,
+      items,
+      terms,
+      notes,
+      bankDetails,
+      invoiceDetails,
+      summary,
+    } = req.body;
 
-router.post('/create', async (req, res) => {
-    try {
-        const {
-            quotationNumber,
-            quotationDate,
-            customerName,
-            customerAddress,
-            deliveryTime = "Within 7 business days",
-            paymentTerms = "Advance 50%, Balance on Delivery",
-            validityPeriod = "Valid for 30 days",
-            notes,
-            products,
-            grandTotal,
-        } = req.body;
+    if (!party) return res.status(400).json({ message: "Party details required" });
+    if (!items || items.length === 0) return res.status(400).json({ message: "At least one item is required" });
 
-        if (!quotationNumber || !customerName || !customerAddress) {
-            return res.status(400).json({ message: 'Quotation number, customer name, and address are required.' });
-        }
+    const newQuotation = new Quotation({
+      user: req.user._id, 
+      party,
+      items,
+      terms,
+      notes,
+      bankDetails,
+      invoiceDetails,
+      summary,
+      createdAt: new Date(),
+    });
 
-        const quotation = new Quotation({
-            quotationNumber,
-            quotationDate,
-            customer: {
-                name: customerName,
-                address: customerAddress,
-            },
-            deliveryTime,
-            paymentTerms,
-            validityPeriod,
-            notes,
-            products,
-            grandTotal,
-        });
-
-        await quotation.save();
-        res.status(201).json({ success: true, message: 'Quotation saved successfully', data: quotation });
-    } catch (err) {
-        console.error('Quotation API error:', err);
-        res.status(500).json({ success: false, message: 'Server error. Could not save quotation.' });
-    }
+    const savedQuotation = await newQuotation.save();
+    res.status(201).json(savedQuotation);
+  } catch (error) {
+    console.error("Error creating quotation:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
+
 
 router.get("/data/count", async (req, res) => {
   try {
-    const quotations = await Quotation.find().sort({ createdAt: -1 }); 
+   
+    const quotations = await Quotation.find()
+      .sort({ createdAt: -1 })
+      .populate('user', 'name username'); 
+
     const count = await Quotation.countDocuments();
 
     res.status(200).json({
@@ -65,7 +65,8 @@ router.get("/data/count", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+
+router.delete("/delete/:id", async (req, res) => {
   try {
     const deleted = await Quotation.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -75,6 +76,23 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error("Error deleting quotation:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+router.get("/fetch/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const quotation = await Quotation.findById(id);
+    if (!quotation) {
+      return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    res.status(200).json(quotation);
+  } catch (error) {
+    console.error("Error fetching quotation:", error);
+    res.status(500).json({ message: "Failed to fetch quotation" });
   }
 });
 

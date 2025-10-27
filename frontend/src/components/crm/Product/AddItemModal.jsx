@@ -18,18 +18,14 @@ const AddItemModal = ({ onClose, onSave }) => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
-        const fetchedProducts = res.data.products || []; 
+        const fetchedProducts = res.data.products || [];
         setProducts(fetchedProducts);
-        
-        console.log("Fetched Products:", fetchedProducts); 
       } catch (err) {
-        
         console.error("Error fetching products:", err);
       }
       setLoading(false);
@@ -49,7 +45,7 @@ const AddItemModal = ({ onClose, onSave }) => {
         p.p_code?.toLowerCase().includes(lower) ||
         p.HSN_code?.toLowerCase().includes(lower)
     );
-    setFilteredProducts(matches.slice(0, 6)); 
+    setFilteredProducts(matches.slice(0, 6));
   }, [searchTerm, products]);
 
   const handleChange = (e) => {
@@ -65,10 +61,7 @@ const AddItemModal = ({ onClose, onSave }) => {
       name: product.p_name || "",
       hsn: product.HSN_code || "",
       qty: 1,
-      price:
-        product.p_price?.sales_5_50 ||
-        product.p_price?.basic_amount ||
-        0,
+      price: product.p_price?.sales_5_50 || product.p_price?.basic_amount || 0,
       discount: 0,
       tax: product.GST_rate || 0,
     });
@@ -92,37 +85,42 @@ const AddItemModal = ({ onClose, onSave }) => {
   };
 
   return (
-    <div className="additem-modal-overlay">
-      <div className="additem-modal-content">
-        <div className="additem-header">
-          <h3>Create New Item</h3>
-          <button className="additem-close-btn" onClick={onClose}>
+    <div className="additem-modal__overlay">
+      <div className="additem-modal__content">
+        <div className="additem-modal__header">
+          <h3 className="additem-modal__title">Create New Item</h3>
+          <button className="additem-modal__close-btn" onClick={onClose}>
             <FiX size={20} />
           </button>
         </div>
 
         {/* SEARCH BAR */}
-        <div className="additem-search-box">
-          <FiSearch className="additem-search-icon" />
-          <input
-            type="text"
-            placeholder="Search existing products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {loading && <span className="additem-loading">Loading...</span>}
+        <div className="additem-modal__search-box">
+          <div className="additem-modal__search-input-wrapper">
+            <FiSearch className="additem-modal__search-icon" />
+            <input
+              type="text"
+              placeholder="Search existing products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="additem-modal__search-input"
+            />
+          </div>
+          {loading && <span className="additem-modal__loading">Loading...</span>}
           {filteredProducts.length > 0 && (
-            <ul className="additem-suggestions">
+            <ul className="additem-modal__suggestions">
               {filteredProducts.map((prod) => (
                 <li
                   key={prod._id}
                   onClick={() => handleProductSelect(prod)}
-                  className="additem-suggestion-item"
+                  className="additem-modal__suggestion-item"
                 >
                   <strong>{prod.p_name}</strong>
                   <span>
                     (HSN: {prod.HSN_code || "—"} | ₹
-                    {prod.p_price?.sales_5_50 || prod.p_price?.basic_amount || "—"}
+                    {prod.p_price?.sales_5_50 ||
+                      prod.p_price?.basic_amount ||
+                      "—"}
                     )
                   </span>
                 </li>
@@ -131,9 +129,9 @@ const AddItemModal = ({ onClose, onSave }) => {
           )}
         </div>
 
-        {/* FORM BODY */}
-        <div className="additem-body">
-          <div className="additem-form-row">
+        {/* FORM */}
+        <div className="additem-modal__body">
+          <div className="additem-modal__form-row">
             <label>Item / Service Name</label>
             <input
               type="text"
@@ -144,7 +142,7 @@ const AddItemModal = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div className="additem-form-row">
+          <div className="additem-modal__form-row">
             <label>HSN / SAC Code</label>
             <input
               type="text"
@@ -155,7 +153,7 @@ const AddItemModal = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div className="additem-form-grid">
+          <div className="additem-modal__form-grid">
             <div>
               <label>Qty</label>
               <input
@@ -203,11 +201,11 @@ const AddItemModal = ({ onClose, onSave }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="additem-footer">
-          <button className="additem-btn-cancel" onClick={onClose}>
+        <div className="additem-modal__footer">
+          <button className="additem-modal__cancel-btn" onClick={onClose}>
             Cancel
           </button>
-          <button className="additem-btn-save" onClick={handleSubmit}>
+          <button className="additem-modal__save-btn" onClick={handleSubmit}>
             Add Item
           </button>
         </div>

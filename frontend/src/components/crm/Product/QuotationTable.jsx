@@ -40,19 +40,26 @@ const QuotationTable = () => {
 
   const totalPages = Math.ceil(totalQuotations / quotationsPerPage);
 
+  const calculateGrandTotal = (quotation) => {
+    const itemsTotal = quotation.items?.reduce((acc, item) => {
+      return acc + (item.qty * item.price) - (item.discount || 0) + (item.tax || 0);
+    }, 0) || 0;
+    const summary = quotation.summary || {};
+    const roundOff = summary.autoRoundOff ? summary.roundOffAmount * (summary.roundOffSign === '+' ? 1 : -1) : 0;
+    return itemsTotal - (summary.discount || 0) + (summary.additionalCharges || 0) + roundOff;
+  };
+
   const handleDeleteQuotation = async () => {
     if (!quotationToDelete) return;
 
     try {
-      const res = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/quotations/${quotationToDelete._id}`
-      );
+      await axios.delete(`${import.meta.env.VITE_API_URL}/quotations/delete/${quotationToDelete._id}`);
 
       toast(
         <CustomToast
           type="success"
           title="Deleted"
-          message={`Quotation "${quotationToDelete.quotationNumber}" deleted successfully`}
+          message={`Quotation "${quotationToDelete.invoiceDetails?.number}" deleted successfully`}
         />
       );
 
@@ -71,6 +78,7 @@ const QuotationTable = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   };
@@ -80,7 +88,7 @@ const QuotationTable = () => {
       <div className="lead-header">
         <h5>Quotation Report</h5>
         <div className="lead-btn-group">
-          <button className="btn-add-2" onClick={() => navigate("/crm/quotations/create")} >Create Quotation</button>
+          <button className="btn-add-2" onClick={() => navigate("/crm/quotations/create")}>Create Quotation</button>
         </div>
       </div>
 
@@ -95,7 +103,7 @@ const QuotationTable = () => {
               <th>Company</th>
               <th>Phone</th>
               <th>Grand Total</th>
-              <th>Remarks</th>
+              <th>Created By</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -103,26 +111,26 @@ const QuotationTable = () => {
             {getPaginatedQuotations().map((quotation, index) => (
               <tr key={quotation._id}>
                 <td>{(currentPage - 1) * quotationsPerPage + index + 1}</td>
-                <td>{quotation.quotationNumber}</td>
-                <td>{formatDate(quotation.quotationDate)}</td>
-                <td>{quotation.customer?.name}</td>
-                <td>{quotation.customer?.company || '-'}</td>
-                <td>{quotation.customer?.phone || '-'}</td>
-                <td>₹{quotation.grandTotal?.toFixed(2)}</td>
-                <td>{quotation.customer?.remarks || '-'}</td>
+                <td>{quotation.invoiceDetails?.number || '-'}</td>
+                <td>{formatDate(quotation.invoiceDetails?.date)}</td>
+                <td>{quotation.party?.name || '-'}</td>
+                <td>{quotation.party?.company || '-'}</td>
+                <td>{quotation.party?.phone || '-'}</td>
+                <td>₹{calculateGrandTotal(quotation).toFixed(2)}</td>
+                <td>{quotation.user?.name || '-'}</td>
                 <td>
                   <div className="lead-actions">
-                    <button
+                    {/* <button
                       className="btn-view"
                       title="View"
                       onClick={() => setViewQuotation(quotation)}
                     >
                       <AiOutlineEye />
-                    </button>
+                    </button> */}
                     <button
                       className="btn-edit"
                       title="Edit"
-                      onClick={() => alert('Edit feature coming soon')}
+                      onClick={() => navigate(`/crm/quotations/edit/${quotation._id}`)}
                     >
                       <AiOutlineEdit />
                     </button>
@@ -151,13 +159,10 @@ const QuotationTable = () => {
           <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
             <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Prev</button>
           </li>
-          {[...Array(Math.min(totalPages, 2))].map((_, i) => {
-            const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
+          {[...Array(totalPages)].map((_, i) => {
+            const pageNumber = i + 1;
             return (
-              <li
-                key={`page-${pageNumber}`}
-                className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}
-              >
+              <li key={pageNumber} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
                 <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
               </li>
             );
@@ -170,29 +175,29 @@ const QuotationTable = () => {
 
       {quotationToDelete && (
         <ConfirmModal
-          message={`Are you sure you want to delete quotation "${quotationToDelete.quotationNumber}"?`}
+          message={`Are you sure you want to delete quotation "${quotationToDelete.invoiceDetails?.number}"?`}
           onCancel={() => setQuotationToDelete(null)}
           onConfirm={handleDeleteQuotation}
         />
       )}
 
-      
-      {viewQuotation && (
+      {/* {viewQuotation && (
         <ConfirmModal
           message={
             <>
               <h4>Quotation Details</h4>
-              <p><b>Quotation No:</b> {viewQuotation.quotationNumber}</p>
-              <p><b>Customer:</b> {viewQuotation.customer?.name}</p>
-              <p><b>Company:</b> {viewQuotation.customer?.company || '-'}</p>
-              <p><b>Address:</b> {viewQuotation.customer?.address}</p>
-              <p><b>Total:</b> ₹{viewQuotation.grandTotal?.toFixed(2)}</p>
+              <p><b>Quotation No:</b> {viewQuotation.invoiceDetails?.number}</p>
+              <p><b>Customer:</b> {viewQuotation.party?.name}</p>
+              <p><b>Company:</b> {viewQuotation.party?.company || '-'}</p>
+              <p><b>Address:</b> {viewQuotation.party?.address || '-'}</p>
+              <p><b>Total:</b> ₹{calculateGrandTotal(viewQuotation).toFixed(2)}</p>
+              <p><b>Created By:</b> {viewQuotation.user?.name || '-'}</p>
             </>
           }
           onCancel={() => setViewQuotation(null)}
           hideConfirmButton
         />
-      )}
+      )} */}
     </div>
   );
 };

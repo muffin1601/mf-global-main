@@ -42,6 +42,7 @@ app.use("/api", require("./routes/clientwork"));
 app.use("/api", require("./routes/leads"));
 app.use("/api", require("./routes/salesPerformance"))
 app.use("/api", require("./routes/Products/product"));
+app.use("/api/categories", require("./routes/Products/Category"));
 app.use("/api", require("./routes/Products/vendor"));
 app.use("/api", require("./routes/Products/ProductOverview"));
 

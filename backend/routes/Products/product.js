@@ -65,19 +65,19 @@ router.get("/products", async (req, res) => {
 });
 
 
-router.post('/categories/add', async (req, res) => {
-  try {
-    const category = new Category({ name: req.body.name });
-    await category.save();
-    res.status(201).json({ message: 'Category added', category });
-  } catch (err) {
-    console.error('Error adding category:', err);
-    if (err.code === 11000) {
-      return res.status(400).json({ error: 'Category already exists.' });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+// router.post('/categories/add', async (req, res) => {
+//   try {
+//     const category = new Category({ name: req.body.name });
+//     await category.save();
+//     res.status(201).json({ message: 'Category added', category });
+//   } catch (err) {
+//     console.error('Error adding category:', err);
+//     if (err.code === 11000) {
+//       return res.status(400).json({ error: 'Category already exists.' });
+//     }
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
 
 router.get('/products/search', async (req, res) => {
   try {

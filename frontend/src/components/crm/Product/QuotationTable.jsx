@@ -17,10 +17,16 @@ const QuotationTable = () => {
   const [quotationToDelete, setQuotationToDelete] = useState(null);
   const [viewQuotation, setViewQuotation] = useState(null);
   const user = JSON.parse(localStorage.getItem('user'));
+  const userRole = user?.role || 'user';
+  const userId = user?._id || '';
 
   useEffect(() => {
-    fetchQuotations();
-  }, []);
+    if (userRole === "admin") {
+      fetchQuotations();
+    } else {
+      fetchUserQuotations();
+    }
+  }, [userRole]);
 
   const fetchQuotations = async () => {
     try {
@@ -32,6 +38,28 @@ const QuotationTable = () => {
       console.error('Error fetching quotations:', error);
     }
   };
+
+  const fetchUserQuotations = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/quotations/data/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data.quotations || [];
+      setQuotations(data);
+      setTotalQuotations(data.length);
+    } catch (error) {
+      console.error("Error fetching user quotations:", error);
+    }
+  };
+
 
   const getPaginatedQuotations = () => {
     const startIndex = (currentPage - 1) * quotationsPerPage;
@@ -103,7 +131,7 @@ const QuotationTable = () => {
               <th>Company</th>
               <th>Phone</th>
               <th>Grand Total</th>
-              <th>Created By</th>
+              {userRole === 'admin' && <th>Created By</th>}
               <th>Action</th>
             </tr>
           </thead>
@@ -117,7 +145,7 @@ const QuotationTable = () => {
                 <td>{quotation.party?.company || '-'}</td>
                 <td>{quotation.party?.phone || '-'}</td>
                 <td>₹{calculateGrandTotal(quotation).toFixed(2)}</td>
-                <td>{quotation.user?.name || '-'}</td>
+                {userRole === 'admin' && <td>{quotation.user?.name || '-'}</td>}
                 <td>
                   <div className="lead-actions">
                     {/* <button

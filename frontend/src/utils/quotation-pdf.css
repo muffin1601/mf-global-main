@@ -18,14 +18,13 @@
   -webkit-print-color-adjust: exact;
 }
 
-/* --------- FLEX HELPERS --------- */
+
 .mfq-row {
   display: flex;
   gap: 12px;
   align-items: flex-start;
 }
 
-/* --------- HEADER --------- */
 .mfq-header {
   display: flex;
   justify-content: space-between;

@@ -3,6 +3,7 @@ const router = express.Router();
 const Quotation = require('../models/Quote');
 const authMiddleware= require("../middleware/auth.js");
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 router.post("/create", authMiddleware, async (req, res) => {
   try {
@@ -39,8 +40,6 @@ router.post("/create", authMiddleware, async (req, res) => {
   }
 });
 
-
-
 router.get("/data/count", async (req, res) => {
   try {
    
@@ -65,6 +64,32 @@ router.get("/data/count", async (req, res) => {
   }
 });
 
+router.get("/data/user/:userId", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid user id" });
+    }
+
+    const quotations = await Quotation.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .populate('user', 'name username');
+
+    res.status(200).json({
+      success: true,
+      count: quotations.length,
+      quotations,
+    });
+  } catch (error) {
+    console.error("Error fetching quotations by user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching user quotations",
+      error: error.message,
+    });
+  }
+});
 
 router.delete("/delete/:id", async (req, res) => {
   try {

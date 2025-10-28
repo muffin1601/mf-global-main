@@ -93,6 +93,7 @@ router.get('/products/search', async (req, res) => {
     const mongoQuery = {
       $or: [
         { product_code: searchTerm },
+        {p_code: { $regex: new RegExp(searchTerm, 'i') } },
         { p_name: { $regex: new RegExp(searchTerm, 'i') } },
         { s_code: { $regex: new RegExp(searchTerm, 'i') } },
         { p_type: { $regex: new RegExp(searchTerm, 'i') } },

@@ -132,7 +132,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                 className="search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by code, name, type, color, or HSN..."
+                placeholder="Search by code, name, material, color etc."
               />
             </div>
 

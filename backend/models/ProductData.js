@@ -64,7 +64,7 @@ productSchema.pre('save', async function (next) {
         if (!isNaN(numPart)) nextNum = numPart + 1;
       }
 
-      this.p_code = `${prefix}${String(nextNum).padStart(4, '0')}`;
+      this.p_code = `${prefix}${String(nextNum).padStart(3, '0')}`;
     }
 
     // Auto-generate price_code

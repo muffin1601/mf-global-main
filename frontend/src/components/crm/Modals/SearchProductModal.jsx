@@ -7,7 +7,7 @@ const calculatePriceWithTax = (basePrice, taxRate) => {
   if (!basePrice) return '—';
   const numericBasePrice = Number(basePrice);
   if (isNaN(numericBasePrice)) return '—';
-  return (numericBasePrice * (1 + taxRate / 100)).toFixed(2);
+  return (numericBasePrice * (1 + taxRate / 100)).toFixed(0);
 };
 
 const PriceDetails = ({ product, taxRate }) => (
@@ -171,9 +171,9 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                     <th>Item Code</th>
                     <th>Style Code</th>
                     <th>Name</th>
-                    <th>Type</th>
+                    <th>Material Type</th>
                     <th>Color</th>
-                    <th>HSN</th>
+                    {/* <th>HSN</th> */}
                     
                     {/* <th>Description</th> */}
                     <th>Action</th>
@@ -188,7 +188,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                         <td>{p.p_name}</td>
                         <td>{p.p_type}</td>
                         <td>{p.p_color}</td>
-                        <td>{p.HSN_code}</td>
+                        {/* <td>{p.HSN_code}</td> */}
                        
                         {/* <td>{p.p_description || '—'}</td> */}
                         <td>
@@ -244,6 +244,7 @@ const css = `
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: 20px;
   z-index: 99999;
   padding: 1rem;
 }

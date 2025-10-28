@@ -133,7 +133,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
           {[
             { label: 'Style Code', name: 's_code' },
             { label: 'Product Name', name: 'p_name' },
-            { label: 'Type', name: 'p_type' },
+            { label: 'Material Type', name: 'p_type' },
             { label: 'Color', name: 'p_color' },
             { label: 'HSN Code', name: 'HSN_code' },
           ].map(({ label, name }) => (

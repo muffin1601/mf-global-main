@@ -121,7 +121,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             {[
               { label: 'Style Code', name: 's_code', required: true },
               { label: 'Product Name', name: 'p_name', required: true },
-              { label: 'Type', name: 'p_type' },
+              { label: 'Material Type', name: 'p_type' },
               { label: 'Color', name: 'p_color' },
               { label: 'HSN Code', name: 'HSN_code' },
             ].map(({ label, name, required }) => (

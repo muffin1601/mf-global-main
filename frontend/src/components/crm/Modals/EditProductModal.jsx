@@ -210,13 +210,17 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             </select>
           </div>
 
-          
+
           <div className="glasso-input-group">
             <label>Net Amount</label>
             <input
               type="number"
               name="net_amount"
-              value={editedProduct.p_price.net_amount || ''}
+              value={
+                editedProduct.p_price?.net_amount
+                  ? Math.round(editedProduct.p_price.net_amount)
+                  : ''
+              }
               readOnly
               style={{ backgroundColor: '#f5f5f5' }}
             />

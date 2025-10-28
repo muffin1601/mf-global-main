@@ -212,7 +212,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="number"
                 name="net_amount"
-                value={formData.p_price.net_amount}
+                value={Math.round(formData.p_price.net_amount || 0)}
                 readOnly
                 style={{ backgroundColor: '#f5f5f5' }}
               />

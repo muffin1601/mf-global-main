@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 // const fs = require("fs");
-// const path = require("path");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -14,6 +14,8 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -44,7 +46,7 @@ app.use("/api", require("./routes/salesPerformance"))
 app.use("/api", require("./routes/Products/product"));
 app.use("/api/categories", require("./routes/Products/Category"));
 app.use("/api", require("./routes/Products/vendor"));
-app.use("/api", require("./routes/Products/ProductOverview"));
+app.use("/api/products", require("./routes/Products/ProductOverview"));
 
 require("./cron/tradeIndiaCron");
 require("./cron/indiaMartCron");

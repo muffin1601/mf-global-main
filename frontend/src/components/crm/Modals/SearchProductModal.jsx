@@ -94,27 +94,6 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     }
   };
 
-  // const addToQuotation = (product) => {
-  //   if (selectedProducts.find((p) => p._id === product._id)) {
-  //     toast(
-  //       <CustomToast
-  //         type="warning"
-  //         title="Already Added"
-  //         message={`${product.p_name} is already added to the quotation.`}
-  //       />
-  //     );
-  //     return;
-  //   }
-  //   setSelectedProducts([...selectedProducts, product]);
-  //   toast(
-  //     <CustomToast
-  //       type="success"
-  //       title="Added to Quotation"
-  //       message={`${product.p_name} added successfully.`}
-  //     />
-  //   );
-  // };
-
   if (!isOpen) return null;
 
   return (
@@ -168,29 +147,45 @@ const SearchProductModal = ({ isOpen, onClose }) => {
               <table className="products-table">
                 <thead>
                   <tr>
+                    <th>Image</th>
                     <th>Item Code</th>
                     <th>Style Code</th>
                     <th>Name</th>
-                    <th>Material Type</th>
+                    <th>Material</th>
                     <th>Color</th>
-                    {/* <th>HSN</th> */}
-                    
-                    {/* <th>Description</th> */}
                     <th>Action</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {products.map((p) => (
                     <React.Fragment key={p._id}>
                       <tr>
+                        {/* Product Image */}
+                        <td>
+                          {p.p_image ? (
+                            <img
+                              src={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
+                              className="product-thumb"
+                              onClick={() =>
+                                window.open(
+                                  `${import.meta.env.VITE_IMAGE_URL}${p.p_image}`,
+                                  "_blank"
+                                )
+                              }
+                              alt="product"
+                            />
+                          ) : (
+                            <span style={{ color: "#aaa" }}>—</span>
+                          )}
+                        </td>
+
                         <td>{p.p_code}</td>
                         <td>{p.s_code}</td>
                         <td>{p.p_name}</td>
                         <td>{p.p_type}</td>
                         <td>{p.p_color}</td>
-                        {/* <td>{p.HSN_code}</td> */}
-                       
-                        {/* <td>{p.p_description || '—'}</td> */}
+
                         <td>
                           <button
                             className="price-btn"
@@ -198,11 +193,12 @@ const SearchProductModal = ({ isOpen, onClose }) => {
                               setShowPrice(showPrice === p._id ? null : p._id)
                             }
                           >
-                            {showPrice === p._id ? 'Hide' : 'Show'} Price
+                            {showPrice === p._id ? "Hide" : "Show"} Price
                           </button>
-                          {/* <button className="add-btn" onClick={() => addToQuotation(p)}>+ Add</button> */}
                         </td>
                       </tr>
+
+                      {/* Price row */}
                       {showPrice === p._id && (
                         <tr>
                           <td colSpan="8" className="price-details-cell">
@@ -237,6 +233,23 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 export default SearchProductModal;
 
 const css = `
+.product-thumb {
+  width: auto;
+  height: auto;
+  max-width: 85px;
+  max-height: 85px;
+  object-fit: cover;
+  
+  cursor: pointer;
+  border: 1px solid #eee;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-thumb:hover {
+  
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
 .search-product-modal-overlay {
   position: fixed;
   inset: 0;

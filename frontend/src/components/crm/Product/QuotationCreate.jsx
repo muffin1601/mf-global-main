@@ -7,7 +7,7 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import { generateQuotationPDF } from "../../../utils/quotationpdf";
+import generateQuotationPDF from "../../../utils/generateQuotationPDF";
 
 const initialBankDetails = {
     accountNumber: "9549850787",

@@ -1,54 +1,52 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import CustomToast from '../CustomToast';
+import React, { useState } from "react";
+import { toast } from "react-toastify";
+import CustomToast from "../CustomToast";
 
+const PriceCard = ({ product, taxRate }) => (
+  <div className="premium-price-card">
+    <h4>Pricing Details</h4>
 
-const calculatePriceWithTax = (basePrice, taxRate) => {
-  if (!basePrice) return '—';
-  const numericBasePrice = Number(basePrice);
-  if (isNaN(numericBasePrice)) return '—';
-  return (numericBasePrice * (1 + taxRate / 100)).toFixed(0);
-};
+    <div className="pp-row">
+      <span>Price Code</span>
+      <strong>{product.p_price?.price_code || "—"}</strong>
+    </div>
 
-const PriceDetails = ({ product, taxRate }) => (
-  <table className="price-details-table">
-    <thead>
-      <tr>
-        <th>Price Code</th>
-        <th>Basic Amount</th>
-        <th>GST%</th>
-        <th>Net Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{product.p_price?.price_code || '—'}</td>
-        <td>{calculatePriceWithTax(product.p_price?.basic_amount, taxRate)}</td>
-        <td>{product.p_price?.GST_rate || '-'}</td>
-        <td>{calculatePriceWithTax(product.p_price?.net_amount, taxRate)}</td>
-      </tr>
-    </tbody>
-  </table>
+    <div className="pp-row">
+      <span>Basic Amount</span>
+      <strong>{product.p_price?.basic_amount || "—"}</strong>
+    </div>
+
+    <div className="pp-row">
+      <span>GST%</span>
+      <strong>{product.p_price?.GST_rate || "—"}</strong>
+    </div>
+
+    <div className="pp-row total">
+      <span>Net (Incl. Tax)</span>
+      <strong>
+        {product.p_price?.net_amount
+          ? (Number(product.p_price.net_amount) + 
+             (Number(product.p_price.net_amount) * taxRate) / 100).toFixed(0)
+          : "—"}
+      </strong>
+    </div>
+  </div>
 );
 
 const SearchProductModal = ({ isOpen, onClose }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showPrice, setShowPrice] = useState(null);
+  const [expandedProduct, setExpandedProduct] = useState(null);
   const [taxRate, setTaxRate] = useState(0);
-
-  
-  // const [selectedProducts, setSelectedProducts] = useState([]);
-  // const [isQuotationOpen, setIsQuotationOpen] = useState(false);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       toast(
         <CustomToast
           type="warning"
-          title="Missing Search Term"
-          message="Please enter a product name, code, type, or color to search."
+          title="Empty Search"
+          message="Enter product name, code, or color."
         />
       );
       return;
@@ -56,24 +54,25 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 
     try {
       setLoading(true);
-      setProducts([]);
+      const url = `${import.meta.env.VITE_API_URL
+        }/products/search?query=${encodeURIComponent(searchTerm)}`;
 
-      const url = `${import.meta.env.VITE_API_URL}/products/search?query=${encodeURIComponent(searchTerm)}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const res = await fetch(url);
+      const data = await res.json();
 
-      if (!response.ok || !data.products || data.products.length === 0) {
+      if (!data.products?.length) {
         toast(
           <CustomToast
             type="error"
-            title="No Products Found"
-            message="No products matched your search term."
+            title="No Results"
+            message="No matching product found."
           />
         );
         return;
       }
 
       setProducts(data.products);
+
       toast(
         <CustomToast
           type="success"
@@ -86,7 +85,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
         <CustomToast
           type="error"
           title="Search Failed"
-          message={err.message || 'Failed to search products. Please try again.'}
+          message={err.message}
         />
       );
     } finally {
@@ -94,486 +93,346 @@ const SearchProductModal = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleEnter = (e) => e.key === "Enter" && handleSearch();
+
   if (!isOpen) return null;
 
   return (
-    <>
-      <div className="search-product-modal-overlay">
-        <div className="search-product-modal-content">
-          <div className="modal-title">Product Search & Pricing</div>
+    <div className="new-modal-overlay">
+      <div className="new-modal">
 
-          <div className="form-group-row">
-            <div className="form-group search-group">
-              <label htmlFor="search-input" className="tax-label">Search</label>
-              <input
-                id="search-input"
-                type="text"
-                className="search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by code, name, material, color etc."
-              />
+        <div className="new-modal-header">
+          <h2>Search Products</h2>
+          <button className="close-btn" onClick={onClose}>✕</button>
+        </div>
+
+        {/* SEARCH INPUTS */}
+        <div className="new-search-bar">
+          <input
+            type="text"
+            className="new-search-input-2"
+            placeholder="Search by name, code, material, color..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleEnter}
+          />
+
+          <input
+            type="number"
+            className="new-tax-input"
+            placeholder="Tax %"
+            value={taxRate}
+            onChange={(e) => setTaxRate(Number(e.target.value))}
+          />
+
+          <button className="new-search-btn" onClick={handleSearch}>
+            {loading ? "Searching..." : "Search"}
+          </button>
+        </div>
+
+        {/* PRODUCT GRID */}
+        <div className="product-grid">
+          {products.map((p) => (
+            <div key={p._id} className="product-card glass-card">
+
+              <a
+                href={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
+                  className="product-img"
+                  alt={p.p_name}
+                  style={{ cursor: "pointer" }}
+                />
+              </a>
+
+              <h3>{p.p_name}</h3>
+
+              <p className="p-meta">
+                <strong>Code:</strong> {p.p_code} | {p.s_code}
+              </p>
+
+              <p className="p-line">
+                <span>Material:</span> {p.p_type}
+              </p>
+
+              <p className="p-line">
+                <span>Color:</span> {p.p_color}
+              </p>
+
+              <p className="p-desc">{p.p_description || "No description"}</p>
+
+              <p className="p-dim">
+                <span>Dimensions: </span> {p.dimension || "—"}
+              </p>
+
+              <button
+                className="view-price-btn"
+                onClick={() =>
+                  setExpandedProduct(expandedProduct === p._id ? null : p._id)
+                }
+              >
+                {expandedProduct === p._id ? "Hide Price" : "Show Price"}
+              </button>
+
+              {expandedProduct === p._id && (
+                <PriceCard product={p} taxRate={taxRate} />
+              )}
             </div>
-
-            <div className="form-group tax-group">
-              <label htmlFor="tax-rate-input" className="tax-label">Apply Tax (%)</label>
-              <input
-                id="tax-rate-input"
-                type="number"
-                className="search-input tax-input"
-                value={taxRate}
-                onChange={(e) => setTaxRate(Number(e.target.value))}
-                placeholder="e.g., 18"
-                min="0"
-              />
-            </div>
-          </div>
-
-          <div className="modal-buttons">
-            <button
-              className="search-btn"
-              onClick={handleSearch}
-              disabled={loading}
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </button>
-            <button className="close-btn-2" onClick={onClose}>
-              Close
-            </button>
-          </div>
-
-          <div className="search-results">
-            {products.length > 0 ? (
-              <table className="products-table">
-                <thead>
-                  <tr>
-                    <th>Image</th>
-                    <th>Item Code</th>
-                    <th>Style Code</th>
-                    <th>Name</th>
-                    <th>Material</th>
-                    <th>Color</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {products.map((p) => (
-                    <React.Fragment key={p._id}>
-                      <tr>
-                        {/* Product Image */}
-                        <td>
-                          {p.p_image ? (
-                            <img
-                              src={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
-                              className="product-thumb"
-                              onClick={() =>
-                                window.open(
-                                  `${import.meta.env.VITE_IMAGE_URL}${p.p_image}`,
-                                  "_blank"
-                                )
-                              }
-                              alt="product"
-                            />
-                          ) : (
-                            <span style={{ color: "#aaa" }}>—</span>
-                          )}
-                        </td>
-
-                        <td>{p.p_code}</td>
-                        <td>{p.s_code}</td>
-                        <td>{p.p_name}</td>
-                        <td>{p.p_type}</td>
-                        <td>{p.p_color}</td>
-
-                        <td>
-                          <button
-                            className="price-btn"
-                            onClick={() =>
-                              setShowPrice(showPrice === p._id ? null : p._id)
-                            }
-                          >
-                            {showPrice === p._id ? "Hide" : "Show"} Price
-                          </button>
-                        </td>
-                      </tr>
-
-                      {/* Price row */}
-                      {showPrice === p._id && (
-                        <tr>
-                          <td colSpan="8" className="price-details-cell">
-                            <PriceDetails product={p} taxRate={taxRate} />
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="no-results-message">
-                No product found or searched yet.
-              </div>
-            )}
-          </div>
-
-          {/* <button className='quote-show' onClick={() => setIsQuotationOpen(true)}>View Quotation List</button> */}
+          ))}
         </div>
       </div>
-{/* 
-      <QuotationModal
-        isOpen={isQuotationOpen}
-        onClose={() => setIsQuotationOpen(false)}
-        selectedProducts={selectedProducts}
-      /> */}
-    </>
+    </div>
   );
 };
 
 export default SearchProductModal;
 
+
+
 const css = `
-.product-thumb {
-  width: auto;
-  height: auto;
-  max-width: 85px;
-  max-height: 85px;
-  object-fit: cover;
-  
-  cursor: pointer;
-  border: 1px solid #eee;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.product-thumb:hover {
-  
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-}
-
-.search-product-modal-overlay {
+/* -------- FULLSCREEN BLURRED OVERLAY -------- */
+.new-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(40, 50, 60, 0.6);
+  backdrop-filter: blur(14px);
+  background: rgba(0, 0, 0, 0.28);
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 20px;
-  z-index: 99999;
-  padding: 1rem;
+  
+  z-index: 20000;
+  padding: 20px;
 }
 
-.search-product-modal-content {
+/* -------- MODAL CONTAINER -------- */
+.new-modal {
   width: 90%;
-  max-width: 900px;
-  max-height: 90%;
+  height: 95%;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 22px;
+  padding: 20px;
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
   overflow-y: auto;
-  backdrop-filter: blur(8px);
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e0e0e0;
+}
+
+/* -------- HEADER -------- */
+.new-modal-header {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
 }
 
-.modal-title {
-  font-size: 1.5rem;
-  color: #334e68;
-  font-weight: 500;
-  text-align: center;
-  font-family: 'Outfit', sans-serif;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #f0f0f0;
+.new-modal-header h2 {
+  font-family: "Outfit", sans-serif;
+  font-size: 1.6rem;
+  color: #fff;
 }
 
-.form-group-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.form-group.search-group {
-  flex: 1 1 60%;
-  min-width: 200px;
-}
-
-.form-group.tax-group {
-  flex: 1 1 35%;
-  min-width: 120px;
-}
-
-.tax-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: #64748b;
-  margin-bottom: 0.4rem;
-  font-family: 'Outfit', sans-serif;
-}
-
-.search-input {
-  font-size: 0.95rem;
-  border-radius: 8px;
-  width: 100%;
-  font-family: 'Outfit', sans-serif;
-  padding: 0.7rem 1rem;
-  border: 1px solid #dcdcdc;
-  background: #fcfcfc;
-  transition: all 0.2s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-  background: #ffffff;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 0.6rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.search-btn {
-  padding: 0.65rem 1.3rem;
-  border-radius: 8px;
-  border: none;
-  font-family: 'Outfit', sans-serif;
+.close-btn {
+  background: rgba(255,255,255,0.2);
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 18px;
   cursor: pointer;
-  background: #3b82f6;
+  color: #fff;
+  transition: 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* -------- SEARCH BAR -------- */
+.new-search-bar {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+}
+
+.new-search-input-2,
+.new-tax-input {
+  flex: 1;
+  padding: 12px 14px;
+  font-family: "Outfit", sans-serif;
+  border-radius: 12px;
+  border: 1px solid rgba(117, 117, 117, 0.49);
+  background: rgba(0, 0, 0, 0.14);
+  color: #ffffffff;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+}
+  .new-search-input-2::placeholder{
+  color : #fff;}
+
+.new-search-btn {
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: "Outfit";
+}
+
+.new-search-btn:hover {
+  opacity: 0.9;
+}
+
+/* -------- PRODUCT GRID -------- */
+.product-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+  gap: 20px;
+}
+
+/* -------- PRODUCT CARD -------- */
+.product-card {
+  padding: 18px;
+  border-radius: 18px;
+  text-align: center;
+  color: #fff;
+}
+
+.glass-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  backdrop-filter: blur(16px);
+}
+
+.product-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* -------- TEXT -------- */
+.p-meta {
+  opacity: 0.85;
+}
+
+.p-line {
+  margin: 4px 0;
+}
+
+.p-desc, .p-dim {
+  margin-top: 8px;
+  background: rgba(255,255,255,0.2);
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+/* -------- PRICE CARD -------- */
+.premium-price-card {
+  background: rgba(255,255,255,0.25);
+  padding: 14px;
+  border-radius: 14px;
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,0.4);
+  backdrop-filter: blur(12px);
+}
+
+.pp-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.pp-row.total {
+  border-top: 1px solid rgba(255,255,255,0.3);
+  margin-top: 6px;
+  padding-top: 10px;
+  font-weight: bold;
+}
+
+/* -------- BUTTONS -------- */
+
+.view-price-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: "Outfit";
   color: #fff;
   font-weight: 500;
-  font-size: 0.95rem;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.35);
+  transition: 0.25s ease-in-out;
 }
 
-.search-btn:hover:not(:disabled) {
-  background: #2563eb;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+.view-price-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59,130,246,0.5);
+  background: linear-gradient(135deg, #3b82f6, #4338ca);
 }
 
-.search-btn:disabled {
-  background: #e0e7ff;
-  color: #93c5fd;
-  cursor: not-allowed;
-}
-
-.close-btn-2 {
-  font-size: 0.9rem;
-  color: #64748b;
-  background: transparent;
-  border: 1px solid #d1d5db;
-  font-family: 'Outfit', sans-serif;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.close-btn-2:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #334e68;
-}
-
-.products-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Outfit', sans-serif;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 1.5rem;
-  table-layout: auto;
-  word-break: break-word;
-}
-
-.products-table th,
-.products-table td {
-  padding: 0.7rem 0.9rem;
-  font-size: 0.9rem;
-  text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.products-table th {
-  font-weight: 500;
-  color: #4b5563;
-  background: #f9fafb;
-}
-
-.products-table tbody tr:hover {
-  background: #f5f7f9;
-}
-
-.products-table button {
-  padding: 0.35rem 0.7rem;
-  border-radius: 6px;
+/* --- Search Button (more premium) --- */
+.new-search-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
   border: none;
-  color: #ffffff;
   cursor: pointer;
-  font-weight: 400;
-  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: "Outfit";
+  color: #fff;
+
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+
+  transition: 0.25s ease-in-out;
 }
 
-.price-btn {
-font-family: 'Outfit', sans-serif;
-  background: #4f46e5;
+.new-search-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+  box-shadow: 0 6px 16px rgba(16,185,129,0.5);
 }
 
-.price-btn:hover {
-  background: #4338ca;
+/* --- Close Button improved --- */
+.close-btn {
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+
+  transition: 0.25s ease-in-out;
+  backdrop-filter: blur(8px);
 }
 
-.add-btn {
-  margin-left: 8px;
-  background: #ef4444;
+.close-btn:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.07);
 }
 
-.add-btn:hover {
-  background: #dc2626;
+/* --- Optional: Add small category color accents to product cards --- */
+.product-card:hover {
+  border: 1px solid rgba(255,255,255,0.7);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  transition: 0.25s;
 }
 
-.price-details-cell {
-  padding: 0 !important;
-  background: #fcfcfc;
-  border-bottom: none !important;
-}
 
-.price-details-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Outfit', sans-serif;
-}
-
-.price-details-table th {
-  background: #eef2ff;
-  color: #4338ca;
-  font-weight: 500;
-  text-align: left;
-  padding: 0.7rem 0.9rem;
-  font-size: 0.85rem;
-}
-
-.price-details-table td {
-  text-align: left;
-  background: #fcfcfc;
-  padding: 0.6rem 0.9rem;
-  border-bottom: none;
-  font-size: 0.85rem;
-  color: #4b5563;
-}
-
-.no-results-message {
-  padding: 1.5rem;
-  color: #64748b;
-  text-align: center;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin-top: 1.5rem;
-  border: 1px solid #e5e7eb;
-}
-
-.search-product-modal-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.search-product-modal-content::-webkit-scrollbar-track {
-  background: #f7f7f7;
-  border-radius: 8px;
-}
-
-.search-product-modal-content::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 8px;
-  border: 2px solid #f7f7f7;
-}
-
-.search-product-modal-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.search-product-modal-content {
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f7f7f7;
-}
-
-@media (max-width: 1024px) {
-  .search-product-modal-content {
-    max-width: 95%;
-    padding: 1.5rem;
-  }
-
-  .form-group-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .form-group.tax-group {
-    width: 100%;
-  }
-
-  .products-table th,
-  .products-table td {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.7rem;
-  }
-
-  .products-table button {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-  }
-
-  .modal-buttons {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .search-btn,
-  .close-btn-2 {
-    width: 100%;
-  }
-
-  .price-details-table th,
-  .price-details-table td {
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .search-product-modal-content {
-    width: 95%;
-    padding: 1rem;
-  }
-
-  .products-table th,
-  .products-table td {
-    font-size: 0.75rem;
-  }
-
-  .products-table button {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-    margin-top: 5px;
-  }
-
-  .modal-buttons {
-    flex-direction: column;
-  }
-
-  .form-group-row {
-    gap: 0.8rem;
-  }
-
-  .price-details-table th,
-  .price-details-table td {
-    font-size: 0.7rem;
-  }
-}
 `;
 
 const style = document.createElement('style');

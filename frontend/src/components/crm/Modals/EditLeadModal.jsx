@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
-
-import { AiOutlineClose } from 'react-icons/ai';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import AdditionalContactsModal from './AdditionalContactsModal';
-import CustomToast from '../CustomToast'; 
-import { logActivity } from '../../../utils/logActivity';
+import React, { useState, useEffect } from "react";
+import { AiOutlineClose } from "react-icons/ai";
+import axios from "axios";
+import { toast } from "react-toastify";
+import AdditionalContactsModal from "./AdditionalContactsModal";
+import CustomToast from "../CustomToast";
+import { logActivity } from "../../../utils/logActivity";
 
 const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   const [editedLead, setEditedLead] = useState({});
   const [users, setUsers] = useState([]);
   const [additionalContacts, setAdditionalContacts] = useState([]);
   const [showContactsModal, setShowContactsModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  // -------------------------
+  // Fetch users & load initial lead data
+  // -------------------------
   useEffect(() => {
     fetchUsers();
     if (lead) {
@@ -26,13 +29,44 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
       setUsers(res.data);
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast(<CustomToast type="error" title="Error" message="Failed to fetch users." />);
     }
   };
 
-  const handleChange = (field, value) => setEditedLead(prev => ({ ...prev, [field]: value }));
+  // -------------------------
+  // Handle Input Change + Auto-Fill Features
+  // -------------------------
+  const handleChange = (field, value) => {
+    setEditedLead((prev) => {
+      const updated = { ...prev, [field]: value };
 
+      // Auto-set calling date when callStatus = Ring
+      if (field === "callStatus" && value === "Ring") {
+        updated.inquiryDate = new Date().toISOString().split("T")[0];
+      }
+
+      // Auto-set follow-up date when callStatus = Follow-up Required
+      if (field === "callStatus" && value === "Follow-up Required") {
+        const next = new Date();
+        next.setDate(next.getDate() + 2);
+        updated.followUpDate = next.toISOString().split("T")[0];
+      }
+
+      // Auto-fill category from saved company history
+      if (field === "company") {
+        const history = JSON.parse(localStorage.getItem("companyHistory") || "{}");
+        if (history[value]) {
+          updated.category = history[value];
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  // -------------------------
+  // Additional Contacts Logic
+  // -------------------------
   const handleContactChange = (index, field, value) => {
     const updated = [...additionalContacts];
     updated[index][field] = value;
@@ -49,117 +83,213 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
     setAdditionalContacts([...additionalContacts, { name: "", contact: "", details: "" }]);
   };
 
-  const formatDate = (dateString) => (!dateString ? "" : new Date(dateString).toISOString().split("T")[0]);
+  const formatDate = (dateString) =>
+    !dateString ? "" : new Date(dateString).toISOString().split("T")[0];
 
+  // -------------------------
+  // Save Lead with Assign Logic
+  // -------------------------
   const saveEditedLead = async () => {
-  const updates = { ...editedLead, additionalContacts, id: editedLead._id }; 
-  try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/save-all-updates`, { updates: [updates] });
+    setLoading(true);
 
-   
-const assignedUser = editedLead.assignedTo?.[0]?.user;
+    const updates = { ...editedLead, additionalContacts, id: editedLead._id };
 
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/save-all-updates`,
+        { updates: [updates] }
+      );
 
-    if (assignedUser && assignedUser._id) {
+      // Assign user if admin changed assignment
+      const assignedUser = editedLead.assignedTo?.[0]?.user;
+      if (assignedUser?._id) {
+        await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign/single`, {
+          Leads: [editedLead._id],
+          userIds: [assignedUser._id],
+          permissions: editedLead.assignedTo[0].permissions || {
+            view: true,
+            update: false,
+            delete: false,
+          },
+        });
+      }
 
-      const userIdToAssign = assignedUser._id;
+      // Save company history for future auto-fill
+      if (editedLead.company && editedLead.category) {
+        let history = JSON.parse(localStorage.getItem("companyHistory") || "{}");
+        history[editedLead.company] = editedLead.category;
+        localStorage.setItem("companyHistory", JSON.stringify(history));
+      }
 
+      toast(
+        <CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />
+      );
 
-      const permissionsToAssign = editedLead.assignedTo[0].permissions || { view: true, update: false, delete: false };
+      await logActivity("Edited Lead", { leadId: editedLead._id });
 
-
-      await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign/single`, {
-        Leads: [editedLead._id],
-        userIds: [userIdToAssign],
-        permissions: permissionsToAssign,
-      });
+      onSave(res.data.updates?.[0] || updates);
+      onClose();
+    } catch (error) {
+      toast(
+        <CustomToast
+          type="error"
+          title="Update Failed"
+          message={error.response?.data?.message || error.message}
+        />
+      );
     }
-    toast(<CustomToast type="success" title="Lead Updated" message="Lead updated successfully!" />);
-    await logActivity("Edited Lead", { leadId: editedLead._id });
-    onSave(res.data.updates?.[0] || updates);
-    onClose();
-  } catch (error) {
-    console.error(error.response || error.message);
-    toast(<CustomToast type="error" title="Update Failed" message={error.response?.data?.message || error.message} />);
-  }
-};
 
+    setLoading(false);
+  };
+
+  // -------------------------
+  // FIXED DROPDOWNS (clean DB values + emoji labels)
+  // -------------------------
   const dropdownFields = {
-    callStatus: ["Not Called","📞 Ring","❌ Not Interested","⏳ Available After One Month","✅ Converted","📆 Follow-up Required","🚫 Wrong Number"],
-    status: ["🆕 New Lead","🏆 Won Lead","❌ Lost Lead","🔄 In Progress"],
-    datatype: ["🌐 IndiaMart","🏢 Offline","📊 TradeIndia","📞 JustDial","🖥️ WebPortals","🔍 Other"]
+    callStatus: [
+      { value: "Not Called", label: "Not Called" },
+      { value: "Ring", label: "📞 Ring" },
+      { value: "Not Interested", label: "❌ Not Interested" },
+      { value: "Available After One Month", label: "⏳ Available After One Month" },
+      { value: "Follow-up Required", label: "📆 Follow-up Required" },
+      { value: "Wrong Number", label: "🚫 Wrong Number" },
+      { value: "Converted", label: "✅ Converted" },
+    ],
+
+    status: [
+      { value: "New Lead", label: "🆕 New Lead" },
+      { value: "In Progress", label: "🔄 In Progress" },
+      { value: "Followed Up", label: "📌 Followed Up" },
+      { value: "Won Lead", label: "🏆 Won Lead" },
+      { value: "Lost Lead", label: "❌ Lost Lead" },
+    ],
+
+    datatype: [
+      { value: "IndiaMart", label: "🌐 IndiaMart" },
+      { value: "Offline", label: "🏢 Offline" },
+      { value: "TradeIndia", label: "📊 TradeIndia" },
+      { value: "JustDial", label: "📞 JustDial" },
+      { value: "WebPortals", label: "🖥️ WebPortals" },
+      { value: "Other", label: "🔍 Other" },
+    ],
   };
 
   if (!lead) return null;
 
   return (
     <div className="glasso-modal-overlay" onClick={onClose}>
-      <div className="glasso-modal-container" onClick={(e) => e.stopPropagation()} style={{ backgroundImage: `url(/mnt/data/1dec7ce6-ed53-4f2f-9ddb-d5c7596859e3.png)` }}>
+      <div className="glasso-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="glasso-modal-header">
           <h3 className="glasso-modal-title">Edit Lead Details</h3>
-          <button className="glasso-close-btn" onClick={onClose}><AiOutlineClose /></button>
+          <button className="glasso-close-btn" onClick={onClose}>
+            <AiOutlineClose />
+          </button>
         </div>
 
+        {/* Modal Body */}
         <div className="glasso-modal-body grid">
-          {["name", "email", "phone", "company", "contact", "location", "state","category",  "address"].map((field) => (
+          {["name", "email", "phone", "company", "contact", "location", "state", "category", "address"].map(
+            (field) => (
+              <div className={`glasso-input-group glasso-${field}`} key={field}>
+                <label>{field.replace(/([A-Z])/g, " $1").replace(/\b\w/g, (l) => l.toUpperCase())}</label>
+                <input
+                  type="text"
+                  value={editedLead[field] || ""}
+                  onChange={(e) => handleChange(field, e.target.value)}
+                  disabled={["phone", "company", "contact"].includes(field) && userRole !== "admin"}
+                />
+              </div>
+            )
+          )}
+
+          {/* Textareas */}
+          {["requirements", "remarks"].map((field) => (
             <div className={`glasso-input-group glasso-${field}`} key={field}>
-              <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
-              <input
-                type={field.includes("Date") ? "date" : "text"}
-                value={field.includes("Date") ? formatDate(editedLead[field]) : (editedLead[field] || "")}
+              <label>{field.replace(/([A-Z])/g, " $1").replace(/\b\w/g, (l) => l.toUpperCase())}</label>
+              <textarea
+                rows={3}
+                value={editedLead[field] || ""}
                 onChange={(e) => handleChange(field, e.target.value)}
-                disabled={[ "phone", "company", "contact"].includes(field) && userRole !== "admin"}
               />
             </div>
           ))}
 
-          {["requirements", "remarks"].map((field) => (
-            <div className={`glasso-input-group glasso-${field}`} key={field}>
-              <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
-              <textarea rows={3} value={editedLead[field] || ""} onChange={(e) => handleChange(field, e.target.value)} />
-            </div>
-          ))}
-
+          {/* Assigned To */}
           <div className="glasso-input-group glasso-assigned">
             <label>Assigned To</label>
             <select
               value={editedLead.assignedTo?.[0]?.user?._id || ""}
               disabled={userRole !== "admin"}
               onChange={(e) => {
-                const selectedUser = users.find(u => u._id === e.target.value);
-                handleChange("assignedTo", selectedUser ? [{ user: selectedUser, permissions: { view: true, update: false, delete: false } }] : []);
+                const selectedUser = users.find((u) => u._id === e.target.value);
+                handleChange(
+                  "assignedTo",
+                  selectedUser
+                    ? [{ user: selectedUser, permissions: { view: true, update: false, delete: false } }]
+                    : []
+                );
               }}
             >
               <option value="">Select User</option>
-              {users.map(user => <option key={user._id} value={user._id}>{user.name}</option>)}
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* Dropdown Fields (with emoji labels + clean values) */}
           {Object.entries(dropdownFields).map(([field, options]) => (
             <div className={`glasso-input-group glasso-${field}`} key={field}>
-              <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
-              <select value={editedLead[field] || ""} onChange={(e) => handleChange(field, e.target.value)}>
+              <label>{field.replace(/([A-Z])/g, " $1").replace(/\b\w/g, (l) => l.toUpperCase())}</label>
+              <select
+                value={editedLead[field] || ""}
+                onChange={(e) => handleChange(field, e.target.value)}
+              >
                 <option value="">Select {field}</option>
-                {options.map(option => <option key={option} value={option}>{option}</option>)}
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           ))}
 
+          {/* Dates */}
           <div className="glasso-input-group glasso-followup">
             <label>Follow Up Date</label>
-            <input type="date" value={formatDate(editedLead.followUpDate)} onChange={(e) => handleChange("followUpDate", e.target.value)} />
+            <input
+              type="date"
+              value={formatDate(editedLead.followUpDate)}
+              onChange={(e) => handleChange("followUpDate", e.target.value)}
+            />
           </div>
+
           <div className="glasso-input-group glasso-followup">
             <label>Calling Date</label>
-            <input type="date" value={formatDate(editedLead.callingdate)} onChange={(e) => handleChange("callingdate", e.target.value)} />
+            <input
+              type="date"
+              value={formatDate(editedLead.inquiryDate)}
+              onChange={(e) => handleChange("inquiryDate", e.target.value)}
+            />
           </div>
         </div>
 
+        {/* Footer */}
         <div className="glasso-footer-buttons">
-          <button className="glasso-btn-add-contact" onClick={() => setShowContactsModal(true)}>View / Edit Contacts</button>
+          <button className="glasso-btn-add-contact" onClick={() => setShowContactsModal(true)}>
+            View / Edit Contacts
+          </button>
+
           <div className="glasso-action-buttons">
-            <button className="glasso-btn-cancel" onClick={onClose}>Cancel</button>
-            <button className="glasso-btn-save" onClick={saveEditedLead}>Save</button>
+            <button className="glasso-btn-cancel" onClick={onClose}>
+              Cancel
+            </button>
+            <button className="glasso-btn-save" onClick={saveEditedLead} disabled={loading}>
+              {loading ? "Saving..." : "Save"}
+            </button>
           </div>
         </div>
 

@@ -12,6 +12,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
     p_type: "",
     p_color: "",
     HSN_code: "",
+    dimension: "",      
     cat_id: "",
     p_description: "",
     p_price: {
@@ -37,6 +38,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
       p_type: product.p_type || "",
       p_color: product.p_color || "",
       HSN_code: product.HSN_code || "",
+      dimension: product.dimension || "",    // ⭐ LOAD NEW FIELD
       cat_id: product.cat_id || "",
       p_description: product.p_description || "",
       p_price: {
@@ -53,7 +55,6 @@ const EditProductModal = ({ product, onClose, onSave }) => {
         : null
     );
   }, [product]);
-  console.log(previewImage);
 
   /* --------------------------------------------------
      FETCH CATEGORIES
@@ -112,6 +113,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
       fd.append("p_type", editedProduct.p_type);
       fd.append("p_color", editedProduct.p_color);
       fd.append("HSN_code", editedProduct.HSN_code);
+      fd.append("dimension", editedProduct.dimension);         // ⭐ SAVE NEW FIELD
       fd.append("cat_id", editedProduct.cat_id);
       fd.append("p_description", editedProduct.p_description);
       fd.append("p_price", JSON.stringify(editedProduct.p_price));
@@ -163,17 +165,15 @@ const EditProductModal = ({ product, onClose, onSave }) => {
         </div>
 
         <div className="glasso-modal-body">
-          {/* --------------------------------------------------
-            IMAGE UPLOAD
-          -------------------------------------------------- */}
+          {/* IMAGE UPLOAD */}
           <div className="glasso-input-group" style={{ gridColumn: "span 2" }}>
             <label>Product Image</label>
 
             {previewImage ? (
               <div style={{ textAlign: "left" }}>
-                  <img
-                    src={previewImage}
-                    alt="Preview"
+                <img
+                  src={previewImage}
+                  alt="Preview"
                   style={{
                     width: "auto",
                     height: "auto",
@@ -182,20 +182,19 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                     borderRadius: "10px",
                     objectFit: "contain",
                   }}
-                  />
-                  <button
-                    type="button"
-                    style={{
-                      display: "block",
-                      marginTop: "8px",
-                      background: "#d32f2f",
-                      color: "#fff",
-                      padding: "0.4rem 0.8rem",
-                      borderRadius: "8px",
-                      fontFamily:"'Outfit', sans-serif",
-                      border: "none",
-                      cursor: "pointer"
-                    }}
+                />
+                <button
+                  type="button"
+                  style={{
+                    display: "block",
+                    marginTop: "8px",
+                    background: "#d32f2f",
+                    color: "#fff",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                   onClick={() => {
                     setPreviewImage(null);
                     setNewImage(null);
@@ -219,15 +218,14 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             )}
           </div>
 
-          {/* --------------------------------------------------
-             BASIC DETAILS
-          -------------------------------------------------- */}
+          {/* BASIC DETAILS */}
           {[
             { label: "Style Code", name: "s_code" },
             { label: "Product Name", name: "p_name" },
             { label: "Material Type", name: "p_type" },
             { label: "Color", name: "p_color" },
             { label: "HSN Code", name: "HSN_code" },
+            { label: "Dimensions", name: "dimension" },  // ⭐ NEW FIELD
           ].map(({ label, name }) => (
             <div className="glasso-input-group" key={name}>
               <label>{label}</label>
@@ -240,9 +238,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             </div>
           ))}
 
-          {/* --------------------------------------------------
-             CATEGORY
-          -------------------------------------------------- */}
+          {/* CATEGORY */}
           <div className="glasso-input-group">
             <label>Category</label>
             <select
@@ -259,9 +255,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             </select>
           </div>
 
-          {/* --------------------------------------------------
-             DESCRIPTION
-          -------------------------------------------------- */}
+          {/* DESCRIPTION */}
           <div className="glasso-input-group" style={{ gridColumn: "span 2" }}>
             <label>Description</label>
             <textarea
@@ -271,9 +265,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             />
           </div>
 
-          {/* --------------------------------------------------
-             PRICING
-          -------------------------------------------------- */}
+          {/* PRICING */}
           <div className="glasso-input-group">
             <label>Purchase Amount</label>
             <input

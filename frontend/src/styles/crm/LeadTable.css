@@ -199,6 +199,11 @@
     background-color: rgba(107, 114, 128, 0.2);
     color: #9ca3af;
   }
+  .status-contacted {
+  background-color: rgba(112, 83, 255, 0.349);
+  color: #d0c6ff; 
+}
+
 
   .lead-actions {
     display: flex;

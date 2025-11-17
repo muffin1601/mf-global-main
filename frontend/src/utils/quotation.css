@@ -1,0 +1,262 @@
+/* ---------------------------------------------
+   Premium Clean Quotation PDF Styles
+----------------------------------------------*/
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --accent: #22468a;      /* premium red */
+  --accent-soft: #f8d7dc; /* soft pink background */
+  --border: #e5e7eb;      /* light border */
+  --text: #1f2937;        /* slate-800 */
+  --muted: #6b7280;       /* slate-500 */
+  --page-width: 210mm;
+  --page-height: 297mm;
+}
+
+/* SAFE wrapper for html2canvas */
+.mfq-pdf-wrapper-safe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: visible;
+  opacity: 1;
+  z-index: -1;
+}
+
+/* Main page container */
+.mfq-pdf {
+  width: var(--page-width);
+  min-height: var(--page-height);
+  background: #ffffff;
+  padding: 20mm;
+  font-family: "Outfit", sans-serif;
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* ---------------------------------------------
+   HEADER
+----------------------------------------------*/
+
+.mfq-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.mfq-company-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.mfq-contact-line,
+.mfq-company-address {
+  margin: 3px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Logo container — clean card */
+/* .mfq-header-right {
+  width: 150px;
+  height: 100px;
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.mfq-company-logo {
+  max-height: 100px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---------------------------------------------
+   INFO TABLE (Quotation details)
+----------------------------------------------*/
+
+.mfq-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.mfq-info-table thead th {
+  background: var(--accent);
+  color: #fff;
+  padding: 8px;
+  font-weight: 600;
+  text-align: left;
+  font-size: 11px;
+}
+
+.mfq-info-table tbody td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mfq-info-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------------------------------------------
+   BILL TO / SHIP TO
+----------------------------------------------*/
+
+.mfq-party-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.mfq-party-card {
+  flex: 1;
+  background: #fafafa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.mfq-party-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.mfq-party-card p {
+  margin: 3px 0;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------
+   ITEMS TABLE (Products list)
+----------------------------------------------*/
+
+/* ---------------------------------------------
+   ITEMS TABLE (Products list)
+----------------------------------------------*/
+
+.mfq-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.mfq-items-table th {
+  background: #f3f4f6;
+  padding: 10px 8px;
+  font-size: 12px;
+  border-bottom: 2px solid var(--accent);
+  text-align: left; /* keep table header left */
+}
+
+.mfq-items-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left !important;   /* <<< FIX: All td left aligned */
+}
+
+.mfq-items-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------------------------------------------
+   SUMMARY SECTION
+----------------------------------------------*/
+
+.mfq-summary-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mfq-summary-left {
+  flex: 1;
+}
+
+.mfq-summary-left h4 {
+  color: var(--accent);
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mfq-summary-left ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.mfq-summary-right {
+  width: 260px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 12px;
+}
+
+.mfq-summary-right table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mfq-summary-right td {
+  padding: 6px 4px;
+  font-size: 12px;
+}
+
+.mfq-summary-right .total-row td {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------
+   FOOTER
+----------------------------------------------*/
+
+.mfq-footer {
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mfq-footer > div {
+  width: 48%;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mfq-sign-line {
+  width: 140px;
+  height: 1px;
+  background: #000;
+  margin: 8px 0;
+}
+
+/* PDF print optimization */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  .mfq-pdf {
+    padding: 15mm;
+  }
+}

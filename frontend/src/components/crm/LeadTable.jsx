@@ -81,6 +81,7 @@ const LeadTable = () => {
       case 'New Lead': return 'status-new';
       case 'Lost Lead': return 'status-lost';
       case 'In Progress': return 'status-in-progress';
+      case 'Followed Up': return 'status-contacted';
       default: return 'status-other';
     }
   };
@@ -173,6 +174,7 @@ const LeadTable = () => {
   };
 
   return (
+    <>
     <div className="lead-card">
       <div className="lead-header">
         <h5>Leads Report</h5>
@@ -359,6 +361,9 @@ const LeadTable = () => {
         />
       )}
     </div>
+    {showProductModal && (
+              <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />
+            )}</>
   );
 };
 

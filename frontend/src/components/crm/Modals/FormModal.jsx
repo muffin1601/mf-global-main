@@ -37,6 +37,9 @@ const FormModal = ({
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [showCsvModal, setShowCsvModal] = useState(false);
 
+  // ---------------------------------------------
+  // Load Users & Categories
+  // ---------------------------------------------
   useEffect(() => {
     fetchUsers();
     axios.get(`${import.meta.env.VITE_API_URL}/clients/meta`).then((res) => {
@@ -53,15 +56,33 @@ const FormModal = ({
     }
   };
 
+  // ---------------------------------------------
+  // Handle Change + Auto-Fill category by company
+  // ---------------------------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+
+      // ⭐ Auto-fill category from company history
+      if (name === "company") {
+        const history = JSON.parse(localStorage.getItem("companyHistory") || "{}");
+        if (history[value]) {
+          updated.category = history[value];
+        }
+      }
+
+      return updated;
+    });
   };
 
-  const setField = (field, value) => {
+  const setField = (field, value) =>
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
 
+  // ---------------------------------------------
+  // Phone Duplicate Check
+  // ---------------------------------------------
   const phoneChange = (e) => {
     const value = e.target.value;
     setField("phone", value);
@@ -83,26 +104,26 @@ const FormModal = ({
           setPhoneError('');
           setExistingPhoneUser(null);
         }
-      })
-      .catch((error) => {
-        console.error("Error checking phone duplicacy:", error);
       });
   };
 
+  // ---------------------------------------------
+  // Contact Duplicate Check
+  // ---------------------------------------------
   const contactChange = (e) => {
     const rawValue = e.target.value;
-    const sanitizedValue = rawValue.trim().replace(/\s+/g, '');
+    const sanitized = rawValue.trim().replace(/\s+/g, '');
 
-    setField("contact", sanitizedValue);
+    setField("contact", sanitized);
 
-    if (!sanitizedValue) {
+    if (!sanitized) {
       setContactError('');
       return;
     }
 
     axios
       .get(`${import.meta.env.VITE_API_URL}/check-duplicate-contact`, {
-        params: { contact: sanitizedValue },
+        params: { contact: sanitized },
       })
       .then((res) => {
         if (res.data.exists) {
@@ -112,72 +133,91 @@ const FormModal = ({
           setContactError('');
           setExistingContactUser(null);
         }
-      })
-      .catch((error) => {
-        console.error("Error checking contact duplicacy:", error);
       });
   };
 
+  // ---------------------------------------------
+  // Submit Form
+  // ---------------------------------------------
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (phoneError || contactError) {
-    return toast(
-      <CustomToast
-        type="error"
-        title="Validation Error"
-        message="Please resolve errors before submitting."
-      />
-    );
-  }
+    if (phoneError || contactError) {
+      return toast(
+        <CustomToast
+          type="error"
+          title="Validation Error"
+          message="Please resolve errors before submitting."
+        />
+      );
+    }
 
-  try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/add-client`, formData);
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/add-client`, formData);
 
-    toast(
-      <CustomToast
-        type="success"
-        title="Success"
-        message="Data Submitted!"
-      />
-    );
+      toast(
+        <CustomToast
+          type="success"
+          title="Success"
+          message="Data Submitted!"
+        />
+      );
 
-    await logActivity("Submitted Data Entry", {
-      name: formData.name,
-      company: formData.company,
-      phone: formData.phone,
-      email: formData.email,
-    });
+      await logActivity("Submitted Data Entry", {
+        name: formData.name,
+        company: formData.company,
+        phone: formData.phone,
+        email: formData.email,
+      });
 
-    setFormData({
-      name: "",
-      company: "",
-      email: "",
-      contact: "",
-      location: "",
-      state: "",
-      phone: "",
-      datatype: "",
-      category: "",
-      quantity: "",
-      requirements: "",
-      assignedTo: [],
-    });
-  } catch (error) {
-    console.error("Error submitting data:", error);
-    toast(
-      <CustomToast
-        type="error"
-        title="Submission Failed"
-        message={
-          error.response?.data?.error || "Submission failed. Please try again."
-        }
-      />
-    );
-  }
-};
+      setFormData({
+        name: "",
+        company: "",
+        email: "",
+        contact: "",
+        location: "",
+        state: "",
+        phone: "",
+        datatype: "",
+        category: "",
+        quantity: "",
+        requirements: "",
+        assignedTo: [],
+      });
+    } catch (error) {
+      toast(
+        <CustomToast
+          type="error"
+          title="Submission Failed"
+          message={error.response?.data?.error || "Submission failed. Please try again."}
+        />
+      );
+    }
+  };
 
   if (!isOpen) return null;
+
+  // ---------------------------------------------
+  // FIXED DROPDOWNS (clean values stored, emoji labels)
+  // ---------------------------------------------
+  const fixedDatatypeOptions = [
+    { value: "IndiaMart", label: "🌐 IndiaMart" },
+    { value: "Offline", label: "🏢 Offline" },
+    { value: "TradeIndia", label: "📊 TradeIndia" },
+    { value: "JustDial", label: "📞 JustDial" },
+    { value: "WebPortals", label: "🖥️ WebPortals" },
+    { value: "Other", label: "🔍 Other" },
+  ];
+
+  // Convert dropdownFields to value-label pairs
+  const normalizedDropdowns = {};
+  Object.entries(dropdownFields).forEach(([field, options]) => {
+    normalizedDropdowns[field] = options.map((opt) =>
+      typeof opt === "string"
+        ? { value: opt.replace(/^[^\w]+/, "").trim(), label: opt } // remove emoji if present
+        : opt
+    );
+  });
 
   return (
     <div className="fe-modal-overlay" onClick={onClose}>
@@ -187,7 +227,9 @@ const FormModal = ({
           <button className="fe-modal-close" onClick={onClose}>✖</button>
         </div>
 
-        <form className="fe-modal-body" >
+        <form className="fe-modal-body">
+
+          {/* Basic Inputs */}
           {[
             { label: "Name", name: "name" },
             { label: "Company", name: "company" },
@@ -198,53 +240,99 @@ const FormModal = ({
           ].map(({ label, name, type = "text" }) => (
             <div className="fe-input-group" key={name}>
               <label>{label}</label>
-              <input type={type} name={name} value={formData[name]} onChange={handleChange} />
+              <input
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+              />
             </div>
           ))}
 
+          {/* Datatype Dropdown */}
           <div className="fe-input-group">
             <label>Datatype</label>
             <select name="datatype" value={formData.datatype} onChange={handleChange}>
-              <option value="" disabled>Select Datatype</option>
-              {["🌐 IndiaMart","🏢 Offline","📊 TradeIndia","📞 JustDial","🖥️ WebPortals","🔍 Other"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              <option value="">Select Datatype</option>
+              {fixedDatatypeOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
           </div>
 
+          {/* Assigned To */}
           <div className="fe-input-group">
             <label>Assigned To</label>
-            <select value={formData.assignedTo?.[0]?.user?._id || ""} disabled={userRole !== "admin"} onChange={(e) => {
-              const selectedUser = users.find(u => u._id === e.target.value);
-              setField("assignedTo", selectedUser ? [{ user: { _id: selectedUser._id, name: selectedUser.name }, permissions: { view: true, update: false, delete: false } }] : []);
-            }}>
+            <select
+              value={formData.assignedTo?.[0]?.user?._id || ""}
+              disabled={userRole !== "admin"}
+              onChange={(e) => {
+                const selected = users.find(u => u._id === e.target.value);
+                setField(
+                  "assignedTo",
+                  selected
+                    ? [{ user: { _id: selected._id, name: selected.name }, permissions: { view: true, update: false, delete: false } }]
+                    : []
+                );
+              }}
+            >
               <option value="">Select User</option>
-              {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+              {users.map(u => (
+                <option key={u._id} value={u._id}>
+                  {u.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          {Object.entries(dropdownFields).map(([field, options]) => (
+          {/* Dynamic Dropdowns (callStatus, status, etc.) */}
+          {Object.entries(normalizedDropdowns).map(([field, options]) => (
             <div className="fe-input-group" key={field}>
               <label>{field.replace(/([A-Z])/g, ' $1').replace(/\b\w/g, l => l.toUpperCase())}</label>
-              <select value={formData[field] || ""} onChange={e => setField(field, e.target.value)}>
+              <select
+                value={formData[field] || ""}
+                onChange={(e) => setField(field, e.target.value)}
+              >
                 <option value="">Select {field}</option>
-                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                {options.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           ))}
 
+          {/* Category */}
           <div className="fe-input-group">
             <label>Category</label>
             <select name="category" value={formData.category} onChange={handleChange}>
               <option value="">Select Category</option>
-              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
 
+          {/* Contact */}
           <div className="fe-input-group">
             <label>Contact</label>
-            <input type="tel" name="contact" value={formData.contact} onChange={(e) => { handleChange(e); contactChange(e); }} pattern="^[0-9]{10}$" title="10-digit number" />
+            <input
+              type="tel"
+              name="contact"
+              value={formData.contact}
+              onChange={(e) => { handleChange(e); contactChange(e); }}
+            />
             {contactError && (
               <>
-                <div className="fe-error">{contactError} <button type="button" className="fe-toggle-btn" onClick={() => setShowContactDetails(!showContactDetails)}>{showContactDetails ? "Hide" : "Show"} Details</button></div>
+                <div className="fe-error">
+                  {contactError}
+                  <button type="button" className="fe-toggle-btn"
+                    onClick={() => setShowContactDetails(!showContactDetails)}>
+                    {showContactDetails ? "Hide" : "Show"} Details
+                  </button>
+                </div>
+
                 {showContactDetails && existingContactUser && (
                   <div className="fe-duplicate-details">
                     <p><strong>Name:</strong> {existingContactUser.name}</p>
@@ -257,12 +345,28 @@ const FormModal = ({
             )}
           </div>
 
+          {/* Phone */}
           <div className="fe-input-group">
             <label>Phone</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={(e) => { handleChange(e); phoneChange(e); }} pattern="^[6-9][0-9]{9}$" title="10-digit starting with 6-9" required />
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={(e) => { handleChange(e); phoneChange(e); }}
+              pattern="^[6-9][0-9]{9}$"
+              required
+            />
+
             {phoneError && (
               <>
-                <div className="fe-error">{phoneError} <button type="button" className="fe-toggle-btn" onClick={() => setShowPhoneDetails(!showPhoneDetails)}>{showPhoneDetails ? "Hide" : "Show"} Details</button></div>
+                <div className="fe-error">
+                  {phoneError}
+                  <button type="button" className="fe-toggle-btn"
+                    onClick={() => setShowPhoneDetails(!showPhoneDetails)}>
+                    {showPhoneDetails ? "Hide" : "Show"} Details
+                  </button>
+                </div>
+
                 {showPhoneDetails && existingPhoneUser && (
                   <div className="fe-duplicate-details">
                     <p><strong>Name:</strong> {existingPhoneUser.name}</p>
@@ -275,27 +379,39 @@ const FormModal = ({
             )}
           </div>
 
+          {/* Requirements */}
           <div className="fe-input-group">
             <label>Requirements</label>
             <textarea name="requirements" value={formData.requirements} onChange={handleChange} />
           </div>
 
-          
-        </form><div className="fe-footer-buttons">
-            <button type="button" className="fe-btn-upload" onClick={() => setShowCsvModal(true)}>Upload CSV</button>
-            <div className="fe-action-buttons">
-              <button type="submit" className="fe-btn-submit" onClick={handleSubmit}>Submit</button>
-              <button type="button" className="fe-btn-close" onClick={onClose}>Close</button>
-            </div>
+        </form>
+
+        {/* Footer */}
+        <div className="fe-footer-buttons">
+          <button type="button" className="fe-btn-upload" onClick={() => setShowCsvModal(true)}>
+            Upload CSV
+          </button>
+
+          <div className="fe-action-buttons">
+            <button type="submit" className="fe-btn-submit" onClick={handleSubmit}>
+              Submit
+            </button>
+            <button type="button" className="fe-btn-close" onClick={onClose}>
+              Close
+            </button>
           </div>
+        </div>
 
         {showCsvModal && <CsvUploadModal onClose={() => setShowCsvModal(false)} />}
+
       </div>
     </div>
   );
 };
 
 export default FormModal;
+
 
 const css = `
 .fe-modal-overlay {

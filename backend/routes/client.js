@@ -218,7 +218,9 @@ router.post("/save-all-updates", async (req, res) => {
           ...(cleanDatatype !== undefined && { datatype: cleanDatatype }),
           ...(cleanCallStatus !== undefined && { callStatus: cleanCallStatus }),
           ...(cleanStatus !== undefined && { status: cleanStatus }),
-          ...(inquiryDate !== undefined && { inquiryDate }),
+          ...(inquiryDate !== undefined && inquiryDate !== "" && {
+            inquiryDate: new Date(inquiryDate)
+          }),
           ...(address !== undefined && { address }),
           assignedTo: assignedToTransformed,
           additionalContacts: Array.isArray(additionalContacts)

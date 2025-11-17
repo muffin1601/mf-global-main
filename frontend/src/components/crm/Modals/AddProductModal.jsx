@@ -14,6 +14,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     p_type: '',
     p_color: '',
     HSN_code: '',
+    dimension: '',
     cat_id: '',
     p_description: '',
     p_price: {
@@ -52,6 +53,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // nested p_price fields
     if (name in formData.p_price) {
       setFormData((prev) => ({
         ...prev,
@@ -92,6 +94,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       fd.append("p_type", formData.p_type);
       fd.append("p_color", formData.p_color);
       fd.append("HSN_code", formData.HSN_code);
+      fd.append("dimension", formData.dimension);        // ⭐ NEW FIELD SENT ⭐
       fd.append("cat_id", formData.cat_id);
       fd.append("p_description", formData.p_description);
       fd.append("p_price", JSON.stringify(formData.p_price));
@@ -154,13 +157,13 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                     src={previewImage}
                     alt="Preview"
                     style={{
-                    width: "auto",
-                    height: "auto",
-                    maxWidth: "160px",
-                    maxHeight: "160px",
-                    borderRadius: "10px",
-                    objectFit: "contain",
-                  }}
+                      width: "auto",
+                      height: "auto",
+                      maxWidth: "160px",
+                      maxHeight: "160px",
+                      borderRadius: "10px",
+                      objectFit: "contain",
+                    }}
                   />
                   <button
                     type="button"
@@ -186,12 +189,13 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             {/* Main Inputs */}
-            {[
+            {[ 
               { label: 'Style Code', name: 's_code', required: true },
               { label: 'Product Name', name: 'p_name', required: true },
               { label: 'Material Type', name: 'p_type' },
               { label: 'Color', name: 'p_color' },
               { label: 'HSN Code', name: 'HSN_code' },
+              { label: 'Dimensions', name: 'dimension' },   // ⭐ NEW FIELD ⭐
             ].map(({ label, name, required }) => (
               <div className="fe-input-group" key={name}>
                 <label>{label}</label>
@@ -274,7 +278,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 name="net_amount"
                 value={Math.round(formData.p_price.net_amount || 0)}
                 readOnly
-                // style={{ backgroundColor: '#f5f5f5' }}
               />
             </div>
           </div>

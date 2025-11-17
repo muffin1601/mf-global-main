@@ -36,6 +36,7 @@ router.post("/add-product", upload.single("p_image"), async (req, res) => {
       p_type,
       p_color,
       HSN_code,
+      dimension,          
       p_price,
     } = req.body;
 
@@ -55,6 +56,7 @@ router.post("/add-product", upload.single("p_image"), async (req, res) => {
       p_type,
       p_color,
       HSN_code,
+      dimension,          
       p_price: priceObj,
       p_image: req.file ? `/uploads/products/${req.file.filename}` : null,
     });
@@ -104,6 +106,7 @@ router.get('/products/search', async (req, res) => {
         { s_code: { $regex: searchTerm, $options: "i" } },
         { p_type: { $regex: searchTerm, $options: "i" } },
         { p_color: { $regex: searchTerm, $options: "i" } },
+        { dimension: { $regex: searchTerm, $options: "i" } },     // ⭐ NEW FIELD SEARCH
         { GST_rate: !isNaN(Number(searchTerm)) ? Number(searchTerm) : -1 }
       ]
     };
@@ -121,7 +124,17 @@ router.get('/products/search', async (req, res) => {
 /* ---------------------- UPDATE PRODUCT + IMAGE ---------------------- */
 router.post('/products/update', upload.single("p_image"), async (req, res) => {
   try {
-    const { _id, p_name, p_type, p_color, HSN_code, cat_id, p_description, p_price } = req.body;
+    const {
+      _id,
+      p_name,
+      p_type,
+      p_color,
+      HSN_code,
+      dimension,       
+      cat_id,
+      p_description,
+      p_price
+    } = req.body;
 
     if (!_id)
       return res.status(400).json({ message: "Product ID is required." });
@@ -150,6 +163,7 @@ router.post('/products/update', upload.single("p_image"), async (req, res) => {
         p_type,
         p_color,
         HSN_code,
+        dimension,        
         cat_id,
         p_description,
         p_image: imagePath,

@@ -58,6 +58,7 @@ const ConvertedLeadsTable = () => {
       case 'New Lead': return 'status-new';
       case 'Lost Lead': return 'status-lost';
       case 'In Progress': return 'status-in-progress';
+      case 'Followed Up': return 'status-contacted';
       default: return 'status-other';
     }
   };

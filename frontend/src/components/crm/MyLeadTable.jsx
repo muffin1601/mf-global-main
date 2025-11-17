@@ -89,6 +89,7 @@ const totalPages = Math.ceil(totalLeads / leadsPerPage);
       case 'New Lead': return 'status-new';
       case 'Lost Lead': return 'status-lost';
       case 'In Progress': return 'status-in-progress';
+      case 'Followed Up': return 'status-contacted';
       default: return 'status-other';
     }
   };
@@ -184,6 +185,7 @@ const downloadCSVReport = async (leads) => {
 };
 
   return (
+    <>
     <div className="lead-card">
       <div className="lead-header">
         <h5>My Leads Report</h5>
@@ -327,6 +329,9 @@ const downloadCSVReport = async (leads) => {
         />
       )}
     </div>
+    {showProductModal && (
+        <SearchProductModal isOpen={showProductModal} onClose={() => setShowProductModal(false)} />
+      )}</>
   );
 };
 

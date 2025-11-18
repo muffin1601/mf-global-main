@@ -60,9 +60,7 @@ export const generateQuotationPDF = async (quotation) => {
   const sgst = isSplit ? +(totalGst / 2).toFixed(2) : 0;
   const igst = isSplit ? 0 : totalGst;
 
-  /* -----------------------------------------------
-     FIX 1: SAFE WRAPPER (prevents 0×0 height bug)
-     ----------------------------------------------- */
+
   const wrapper = document.createElement("div");
   wrapper.className = "mfq-pdf-wrapper-safe";
 

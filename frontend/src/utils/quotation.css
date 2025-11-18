@@ -24,17 +24,23 @@
   z-index: -1;
 }
 
-/* Main page container */
+/* Main page container — FIXED */
 .mfq-pdf {
-  width: var(--page-width);
-  min-height: var(--page-height);
+  width: 750px;             /* exact A4 width for html2pdf */
+  height: 1000px;           /* exact A4 height */
   background: #ffffff;
-  padding: 20mm;
+  padding: 40px 50px;       /* balanced padding in PX */
+  box-sizing: border-box;
   font-family: "Outfit", sans-serif;
   color: var(--text);
   font-size: 12px;
+  overflow: hidden;
 }
 
+
+.mfq-pdf * {
+  page-break-inside: avoid !important;
+}
 /* ---------------------------------------------
    HEADER
 ----------------------------------------------*/
@@ -165,6 +171,7 @@
 
 .mfq-items-table td {
   padding: 8px 6px;
+  font-weight: 500;
   border-bottom: 1px solid #f0f0f0;
   text-align: left !important;   /* <<< FIX: All td left aligned */
 }
@@ -230,6 +237,7 @@
 ----------------------------------------------*/
 
 .mfq-footer {
+  width: 100%;
   margin-top: 25px;
   display: flex;
   justify-content: space-between;
@@ -237,7 +245,7 @@
 }
 
 .mfq-footer > div {
-  width: 48%;
+  
   font-size: 12px;
   color: var(--muted);
 }

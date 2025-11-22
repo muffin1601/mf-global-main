@@ -51,12 +51,13 @@ const getPaginatedLeads = () => {
 
 const getStatusClass = (status) => {
   switch (status) {
-    case 'Won Lead': return 'status-won';
-    case 'New Lead': return 'status-new';
-    case 'Lost Lead': return 'status-lost';
-    case 'In Progress': return 'status-in-progress';
-    default: return 'status-other';
-  }
+      case 'Won Lead': return 'status-won';
+      case 'New Lead': return 'status-new';
+      case 'Lost Lead': return 'status-lost';
+      case 'In Progress': return 'status-in-progress';
+      case 'Followed Up': return 'status-contacted';
+      default: return 'status-other';
+    }
 };
 
 const handleDeleteLead = async () => {

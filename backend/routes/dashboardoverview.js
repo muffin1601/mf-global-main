@@ -58,7 +58,7 @@ router.get("/user-stats/:username", async (req, res) => {
       Client.countDocuments({ "assignedTo.user.name": username, status: "Won Lead" }),
       Client.countDocuments({ "assignedTo.user.name": username, followUpDate: { $gte: today, $lt: tomorrow } }),
       Client.countDocuments({ "assignedTo.user.name": username, followUpDate: { $gte: tomorrow } }),
-      Client.countDocuments({ "assignedTo.user.name": username, trending: true })
+      Client.countDocuments({ "assignedTo.user.name": username, status: "In Progress" })
     ]);
 
     const conversionRate = myLeadsCount > 0

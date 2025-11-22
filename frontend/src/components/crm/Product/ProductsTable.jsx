@@ -101,11 +101,12 @@ const handleDeleteProduct = async () => {
           <thead>
             <tr>
               <th>S.NO</th>
-              <th>Product Code</th>
+              <th>Item Code</th>
+              <th>Style Code</th>
               <th>Name</th>
               <th>Type</th>
               <th>Color</th>
-              <th>Description</th>
+              {/* <th>Description</th> */}
               
               <th>Action</th>
             </tr>
@@ -115,10 +116,11 @@ const handleDeleteProduct = async () => {
               <tr key={product._id}>
                 <td>{(currentPage - 1) * productsPerPage + index + 1}</td>
                 <td>{product.p_code}</td>
+                <td>{product.s_code}</td>
                 <td>{product.p_name}</td>
                 <td>{product.p_type}</td>
                 <td>{product.p_color}</td>
-                <td>{product.p_description}</td>
+                {/* <td>{product.p_description}</td> */}
                 
                 <td>
                   <div className="lead-actions">

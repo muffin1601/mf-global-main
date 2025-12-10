@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+
+
 const priceSchema = new mongoose.Schema({
   price_code: { type: String, unique: true },
   purchase_price: Number,
@@ -23,11 +25,15 @@ const productSchema = new mongoose.Schema({
   HSN_code: String,
   GST_rate: Number,
   p_price: priceSchema,
-
-
   dimension: {
     type: String,
     default: "",   
+  },
+  origin: {
+    source: { type: String, enum: ["printkee", "coachingpromo", "crm"], default: "crm" },
+    categoryId: String,
+    subcategoryId: String,
+    productId: String,
   },
 
 }, { timestamps: true });

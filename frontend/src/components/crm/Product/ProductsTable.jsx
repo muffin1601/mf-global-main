@@ -87,7 +87,6 @@ const handleDeleteProduct = async () => {
 };
 
   return (
-    <>
     <div className="lead-card">
       <div className="lead-header">
         <h5>All Products</h5>
@@ -161,15 +160,8 @@ const handleDeleteProduct = async () => {
           </li>
         </ul>
       </div>
-      {productToDelete && (
-        <ConfirmModal
-          message={`Are you sure you want to delete ${productToDelete.p_name}?`}
-          onCancel={() => setProductToDelete(null)}
-          onConfirm={handleDeleteProduct}
-        />
-      )}
-    </div>
-    {showFormModal && (
+
+      {showFormModal && (
         <AddProductModal isOpen={showFormModal} onClose={() => { setShowFormModal(false); fetchProducts(); }} />
       )}
       {showCatModal && (
@@ -182,7 +174,15 @@ const handleDeleteProduct = async () => {
           onSave={fetchProducts}
           // userRole={user.role}
         />
-      )}</>
+      )}
+      {productToDelete && (
+        <ConfirmModal
+          message={`Are you sure you want to delete ${productToDelete.p_name}?`}
+          onCancel={() => setProductToDelete(null)}
+          onConfirm={handleDeleteProduct}
+        />
+      )}
+    </div>
   );
 };
 

@@ -17,7 +17,7 @@ router.get("/clients/assigned/:userId", async (req, res) => {
       });
 
     const clients = permissions
-      .filter(p => p.clientId) 
+      .filter(p => p.clientId) // Skip if clientId wasn't found
       .map(p => ({
         ...p.clientId,
         permission: p.permission

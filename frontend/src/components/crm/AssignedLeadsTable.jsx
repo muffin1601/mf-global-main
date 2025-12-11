@@ -245,7 +245,6 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
 
 
   return (
-    <>
     <div className="lead-card">
       <div className="lead-header">
         <h5>Assigned Leads Report</h5>
@@ -340,9 +339,7 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
           </li>
         </ul>
       </div>
-      
-    </div>
-    {selectedLead && (
+      {selectedLead && (
         <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
       )}
       {editLead && (
@@ -390,7 +387,7 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
           onConfirm={() => {downloadCSVReport(leads); setLeadsforDownload(false); }}  // <-- Fix here
         />
       )}
-    </>
+    </div>
   );
 };
 

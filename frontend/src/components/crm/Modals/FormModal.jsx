@@ -65,7 +65,7 @@ const FormModal = ({
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
 
-      // ⭐ Auto-fill category from company history
+      //  Auto-fill category from company history
       if (name === "company") {
         const history = JSON.parse(localStorage.getItem("companyHistory") || "{}");
         if (history[value]) {

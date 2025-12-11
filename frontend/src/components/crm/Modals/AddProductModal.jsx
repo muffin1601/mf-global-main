@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 import CustomToast from '../CustomToast';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryNames, setCategoryNames] = useState([]);
-  const [printkeeCats, setPrintkeeCats] = useState([]);
-
-  const [subcategories, setSubcategories] = useState([]);
-
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-
-  const [origin, setOrigin] = useState({
-    source: "crm",
-    categoryId: "",
-    subcategoryId: ""
-  });
 
   const [formData, setFormData] = useState({
     s_code: '',
@@ -35,50 +25,51 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     },
   });
 
-  /* --------------------------------------------------
-      LOAD CRM CATEGORIES & PRINTKEE STRUCTURE
-  -------------------------------------------------- */
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`)
-      .then(res => setCategoryNames(res.data.cat_names));
-
-    axios.get(`${import.meta.env.VITE_API_URL}/origin/printkee-categories`)
-      .then(res => setPrintkeeCats(res.data));
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/products/meta`)
+      .then((res) => setCategoryNames(res.data.cat_names))
+      .catch((err) => console.error('Failed to fetch categories:', err));
   }, []);
 
-  /* --------------------------------------------------
-      UPDATE SUBCATEGORY ON CATEGORY CHANGE
-  -------------------------------------------------- */
   useEffect(() => {
-    if (!origin.categoryId) {
-      setSubcategories([]);
-      return;
+    const { basic_amount, GST_rate } = formData.p_price;
+
+    if (basic_amount && GST_rate) {
+      const basic = parseFloat(basic_amount);
+      const gst = parseFloat(GST_rate);
+      const net = basic + (basic * gst) / 100;
+
+      setFormData((prev) => ({
+        ...prev,
+        p_price: {
+          ...prev.p_price,
+          net_amount: net.toFixed(2),
+        },
+      }));
     }
+  }, [formData.p_price.basic_amount, formData.p_price.GST_rate]);
 
-    const category = printkeeCats.find(c => c._id === origin.categoryId);
-    setSubcategories(category?.subcategories || []);
-
-  }, [origin.categoryId, printkeeCats]);
-
-  /* --------------------------------------------------
-      HANDLE INPUT CHANGES
-  -------------------------------------------------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // nested p_price fields
     if (name in formData.p_price) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        p_price: { ...prev.p_price, [name]: value }
+        p_price: {
+          ...prev.p_price,
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
-  /* --------------------------------------------------
-      IMAGE UPLOAD
-  -------------------------------------------------- */
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -87,39 +78,59 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     setPreviewImage(URL.createObjectURL(file));
   };
 
-  /* --------------------------------------------------
-      SUBMIT PRODUCT
-  -------------------------------------------------- */
+  const removeImage = () => {
+    setSelectedImage(null);
+    setPreviewImage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const fd = new FormData();
 
-      Object.keys(formData).forEach(key => {
-        if (key !== "p_price") fd.append(key, formData[key]);
-      });
-
+      fd.append("s_code", formData.s_code);
+      fd.append("p_name", formData.p_name);
+      fd.append("p_type", formData.p_type);
+      fd.append("p_color", formData.p_color);
+      fd.append("HSN_code", formData.HSN_code);
+      fd.append("dimension", formData.dimension);        // ⭐ NEW FIELD SENT ⭐
+      fd.append("cat_id", formData.cat_id);
+      fd.append("p_description", formData.p_description);
       fd.append("p_price", JSON.stringify(formData.p_price));
-      fd.append("origin", JSON.stringify(origin));
 
-      if (selectedImage) fd.append("p_image", selectedImage);
+      if (selectedImage) {
+        fd.append("p_image", selectedImage);
+      }
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
         method: "POST",
-        body: fd
+        body: fd,
       });
 
-      if (!res.ok) throw new Error("Failed to add product");
+      if (!response.ok) throw new Error("Failed to add product");
 
-      const result = await res.json();
+      const result = await response.json();
 
-      toast(<CustomToast type="success" title="Product Added" />);
-      onSubmit?.(result);
+      toast(
+        <CustomToast
+          type="success"
+          title="Product Added"
+          message={`Product "${formData.p_name}" added successfully!`}
+        />
+      );
+
+      if (onSubmit) onSubmit(result);
       onClose();
 
-    } catch (err) {
-      toast(<CustomToast type="error" title="Failed" message={err.message} />);
+    } catch (error) {
+      toast(
+        <CustomToast
+          type="error"
+          title="Add Product Failed"
+          message={error.message}
+        />
+      );
     }
   };
 
@@ -128,74 +139,147 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   return (
     <div className="fe-modal-overlay" onClick={onClose}>
       <div className="fe-modal-container" onClick={(e) => e.stopPropagation()}>
-
         <div className="fe-modal-header">
-          <h3 className="fe-modal-title">Add Product</h3>
+          <h3 className="fe-modal-title">Add New Product</h3>
           <button className="fe-modal-close" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-
           <div className="fe-modal-body">
 
-            {/* Origin Selector */}
+            {/* Image Upload */}
             <div className="fe-input-group" style={{ gridColumn: "span 2" }}>
-              <label>Source Database</label>
+              <label>Product Image</label>
+
+              {previewImage ? (
+                <div style={{ textAlign: "left" }}>
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    style={{
+                      width: "auto",
+                      height: "auto",
+                      maxWidth: "160px",
+                      maxHeight: "160px",
+                      borderRadius: "10px",
+                      objectFit: "contain",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    style={{
+                      display: "block",
+                      marginTop: "8px",
+                      background: "#d32f2f",
+                      color: "#fff",
+                      padding: "0.4rem 0.8rem",
+                      borderRadius: "8px",
+                      fontFamily:"'Outfit', sans-serif",
+                      border: "none",
+                      cursor: "pointer"
+                    }}
+                    onClick={removeImage}
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              ) : (
+                <input type="file" accept="image/*" onChange={handleImageUpload} />
+              )}
+            </div>
+
+            {/* Main Inputs */}
+            {[ 
+              { label: 'Style Code', name: 's_code', required: true },
+              { label: 'Product Name', name: 'p_name', required: true },
+              { label: 'Material Type', name: 'p_type' },
+              { label: 'Color', name: 'p_color' },
+              { label: 'HSN Code', name: 'HSN_code' },
+              { label: 'Dimensions', name: 'dimension' },   // ⭐ NEW FIELD ⭐
+            ].map(({ label, name, required }) => (
+              <div className="fe-input-group" key={name}>
+                <label>{label}</label>
+                <input
+                  type="text"
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  required={required}
+                />
+              </div>
+            ))}
+
+            <div className="fe-input-group">
+              <label>Category</label>
               <select
-                value={origin.source}
-                onChange={(e) => setOrigin({ source: e.target.value })}
+                name="cat_id"
+                value={formData.cat_id}
+                onChange={handleChange}
+                required
               >
-                <option value="crm">CRM Only</option>
-                <option value="printkee">Printkee</option>
-                <option value="coachingpromo">CoachingPromo</option>
+                <option value="">Select Category</option>
+                {categoryNames.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* If Printkee → Show Category & Subcategory */}
-            {origin.source === "printkee" && (
-              <>
-                <div className="fe-input-group">
-                  <label>Select Printkee Category</label>
-                  <select
-                    value={origin.categoryId}
-                    onChange={(e) =>
-                      setOrigin(prev => ({
-                        ...prev,
-                        categoryId: e.target.value,
-                        subcategoryId: ""
-                      }))
-                    }
-                  >
-                    <option value="">Select Category</option>
-                    {printkeeCats.map(cat => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
+            <div className="fe-input-group" style={{ gridColumn: "span 2" }}>
+              <label>Description</label>
+              <textarea
+                name="p_description"
+                value={formData.p_description}
+                onChange={handleChange}
+              />
+            </div>
 
-                <div className="fe-input-group">
-                  <label>Select Subcategory</label>
-                  <select
-                    value={origin.subcategoryId}
-                    onChange={(e) =>
-                      setOrigin(prev => ({
-                        ...prev,
-                        subcategoryId: e.target.value
-                      }))
-                    }
-                  >
-                    <option value="">Select Subcategory</option>
-                    {subcategories.map(sub => (
-                      <option key={sub._id} value={sub._id}>{sub.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
+            {/* Pricing */}
+            <div className="fe-input-group">
+              <label>Purchase Amount</label>
+              <input
+                type="number"
+                name="purchase_price"
+                value={formData.p_price.purchase_price}
+                onChange={handleChange}
+              />
+            </div>
 
-            {/* Rest of your existing form (image, name, price, etc.) */}
-            {/* --- DO NOT REMOVE ANYTHING --- */}
+            <div className="fe-input-group">
+              <label>Basic Amount</label>
+              <input
+                type="number"
+                name="basic_amount"
+                value={formData.p_price.basic_amount}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
+            <div className="fe-input-group">
+              <label>GST Rate (%)</label>
+              <select
+                name="GST_rate"
+                value={formData.p_price.GST_rate}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select GST</option>
+                <option value="5">5%</option>
+                <option value="18">18%</option>
+              </select>
+            </div>
+
+            <div className="fe-input-group">
+              <label>Net Amount</label>
+              <input
+                type="number"
+                name="net_amount"
+                value={Math.round(formData.p_price.net_amount || 0)}
+                readOnly
+              />
+            </div>
           </div>
 
           <div className="fe-footer-buttons fe-action-buttons">
@@ -206,7 +290,6 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
               Save Product
             </button>
           </div>
-
         </form>
 
       </div>

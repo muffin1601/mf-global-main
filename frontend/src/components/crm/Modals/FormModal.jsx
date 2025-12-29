@@ -204,7 +204,7 @@ const FormModal = ({
     { value: "IndiaMart", label: "🌐 IndiaMart" },
     { value: "Offline", label: "🏢 Offline" },
     { value: "TradeIndia", label: "📊 TradeIndia" },
-    { value: "JustDial", label: "📞 JustDial" },
+    { value: "Exhibition", label: "📞 Exhibition" },
     { value: "WebPortals", label: "🖥️ WebPortals" },
     { value: "Other", label: "🔍 Other" },
   ];

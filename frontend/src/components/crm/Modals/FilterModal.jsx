@@ -31,7 +31,7 @@ const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
       "🌐 IndiaMart",
       "🏢 Offline",
       "📊 TradeIndia",
-      "📞 JustDial",
+      "📞 Exhibition",
       "🖥️ WebPortals",
       "🔍 Other",
     ],

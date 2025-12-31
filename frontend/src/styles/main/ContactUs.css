@@ -4,10 +4,10 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 40px;
-  padding: 100px 150px;
+  padding: 130px 150px;
   background: url('https://images.pexels.com/photos/31954128/pexels-photo-31954128.jpeg') no-repeat center center;
   background-size: cover;
-  height: 100vh;
+  height: 100%;
   color: #333;
   font-family: 'Poppins', sans-serif;
   position: relative;

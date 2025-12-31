@@ -1,6 +1,4 @@
-/* ---------------------------------------------
-   Premium Clean Quotation PDF Styles
-----------------------------------------------*/
+
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -239,23 +237,75 @@
 .mfq-footer {
   width: 100%;
   margin-top: 25px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-}
+  align-items: flex-end;
+  gap: 20px;
 
-.mfq-footer > div {
-  
   font-size: 12px;
   color: var(--muted);
 }
 
+/* Left block — Bank + QR */
+.mfq-footer > div:first-child {
+  max-width: 60%;
+  line-height: 1.6;
+}
+
+/* Right block — Signature */
+.mfq-footer > div:last-child {
+  text-align: right;
+  min-width: 180px;
+}
+
+/* Signature line */
 .mfq-sign-line {
   width: 140px;
   height: 1px;
   background: #000;
-  margin: 8px 0;
+  margin: 8px 0 6px auto;
 }
+
+/* Bank details text */
+.mfq-footer h4 {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #000;
+}
+
+.mfq-footer p {
+  margin: 2px 0;
+}
+
+/* QR Section */
+.mfq-qr-section {
+  margin-top: 10px;
+}
+
+.mfq-qr-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #000;
+}
+
+.mfq-qr-image {
+  width: 110px;
+  height: auto;
+  display: block;
+  border: 1px solid #ccc;
+  padding: 6px;
+  background: #fff;
+}
+
+.mfq-qr-upi {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #444;
+}
+
 
 /* PDF print optimization */
 @page {

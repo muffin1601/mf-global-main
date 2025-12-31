@@ -1,6 +1,6 @@
 .footer {
   position: relative;
-  background: url('https://images.pexels.com/photos/30772815/pexels-photo-30772815.jpeg') center/cover no-repeat;
+  background: url('/assets/main/imtg-foot.png') center/cover no-repeat;
   color: #fff;
   padding: 60px  120px;
   font-family: 'Poppins', sans-serif;
@@ -16,7 +16,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7); /* Black transparent overlay */
+  background: rgba(0, 0, 0, 0.8); /* Black transparent overlay */
   z-index: 1;
 }
 

@@ -65,7 +65,7 @@ const Testimonials = () => {
               <div className="testimonial-card">
                 <p className="testimonial-quote">“{item.quote}”</p>
                 {/* <img className="testimonial-img" src={item.image} alt={item.name} /> */}
-                <p className="testimonial-author">— {item.name}, <span>{item.position}</span></p>
+                <p className="testimonial-author">— {item.name}</p>
               </div>
             </SwiperSlide>
           ))}

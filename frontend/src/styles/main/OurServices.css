@@ -1,11 +1,9 @@
-
 .services-section {
   background: #f9f9f9;
   padding: 60px 40px;
   color: #333;
   text-align: center;
 }
-
 
 .services-heading {
   font-size: 2.5rem;
@@ -14,14 +12,13 @@
   color: #222;
 }
 
-
 .services-quote {
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 50px;
 }
 
-
+/* Grid */
 .services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -33,45 +30,50 @@
 /* Card */
 .service-card {
   background: #ffffff;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e2e2;
   border-radius: 16px;
   overflow: hidden;
+ 
   display: flex;
   flex-direction: column;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  height: 500px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  min-height: 500px;
 }
 
 .service-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
 }
 
-
+/* Image */
 .service-image {
   width: 100%;
-  height: 60%;
+  height: 260px;
   object-fit: cover;
+ 
 }
 
-
+/* Content */
 .service-content {
-  padding: 20px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   flex-grow: 1;
 }
 
+/* Tag */
 .service-tag {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #c52d12;
-  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
+/* Title */
 .service-title {
   font-size: 1.3rem;
   font-weight: 700;
@@ -79,32 +81,34 @@
   color: #222;
 }
 
+/* Description */
 .service-description {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #555;
+  line-height: 1.6;
   margin-bottom: 20px;
   flex-grow: 1;
 }
 
 /* Button */
 .explore-button {
-  background-color: #8B0000;
-  color: white;
+  background-color: #8b0000;
+  color: #ffffff;
   border: none;
   padding: 10px 18px;
   border-radius: 16px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   transition: all 0.3s ease;
   width: fit-content;
   align-self: center;
 }
 
 .explore-button:hover {
-  transform: scale(1.05);
   background-color: #b1270f;
-  box-shadow: 0 6px 15px #e7d1cd;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(139, 0, 0, 0.25);
 }
 
 .arrow {
@@ -112,7 +116,7 @@
   font-weight: bold;
 }
 
-
+/* Tablets */
 @media (max-width: 1024px) {
   .services-section {
     padding: 50px 30px;
@@ -130,19 +134,12 @@
     gap: 30px;
   }
 
-  .service-title {
-    font-size: 1.2rem;
-  }
-
-  .service-description {
-    font-size: 0.95rem;
-  }
-
-  .explore-button {
-    font-size: 0.9rem;
+  .service-card {
+    height: 480px;
   }
 }
 
+/* Mobile */
 @media (max-width: 768px) {
   .services-section {
     padding: 40px 20px;
@@ -154,43 +151,44 @@
 
   .services-quote {
     font-size: 1rem;
+    margin-bottom: 35px;
   }
 
   .services-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 22px;
   }
 
   .service-card {
     height: auto;
   }
 
+  .service-image {
+    height: 240px;
+  }
+
   .service-title {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .service-description {
     font-size: 0.9rem;
   }
-
-  .explore-button {
-    font-size: 0.85rem;
-    padding: 8px 16px;
-  }
 }
 
+/* Small phones */
 @media (max-width: 480px) {
   .services-heading {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
   }
 
   .services-quote {
     font-size: 0.9rem;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
   }
 
   .service-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .service-description {
@@ -199,6 +197,6 @@
 
   .explore-button {
     font-size: 0.8rem;
-    padding: 6px 12px;
+    padding: 8px 14px;
   }
 }

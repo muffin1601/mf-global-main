@@ -1,6 +1,7 @@
 import html2pdf from "html2pdf.js";
 import "./quotation.css";
 import logoDataUrl from "/assets/crm/logo.webp";
+import qrCodeDataUrl from "/QR.png";
 
 export const generateQuotationPDF = async (quotation) => {
   if (!quotation) return;
@@ -184,20 +185,33 @@ export const generateQuotationPDF = async (quotation) => {
         </section>
 
         <footer class="mfq-footer">
-          <div>
-            <h4>Bank Details</h4>
-            <p><b>Bank:</b> ${bankDetails.bankName}</p>
-            <p><b>A/C:</b> ${bankDetails.accountNumber}</p>
-            <p><b>IFSC:</b> ${bankDetails.ifscCode}</p>
-          </div>
+  <div class="mfq-bank-block">
+    <h4>Bank Details</h4>
+    <p><b>Bank:</b> ${bankDetails.bankName}</p>
+    <p><b>A/C:</b> ${bankDetails.accountNumber}</p>
+    <p><b>IFSC:</b> ${bankDetails.ifscCode}</p>
 
-          <div>
-            <p>For MF GLOBAL SERVICES</p>
-            <div class="mfq-sign-line"></div>
-            <p>Authorized Signature</p>
-          </div>
-        </footer>
+    <!-- QR Code -->
+    <div class="mfq-qr-section">
+      <p class="mfq-qr-title">Payment QR Code</p>
+      <img
+        src="${qrCodeDataUrl}"
+        class="mfq-qr-image"
+        crossorigin="anonymous"
+        alt="UPI Payment QR"
+      />
+      <p class="mfq-qr-upi">
+        UPI ID: ${bankDetails.upiId || "8750708222-1@okbizaxis"}
+      </p>
+    </div>
+  </div>
 
+  <div>
+    <p>For MF GLOBAL SERVICES</p>
+    <div class="mfq-sign-line"></div>
+    <p>Authorized Signature</p>
+  </div>
+</footer>
       </div>
     </div>
   `;

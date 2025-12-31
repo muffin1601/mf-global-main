@@ -60,14 +60,23 @@ const ContactUs = () => {
             +91 9266 013059
           </a>
         </p>
+        <p className="contactus-detail">
+          <strong>☎️ Landline:</strong>{' '}
+          <a
+            href="tel:011-47563596"
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            011-47563596
+          </a>
+        </p>
 
         <p className="contactus-detail">
           <strong>✉️ Email:</strong>{' '}
           <a
-            href="mailto:sales@mfglobalservices.com"
+            href="mailto:business@mfglobalservices.com"
             style={{ color: 'inherit', textDecoration: 'none' }}
           >
-            sales@mfglobalservices.com
+            business@mfglobalservices.com
           </a>
         </p>
 
@@ -77,7 +86,7 @@ const ContactUs = () => {
         </p>
 
         <p className="contactus-detail">
-          <strong>🕘 Business Hours:</strong> Mon – Fri, 10:00 AM – 6:00 PM
+          <strong>🕘 Business Hours:</strong> Mon – Sat, 10:00 AM – 6:00 PM
         </p>
 
         <p className="contactus-tagline">

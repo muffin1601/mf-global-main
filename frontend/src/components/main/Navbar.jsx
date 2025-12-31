@@ -43,8 +43,8 @@ const Navbar = () => {
             <a href="#" className="nav-link">Our Products</a>
             <div className={`dropdown-menu ${dropdownOpen ? "show" : ""}`}>
               <a href="https://printkee.com/">Customize Gifting</a>
-              <a href="https://coachingpromo.in/">Institute Promotion</a>
-              <a href="https://printkee.com/">Corporate Gifting</a>
+              <a href="https://coachingpromo.in/">Edu print & Promo</a>
+              
             </div>
           </div>
           <a href="/blogs" className="nav-link">Blog</a>
@@ -55,9 +55,9 @@ const Navbar = () => {
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"><FaLinkedinIn className="social-icon" /></a>
           <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"><FaInstagram className="social-icon" /></a>
         </div>
-        <div className="navbar-visitor-count desktop-menu-1">
+        {/* <div className="navbar-visitor-count desktop-menu-1">
           Visitors Today: <span>{visitorCount}</span>
-        </div>
+        </div> */}
         <div className="hamburger-icon" onClick={toggleSidebar}>
           <FiMenu />
         </div>
@@ -85,7 +85,7 @@ const Navbar = () => {
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"><FaLinkedinIn className="social-icon" /></a>
           <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"><FaInstagram className="social-icon" /></a>
         </div>
-        <div className="sidebar-visitor-count">Visitors Today: <span>{visitorCount}</span></div>
+        {/* <div className="sidebar-visitor-count">Visitors Today: <span>{visitorCount}</span></div> */}
       </div>
       {sidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
     </>

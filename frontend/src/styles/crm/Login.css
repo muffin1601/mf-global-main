@@ -7,6 +7,7 @@
   align-items: center;
   font-family: 'Outfit', sans-serif;
   justify-content: center;
+  background: linear-gradient(135deg, #172033 0%, #31516f 48%, #7a5c41 100%);
 }
 
 .login-bg-video {
@@ -17,6 +18,11 @@
   width: 100%;
   object-fit: cover;
   z-index: -1;
+}
+
+.login-disabled-link {
+  cursor: default;
+  opacity: 0.8;
 }
 
 /* Fade-in-up animation */

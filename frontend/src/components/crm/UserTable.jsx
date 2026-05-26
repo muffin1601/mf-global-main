@@ -4,7 +4,6 @@ import RegisterUserModal from "./Modals/RegisterUserModal";
 import ChangePasswordModal from "./Modals/ChangePasswordModal";
 import ActivityLogModal from "./Modals/ActivityLogModal";
 import "../../styles/crm/UserTable.css";
-import { toast } from "react-toastify";
 
 const UserTable = () => {
     const [users, setUsers] = useState([]);

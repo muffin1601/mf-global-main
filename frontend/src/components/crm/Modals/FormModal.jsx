@@ -8,7 +8,6 @@ import CustomToast from '../CustomToast';
 const FormModal = ({
   isOpen,
   onClose,
-  editedLead = {},
   userRole = 'admin',
   dropdownFields = {}
 }) => {

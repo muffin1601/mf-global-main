@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const ActivityLog = require("../models/UserActivity"); 
 const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 const User = require("../models/User"); 
 const bcrypt = require("bcrypt");
 
-
-router.get("/activity/user", authenticate, async (req, res) => {
+router.get("/activity/user", authenticate, requireRole("admin"), async (req, res) => {
   const { query } = req.query;
 
   if (!query) {
@@ -28,7 +28,7 @@ router.get("/activity/user", authenticate, async (req, res) => {
   }
 });
 
-router.patch('/admin/toggle-user/:id/toggle', async (req, res) => {
+router.patch('/admin/toggle-user/:id/toggle', authenticate, requireRole("admin"), async (req, res) => {
   const user = await User.findById(req.params.id);
   user.enabled = !user.enabled;
   await user.save();
@@ -36,7 +36,7 @@ router.patch('/admin/toggle-user/:id/toggle', async (req, res) => {
 });
 
 
-router.post('/admin/register-user', async (req, res) => {
+router.post('/admin/register-user', authenticate, requireRole("admin"), async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
     if (!username || !email || !password || !role) {

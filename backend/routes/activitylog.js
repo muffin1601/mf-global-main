@@ -1,14 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const ActivityLog = require("../models/UserActivity");
+const authenticate = require("../middleware/auth");
 
 
-router.post("/activity/log", async (req, res) => {
+router.post("/activity/log", authenticate, async (req, res) => {
   try {
     const { userId, name, role, action, timestamp, details } = req.body;
 
     if (!userId || !action || !timestamp) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (req.user.role !== "admin" && req.user.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const logEntry = new ActivityLog({

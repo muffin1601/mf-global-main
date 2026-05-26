@@ -3,9 +3,11 @@ const router = express.Router();
 const Client = require("../models/ClientData"); 
 const User = require('../models/User');
 const mongoose = require("mongoose");
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 const ObjectId = mongoose.Types.ObjectId;
 
-router.post("/leads/assign", async (req, res) => {
+router.post("/leads/assign", authenticate, requireRole("admin"), async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
 
   try {
@@ -43,7 +45,7 @@ router.post("/leads/assign", async (req, res) => {
   }
 });
 
-router.post("/leads/assign/single", async (req, res) => {
+router.post("/leads/assign/single", authenticate, requireRole("admin"), async (req, res) => {
  
   const { Leads, userIds, permissions } = req.body;
   
@@ -110,7 +112,7 @@ router.post("/leads/assign/single", async (req, res) => {
 });
 
 
-router.post('/leads/remove-assignments', async (req, res) => {
+router.post('/leads/remove-assignments', authenticate, requireRole("admin"), async (req, res) => {
   const { Leads } = req.body; 
 
   try {
@@ -134,7 +136,7 @@ router.post('/leads/remove-assignments', async (req, res) => {
 });
 
 
-router.post("/leads/transfer-assignments", async (req, res) => {
+router.post("/leads/transfer-assignments", authenticate, requireRole("admin"), async (req, res) => {
   const { Leads, newUserName } = req.body; 
   if (!Leads || !Array.isArray(Leads) || Leads.length === 0) {
     return res.status(400).json({ error: "No leads provided" });
@@ -188,7 +190,7 @@ function cleanValuesWithBlank(arr) {
   return hasBlank ? ["", ...uniqueValues] : uniqueValues;
 }
 
-router.get("/clients/meta", async (req, res) => {
+router.get("/clients/meta", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const categories = cleanValuesWithBlank(await Client.distinct("category"));
     const locations = cleanValuesWithBlank(await Client.distinct("location"));
@@ -203,8 +205,12 @@ router.get("/clients/meta", async (req, res) => {
   }
 });
 
-router.get("/clients/assigned/:username/meta", async (req, res) => {
+router.get("/clients/assigned/:username/meta", authenticate, async (req, res) => {
   const { username } = req.params;
+
+  if (req.user.role !== "admin" && req.user.name !== username) {
+    return res.status(403).json({ error: "Access denied" });
+  }
 
   try {
     const assignedClients = await Client.find({
@@ -224,7 +230,7 @@ router.get("/clients/assigned/:username/meta", async (req, res) => {
   }
 });
 
-router.get("/clients/unassigned/meta", async (req, res) => {
+router.get("/clients/unassigned/meta", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const unassignedClients = await Client.find({
       $or: [

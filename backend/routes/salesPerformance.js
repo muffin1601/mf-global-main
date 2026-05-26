@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const ClientData = require("../models/ClientData");
+const authenticate = require("../middleware/auth");
 
-router.get("/sales-performance", async (req, res) => {
+router.get("/sales-performance", authenticate, async (req, res) => {
   try {
     
     const pipeline = [

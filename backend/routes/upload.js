@@ -5,6 +5,8 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
 const ClientData = require("../models/ClientData");
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -37,7 +39,7 @@ const addSkippedData = ({ phone = null, contact = null, company = null, location
   return skipped;
 };
 
-router.post("/upload-csv", upload.single("file"), async (req, res) => {
+router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No CSV file uploaded." });
   }

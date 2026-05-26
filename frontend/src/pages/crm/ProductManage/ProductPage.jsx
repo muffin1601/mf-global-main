@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../../../styles/crm/Dashboard.css";
 import Navbar from "../../../components/crm/Navbar"; // Adjust the import path as needed
 import Sidebar from "../../../components/crm/Sidebar";
@@ -7,8 +7,8 @@ import ProductsTable from "../../../components/crm/Product/ProductsTable";
 
 
 const ProductPage = () => {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
+  const [, setUser] = useState(null);
+  const [, setMessage] = useState("");
   const [loading, setLoading] = useState(true); // To handle loading state
   const navigate = useNavigate();
   

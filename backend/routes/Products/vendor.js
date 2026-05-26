@@ -1,12 +1,11 @@
 const express = require('express');
 const router  = express.Router();
 const Vendor  = require('../../models/VendorData');
+const authenticate = require("../../middleware/auth");
+const requireRole = require("../../middleware/requireRole");
 
-
-router.post('/add-vendor', async (req, res) => {
+router.post('/add-vendor', authenticate, requireRole("admin"), async (req, res) => {
   try {
-    console.log('Received vendor payload:', req.body); 
-
     const data = { ...req.body };
 
     if (data.products && !Array.isArray(data.products)) {
@@ -31,7 +30,7 @@ router.post('/add-vendor', async (req, res) => {
 
 
 
-router.get('/vendors', async (_req, res) => {
+router.get('/vendors', authenticate, async (_req, res) => {
   try {
     const vendors = await Vendor.find().lean();
     res.json({ vendors });
@@ -41,7 +40,7 @@ router.get('/vendors', async (_req, res) => {
   }
 });
 
-router.delete('/vendors/delete/:id', async (req, res) => {
+router.delete('/vendors/delete/:id', authenticate, requireRole("admin"), async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -56,7 +55,7 @@ router.delete('/vendors/delete/:id', async (req, res) => {
   }
 });
 
-router.post('/vendors/update', async (req, res) => {
+router.post('/vendors/update', authenticate, requireRole("admin"), async (req, res) => {
   
   const updatedVendor = req.body;
   const vendorId = updatedVendor._id;

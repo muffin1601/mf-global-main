@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Quotation = require('../models/Quote');
 const authMiddleware= require("../middleware/auth.js");
+const requireRole = require("../middleware/requireRole");
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
@@ -40,7 +41,7 @@ router.post("/create", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/data/count", async (req, res) => {
+router.get("/data/count", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
    
     const quotations = await Quotation.find()
@@ -91,7 +92,7 @@ router.get("/data/user/:userId", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
     const deleted = await Quotation.findByIdAndDelete(req.params.id);
     if (!deleted) {

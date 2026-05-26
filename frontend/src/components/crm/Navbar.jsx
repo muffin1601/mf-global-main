@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/authSlice';
-import { FaBell,   FaMoon ,FaFileAlt, FaUser, FaSearch } from 'react-icons/fa';
+import { FaFileAlt, FaUser } from 'react-icons/fa';
 import { IoChevronBackOutline  } from 'react-icons/io5';
 import "../../styles/crm/Navbar.css";
 
@@ -10,7 +10,6 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(true);
   
   const user = JSON.parse(localStorage.getItem('user')) || { name: "Mr.Henry", role: "UI/UX Designer" };
 
@@ -37,22 +36,10 @@ const Navbar = () => {
           <IoChevronBackOutline />
         </button>
   
-        <div className="premium-navbar-search">
-          <FaSearch className="premium-search-icon" />
-          <input type="text" placeholder="Search anything here ..." className="premium-search-input" />
-        </div>
       </div>
   
       
       <div className="premium-navbar-right">
-        
-        <button className="premium-icon-btn"><FaMoon /></button>
-        
-        <button className="premium-icon-btn">
-          <FaBell />
-          <span className="premium-dot" />
-        </button>
-        
         <button className="premium-profile-btn" onClick={toggleDropdown}>
           <img src="https://laravelui.spruko.com/xintra/build/assets/images/faces/2.jpg" alt="Profile" className="premium-profile-pic" />
         </button>

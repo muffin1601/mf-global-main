@@ -58,7 +58,7 @@ const handleDeleteProduct = async () => {
   if (!productToDelete) return;
 
   try {
-    const res = await axios.delete(
+    await axios.delete(
       `${import.meta.env.VITE_API_URL}/products/delete/${productToDelete._id}`
     );
 

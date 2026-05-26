@@ -10,8 +10,8 @@ import "../../styles/crm/global.css";
 import ToDoList from "../../components/crm/ToDoList";
 
 const Dashboard = () => {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
+  const [, setUser] = useState(null);
+  const [, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

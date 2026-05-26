@@ -1,6 +1,9 @@
 const express = require('express');
 const Category = require('../../models/Category');
+const authenticate = require("../../middleware/auth");
 const router = express.Router();
+
+router.use(authenticate);
 
 router.get("/meta", async (req, res) => {
   try {

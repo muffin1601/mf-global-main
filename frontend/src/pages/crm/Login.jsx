@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/authSlice";
 import { toast } from "react-toastify";
 import CustomToast from "../../components/crm/CustomToast";
-import { FaGoogle, FaFacebook, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import "../../styles/crm/Login.css";
 
@@ -62,11 +61,6 @@ const Login = () => {
 
   return (
     <div className="login-wrapper">
-      <video autoPlay loop muted playsInline className="login-bg-video">
-        <source src="https://www.pexels.com/download/video/18446570/" type="video/mp4" />
-        {/* <source src="https://www.pexels.com/download/video/3051493/" type="video/mp4" /> */}
-      </video>
-
       <div className="login-glass-card">
         <h2 className="login-heading">Sign In</h2>
         <p className="login-subheading">Welcome back 👋</p>
@@ -83,7 +77,7 @@ const Login = () => {
 
           <div className="login-password-header">
             <label className="login-label-password">Password</label>
-            <a href="#" className="login-forgot-link">Forgot password?</a>
+            <span className="login-forgot-link login-disabled-link">Contact admin</span>
           </div>
 
           <div className="login-password-field">
@@ -106,7 +100,7 @@ const Login = () => {
           <div className="login-remember-row">
             <input type="checkbox" id="login-remember" className="login-remember-checkbox" />
             <label htmlFor="login-remember" className="login-remember-label">
-              Remember password?
+              Remember me
             </label>
           </div>
 
@@ -119,13 +113,6 @@ const Login = () => {
           Don’t have an account? <a href="#" className="login-signup-link">Sign Up</a>
         </p> */}
 
-        {/* Social Icons */}
-        <div className="login-social-icons">
-          <button className="login-social-btn login-social-google"><FaGoogle /></button>
-          <button className="login-social-btn login-social-facebook"><FaFacebook /></button>
-          <button className="login-social-btn login-social-twitter"><FaXTwitter /></button>
-          <button className="login-social-btn login-social-linkedin"><FaLinkedin /></button>
-        </div>
       </div>
     </div>
   );

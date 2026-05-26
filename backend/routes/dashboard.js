@@ -1,30 +1,12 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User"); 
+const authenticate = require("../middleware/auth");
 const router = express.Router();
 
-
-const verifyToken = (req, res, next) => {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
-
-  if (!token) {
-    return res.status(403).json({ message: "Access Denied: No token provided." });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET || "secret", (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: "Access Denied: Invalid token." });
-    }
-    req.user = decoded; 
-    next();
-  });
-};
-
-
-router.get("/dashboard", verifyToken, async (req, res) => {
+router.get("/dashboard", authenticate, async (req, res) => {
   try {
     
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });

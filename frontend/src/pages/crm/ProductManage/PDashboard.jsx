@@ -15,8 +15,8 @@ import ChartOverview from '../../../components/crm/ChartOverview';
 import "../../../styles/crm/global.css";
 
 const PDashboard = () => {
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
+  const [, setUser] = useState(null);
+  const [, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

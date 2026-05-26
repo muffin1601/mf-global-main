@@ -6,7 +6,7 @@ import CustomToast from "../CustomToast";
 import ChipSelect from "./ChipSelect";
 import { FaTrash } from "react-icons/fa";
 
-const FilterModal = ({ onClose, onApply, onDeleteAll, defaultFilters }) => {
+const FilterModal = ({ onClose, onApply, defaultFilters }) => {
   const [modalFilters, setModalFilters] = useState(
     defaultFilters || {
       category: [],

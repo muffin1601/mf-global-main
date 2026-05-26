@@ -5,6 +5,8 @@ const Category = require('../../models/Category');
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const authenticate = require("../../middleware/auth");
+const requireRole = require("../../middleware/requireRole");
 
 /* ---------------------- MULTER STORAGE ---------------------- */
 const storage = multer.diskStorage({
@@ -26,7 +28,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 
 /* ---------------------- ADD PRODUCT ---------------------- */
-router.post("/add-product", upload.single("p_image"), async (req, res) => {
+router.post("/add-product", authenticate, requireRole("admin"), upload.single("p_image"), async (req, res) => {
   try {
     const {
       p_name,
@@ -71,7 +73,7 @@ router.post("/add-product", upload.single("p_image"), async (req, res) => {
 });
 
 /* ---------------------- GET META CATEGORIES ---------------------- */
-router.get("/meta", async (req, res) => {
+router.get("/meta", authenticate, async (req, res) => {
   try {
     const cat_names = await Category.find().select("_id name");
     res.json({ cat_names });
@@ -82,7 +84,7 @@ router.get("/meta", async (req, res) => {
 });
 
 /* ---------------------- GET ALL PRODUCTS ---------------------- */
-router.get("/products", async (req, res) => {
+router.get("/products", authenticate, async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 }).lean();
     res.status(200).json({ products });
@@ -93,7 +95,7 @@ router.get("/products", async (req, res) => {
 });
 
 /* ---------------------- PRODUCT SEARCH ---------------------- */
-router.get('/products/search', async (req, res) => {
+router.get('/products/search', authenticate, async (req, res) => {
   try {
     const { query } = req.query;
 
@@ -122,7 +124,7 @@ router.get('/products/search', async (req, res) => {
 });
 
 /* ---------------------- UPDATE PRODUCT + IMAGE ---------------------- */
-router.post('/products/update', upload.single("p_image"), async (req, res) => {
+router.post('/products/update', authenticate, requireRole("admin"), upload.single("p_image"), async (req, res) => {
   try {
     const {
       _id,
@@ -184,7 +186,7 @@ router.post('/products/update', upload.single("p_image"), async (req, res) => {
 });
 
 /* ---------------------- DELETE PRODUCT ---------------------- */
-router.delete('/products/delete/:id', async (req, res) => {
+router.delete('/products/delete/:id', authenticate, requireRole("admin"), async (req, res) => {
   try {
     const existing = await Product.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Product not found" });

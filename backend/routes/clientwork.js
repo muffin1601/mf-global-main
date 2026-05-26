@@ -3,10 +3,14 @@ const router = express.Router();
 const ClientPermission = require("../models/ClientPermission"); // Corrected the import
 const Client = require("../models/ClientData");
 const { Parser } = require("json2csv");
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 
-
-router.get("/clients/assigned/:userId", async (req, res) => {
+router.get("/clients/assigned/:userId", authenticate, async (req, res) => {
   const { userId } = req.params;
+  if (req.user.role !== "admin" && req.user._id.toString() !== userId) {
+    return res.status(403).json({ message: "Access denied" });
+  }
 
   try {
     const permissions = await ClientPermission.find({ userId })
@@ -38,9 +42,12 @@ router.get("/clients/assigned/:userId", async (req, res) => {
 });
 
 
-router.get("/clients/assigned/:userId/filtered", async (req, res) => {
+router.get("/clients/assigned/:userId/filtered", authenticate, async (req, res) => {
   const { userId } = req.params;
   const { category, datatype, location } = req.query;
+  if (req.user.role !== "admin" && req.user._id.toString() !== userId) {
+    return res.status(403).json({ message: "Access denied" });
+  }
 
   try {
     const permissions = await ClientPermission.find({ userId })
@@ -75,7 +82,7 @@ router.get("/clients/assigned/:userId/filtered", async (req, res) => {
   }
 });
 
-router.put("/clients/:id", async (req, res) => {
+router.put("/clients/:id", authenticate, async (req, res) => {
   const { name, remarks, callStatus, requirements, location, category } = req.body;
 
   try {
@@ -114,9 +121,12 @@ const formatAssignedTo = assignedTo => {
     .join(", ");
 };
 
-router.get("/clients/report/:userId/download-csv", async (req, res) => {
+router.get("/clients/report/:userId/download-csv", authenticate, async (req, res) => {
   const { userId } = req.params;
   const { from, to } = req.query;
+  if (req.user.role !== "admin" && req.user._id.toString() !== userId) {
+    return res.status(403).json({ message: "Access denied" });
+  }
 
   try {
     const fromDate = new Date(from);
@@ -180,7 +190,7 @@ router.get("/clients/report/:userId/download-csv", async (req, res) => {
 });
 
 // --------- /leads/report/download ---------
-router.post("/leads/report/download", async (req, res) => {
+router.post("/leads/report/download", authenticate, requireRole("admin"), async (req, res) => {
   const { from, to, type, leads } = req.body;
 
   if (!["followUpDate", "createdAt"].includes(type)) {
@@ -252,7 +262,7 @@ router.post("/leads/report/download", async (req, res) => {
 });
 
 // --------- /leads/report/download-by-leads ---------
-router.post("/leads/report/download-by-leads", async (req, res) => {
+router.post("/leads/report/download-by-leads", authenticate, async (req, res) => {
   try {
     const { leads } = req.body;
 

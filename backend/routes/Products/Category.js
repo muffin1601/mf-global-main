@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../../models/Category'); 
+const authenticate = require("../../middleware/auth");
+const requireRole = require("../../middleware/requireRole");
 
+router.use(authenticate);
 
-router.post('/add', async (req, res) => {
+router.post('/add', requireRole("admin"), async (req, res) => {
   try {
     const category = new Category({ name: req.body.name });
     await category.save();
@@ -41,7 +44,7 @@ router.get('/:id', async (req, res) => {
 });
 
 
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', requireRole("admin"), async (req, res) => {
   try {
     const { name } = req.body;
 
@@ -66,7 +69,7 @@ router.put('/update/:id', async (req, res) => {
 });
 
 
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', requireRole("admin"), async (req, res) => {
   try {
     const category = await Category.findByIdAndDelete(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });

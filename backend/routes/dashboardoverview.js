@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
+
+router.use(authenticate);
 
 router.get("/counts", async (req, res) => {
   try {
@@ -79,7 +83,7 @@ router.get("/user-stats/:username", async (req, res) => {
   }
 });
 
-router.get("/all-clients", async (req, res) => {
+router.get("/all-clients", requireRole("admin"), async (req, res) => {
   try {
     const clients = await Client.find().lean();
     res.status(200).json({
@@ -92,7 +96,7 @@ router.get("/all-clients", async (req, res) => {
   }
 });
 
-router.get("/converted-clients", async (req, res) => {
+router.get("/converted-clients", requireRole("admin"), async (req, res) => {
   try {
     const convertedClients = await Client.find({ status: "Won Lead" });
     res.status(200).json(convertedClients);
@@ -102,7 +106,7 @@ router.get("/converted-clients", async (req, res) => {
   }
 });
 
-router.get("/trending-leads", async (req, res) => {
+router.get("/trending-leads", requireRole("admin"), async (req, res) => {
   try {
     const trendingLeads = await Client.find({ status: "In Progress" });
     res.status(200).json(trendingLeads);
@@ -112,7 +116,7 @@ router.get("/trending-leads", async (req, res) => {
   }
 });
 
-router.get("/assigned-clients", async (req, res) => {
+router.get("/assigned-clients", requireRole("admin"), async (req, res) => {
   try {
     const assignedClients = await Client.find({
       "assignedTo.0": { $exists: true }  
@@ -125,7 +129,7 @@ router.get("/assigned-clients", async (req, res) => {
   }
 });
 
-router.get("/unassigned-clients", async (req, res) => {
+router.get("/unassigned-clients", requireRole("admin"), async (req, res) => {
   try {
     const unassignedClients = await Client.find({
       $or: [
@@ -143,7 +147,7 @@ router.get("/unassigned-clients", async (req, res) => {
 });
 
 
-router.get("/new-clients", async (req, res) => {
+router.get("/new-clients", requireRole("admin"), async (req, res) => {
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -159,6 +163,10 @@ router.get("/new-clients", async (req, res) => {
 
 router.get('/user-dashboard-stats/:username', async (req, res) => {
   const username = decodeURIComponent(req.params.username);
+
+  if (req.user.role !== "admin" && req.user.name !== username) {
+    return res.status(403).json({ error: "Access denied" });
+  }
 
   try {
     const myLeads = await Client.find({ "assignedTo.user.name": username })

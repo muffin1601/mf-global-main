@@ -7,7 +7,7 @@ import axios from "axios";
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [visitorCount, setVisitorCount] = useState(0);
+  const [, setVisitorCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarDropdownOpen, setSidebarDropdownOpen] = useState(false);
 

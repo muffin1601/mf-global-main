@@ -4,11 +4,9 @@ import ChipSelect from "./ChipSelect";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
 
-const FetchReportModal = ({ onClose, onFetch, onDownload, onRemoveAssignment, onTransferAssignment }) => {
+const FetchReportModal = ({ onClose, onFetch, onRemoveAssignment, onTransferAssignment }) => {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [targetUser, setTargetUser] = useState(null);
   const [isTransferMode, setIsTransferMode] = useState(false); // toggle view
 

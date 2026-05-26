@@ -77,7 +77,11 @@ const Overview = () => {
         setNewLeads(countsRes.data.newClients);
         setAssignedLeads(countsRes.data.assignedClients);
         setUnassignedLeads(countsRes.data.unassignedClients);
-        setConversionRate(countsRes.data.convertedClients);
+        setConversionRate(
+          countsRes.data.totalClients
+            ? ((countsRes.data.convertedClients / countsRes.data.totalClients) * 100).toFixed(2)
+            : 0
+        );
         settrendingLeads(countsRes.data.trendingClients);
         
         const userRes = await axios.get(`${import.meta.env.VITE_API_URL}/overview/user-stats/${user.name}`);

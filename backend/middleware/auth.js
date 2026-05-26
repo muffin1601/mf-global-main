@@ -3,6 +3,10 @@ const User = require("../models/User");
 
 const authenticate = async (req, res, next) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "Authentication is not configured" });
+    }
+
     const authHeader = req.headers.authorization;
 
 
@@ -22,6 +26,9 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "User not found" });
     }
 
+    if (!user.enabled) {
+      return res.status(403).json({ message: "Account is disabled" });
+    }
     
     req.user = user;
 

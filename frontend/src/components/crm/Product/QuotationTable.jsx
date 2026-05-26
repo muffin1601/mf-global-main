@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
-import { AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from 'react-icons/ai';
+import { AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import ConfirmModal from '../Modals/ConfirmModal';
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
@@ -15,7 +15,6 @@ const QuotationTable = () => {
   const quotationsPerPage = 5;
 
   const [quotationToDelete, setQuotationToDelete] = useState(null);
-  const [viewQuotation, setViewQuotation] = useState(null);
   const user = JSON.parse(localStorage.getItem('user'));
   const userRole = user?.role || 'user';
   const userId = user?._id || '';
@@ -26,7 +25,7 @@ const QuotationTable = () => {
     } else {
       fetchUserQuotations();
     }
-  }, [userRole]);
+  }, [userRole, userId]);
 
   const fetchQuotations = async () => {
     try {
@@ -41,15 +40,8 @@ const QuotationTable = () => {
 
   const fetchUserQuotations = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/quotations/data/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `${import.meta.env.VITE_API_URL}/quotations/data/user/${userId}`
       );
 
       const data = response.data.quotations || [];

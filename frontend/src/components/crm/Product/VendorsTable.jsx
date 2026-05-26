@@ -51,7 +51,7 @@ const handleDeleteVendor = async () => {
   if (!vendorToDelete) return;
 
   try {
-    const res = await axios.delete(
+    await axios.delete(
       `${import.meta.env.VITE_API_URL}/vendors/delete/${vendorToDelete._id}`
     );
 

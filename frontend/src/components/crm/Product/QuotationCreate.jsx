@@ -17,8 +17,6 @@ const initialBankDetails = {
     upiId: "8750708222-1@okbizaxis",
 };
 
-const user = JSON.parse(localStorage.getItem('user'));
-
 const initialTerms = `Payment Terms: 70% Advance at the time of order, Rest Amount at the time of Delivery.\nDelivery Time: 7-10 days.\nLogistic Cost extra as per transportation.`;
 
 const QuotationCreate = () => {

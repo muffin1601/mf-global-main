@@ -4,7 +4,7 @@ import { FaHome, FaAngleRight, FaAngleDown, FaChartBar, FaUserTie } from 'react-
 import '../../styles/crm/Sidebar.css';
 
 const Sidebar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen] = useState(true);
   const [isDashboardsOpen, setIsDashboardsOpen] = useState(true);
   const [isSalesOpen, setIsSalesOpen] = useState(true);
 

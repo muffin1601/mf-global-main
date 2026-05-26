@@ -3,9 +3,10 @@ const router = express.Router();
 const Client = require("../models/ClientData");
 const { ObjectId } = require('mongodb'); 
 const ClientPermission = require("../models/ClientPermission"); 
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 
-
-router.post("/add-client", async (req, res) => {
+router.post("/add-client", authenticate, async (req, res) => {
   try {
     const { contact, phone } = req.body;
 
@@ -40,7 +41,7 @@ router.post("/add-client", async (req, res) => {
 });
 
 
-router.get('/check-duplicate-phone', async (req, res) => {
+router.get('/check-duplicate-phone', authenticate, async (req, res) => {
   const { phone } = req.query;
 
   if (!phone) {
@@ -63,7 +64,7 @@ router.get('/check-duplicate-phone', async (req, res) => {
 
 
 
-router.get("/check-duplicate-contact", async (req, res) => {
+router.get("/check-duplicate-contact", authenticate, async (req, res) => {
   const { contact } = req.query;
 
   if (!contact) {
@@ -85,7 +86,7 @@ router.get("/check-duplicate-contact", async (req, res) => {
 
 
 
-router.post("/clients/delete", async (req, res) => {
+router.post("/clients/delete", authenticate, requireRole("admin"), async (req, res) => {
   const { ids } = req.body; 
   try {
     await Client.deleteMany({ _id: { $in: ids } });
@@ -141,7 +142,7 @@ const buildBillingAddress = (client, billingAddress, addressField) => {
   };
 };
 
-router.post("/save-all-updates", async (req, res) => {
+router.post("/save-all-updates", authenticate, async (req, res) => {
   try {
     const { updates } = req.body;
 

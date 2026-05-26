@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 
@@ -33,7 +33,7 @@ const ActivityLogModal = ({ users, onClose }) => {
               `${k}:\n` +
               v
                 .map(
-                  (obj, i) =>
+                  (obj) =>
                     `  - ${Object.entries(obj)
                       .map(([key, val]) => `${key}: ${val}`)
                       .join(", ")}`

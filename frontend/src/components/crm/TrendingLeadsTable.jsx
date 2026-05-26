@@ -28,7 +28,7 @@ const TrendingLeadsTable = () => {
     const clients = response.data || []; 
     setLeads(clients);
     setTotalLeads(clients.length);
-  } catch (error) {
+  } catch {
     toast(<CustomToast type="error" title="Error" message="Error fetching trending leads" />);
   }
 };

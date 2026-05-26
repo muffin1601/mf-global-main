@@ -172,6 +172,34 @@ const MyLeadTable = () => {
     setFormModalOpen(true);
   };
 
+  const handleDeleteLead = async () => {
+    if (!leadforDelete) return;
+
+    const ids = [leadforDelete._id || leadforDelete.id];
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
+      await logActivity('Deleted Lead', { leadId: leadforDelete._id });
+      setLeadforDelete(null);
+      refreshLeads();
+      toast(
+        <CustomToast
+          type="success"
+          title="Deleted"
+          message="Lead deleted successfully"
+        />
+      );
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      toast(
+        <CustomToast
+          type="error"
+          title="Delete Failed"
+          message="Failed to delete lead."
+        />
+      );
+    }
+  };
+
   const downloadCSVReport = async (leadsToDownload) => {
     if (!Array.isArray(leadsToDownload) || leadsToDownload.length === 0) {
       return toast(

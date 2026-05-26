@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-
+const authenticate = require("../middleware/auth");
+const requireRole = require("../middleware/requireRole");
 
 const cleanFilter = (arr) =>
   arr
@@ -29,7 +30,7 @@ const buildFieldQuery = (field, arr) => {
   return orClauses.length === 1 ? orClauses[0] : { $or: orClauses };
 };
 
-router.post("/clients/filter", async (req, res) => {
+router.post("/clients/filter", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const {
       category,
@@ -70,9 +71,13 @@ router.post("/clients/filter", async (req, res) => {
 });
 
 
-router.post("/clients/assigned/:userName/filter", async (req, res) => {
+router.post("/clients/assigned/:userName/filter", authenticate, async (req, res) => {
   const { userName } = req.params;
   const filters = req.body;
+
+  if (req.user.role !== "admin" && req.user.name !== userName) {
+    return res.status(403).json({ message: "Access denied" });
+  }
 
   try {
     const query = { $and: [{ "assignedTo.user.name": userName }] };
@@ -93,9 +98,8 @@ router.post("/clients/assigned/:userName/filter", async (req, res) => {
   }
 });
 
-router.post("/clients/unassigned/filter", async (req, res) => {
+router.post("/clients/unassigned/filter", authenticate, requireRole("admin"), async (req, res) => {
   const filters = req.body;
-  console.log("Received unassigned filter request with body:", filters);
 
   try {
     const query = {

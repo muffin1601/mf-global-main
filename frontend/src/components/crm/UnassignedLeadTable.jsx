@@ -147,7 +147,7 @@ const handleDeleteLead = async () => {
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
     setLeadforDelete(null); 
-    filterLeads(); 
+    fetchLeads();
   } catch (error) {
     console.error("Error deleting lead:", error);
     toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);
@@ -339,7 +339,7 @@ const downloadCSVReport = async (leads) => {
         <BulkUpdateModal
           onClose={() => setShowBulkUpdateModal(false)}
           filteredLeads={leads}
-          onUpdateSuccess={filterLeads} 
+          onUpdateSuccess={fetchLeads} 
         />
       )}
        {LeadsforDownload && (

@@ -7,6 +7,7 @@ import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
 import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
+import CustomToast from './CustomToast';
 
 
 const MyConversionTable = () => {
@@ -66,13 +67,13 @@ const handleDeleteLead = async () => {
 
   const ids = [leadforDelete._id || leadforDelete.id];
   try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
+    await axios.post(`${import.meta.env.VITE_API_URL}/clients/delete`, { ids });
     toast(<CustomToast type="success" title="Success" message="Lead deleted successfully" />);
 
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
     setLeadforDelete(null); // close modal
-    filterLeads(); // refresh
+    fetchLeads();
   } catch (error) {
     console.error("Error deleting lead:", error);
     toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);

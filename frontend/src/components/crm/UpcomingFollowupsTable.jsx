@@ -7,6 +7,7 @@ import EditLeadModal from './Modals/EditLeadModal';
 import ConfirmModal from './Modals/ConfirmModal';
 import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
+import CustomToast from './CustomToast';
 
 
 const UpcomingFollowupsTable = () => {
@@ -73,7 +74,7 @@ const handleDeleteLead = async () => {
     await logActivity("Deleted Lead", { leadId: leadforDelete._id });
 
     setLeadforDelete(null); 
-    filterLeads(); 
+    fetchLeads();
   } catch (error) {
     console.error("Error deleting lead:", error);
     toast(<CustomToast type="error" title="Error" message="Failed to delete lead." />);

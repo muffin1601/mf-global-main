@@ -17,7 +17,6 @@ import UnassignedLeadManagement from "./pages/crm/UnassignedLeadManagement"
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./styles/crm/ToastStyles.css";
-import CustomToast from "./components/crm/CustomToast";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import MyLeads from "./pages/crm/MyLeads";
 import MyConversions from "./pages/crm/MyConversions";
@@ -35,18 +34,6 @@ import QuotationEditPage from './pages/crm/ProductManage/QuotationEditPage';
 
 
 const App = () => {
-  const showSuccess = () =>
-    toast(<CustomToast type="success" title="Well done!" message="Your message has been sent successfully." />);
-
-  const showError = () =>
-    toast(<CustomToast type="error" title="Oh snap!" message="Change a few things up and try submitting again." />);
-
-  const showWarning = () =>
-    toast(<CustomToast type="warning" title="Warning!" message="There was a problem with your request." />);
-
-  const showInfo = () =>
-    toast(<CustomToast type="info" title="Hi there!" message="Do you have a problem? Just use this contact form." />);
-
   return (
     <>
       <Routes>

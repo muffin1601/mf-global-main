@@ -28,7 +28,7 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/users`);
       setUsers(res.data);
-    } catch (error) {
+    } catch {
       toast(<CustomToast type="error" title="Error" message="Failed to fetch users." />);
     }
   };

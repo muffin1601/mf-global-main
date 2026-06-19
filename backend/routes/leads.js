@@ -4,8 +4,9 @@ const ClientData = require('../models/ClientData');
 require('dotenv').config();
 const fetchAndStoreLeads = require('../scripts/fetchTradeIndiaLeadsToCRM');
 const fetchLeadsFromIndiaMart = require('../scripts/fetchLeadsFromIndiaMart');
+const { webhookLimiter } = require('../middleware/rateLimiters');
 
-router.post('/coachinpromo/capture-lead', async (req, res) => {
+router.post('/coachinpromo/capture-lead', webhookLimiter, async (req, res) => {
  
   const apiKey = req.headers['x-api-key'];
 
@@ -46,7 +47,7 @@ router.post('/coachinpromo/capture-lead', async (req, res) => {
   }
 });
 
-router.post('/printkee/capture-lead', async (req, res) => {
+router.post('/printkee/capture-lead', webhookLimiter, async (req, res) => {
  
   const apiKey = req.headers['x-api-key'];
 

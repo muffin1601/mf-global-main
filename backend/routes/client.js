@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/ClientData");
-const { ObjectId } = require('mongodb'); 
+const { ObjectId } = require('mongodb');
+const { computeLcFields } = require("../utils/normalizeFields");
 const ClientPermission = require("../models/ClientPermission"); 
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
@@ -150,7 +151,39 @@ router.post("/save-all-updates", authenticate, async (req, res) => {
       return res.status(400).json({ message: "No updates to apply" });
     }
 
-    const updatePromises = updates.map(async (update) => {
+    const isAdmin = req.user.role === "admin";
+
+    // --- Phase 1: fetch all target docs in bulk (was N findOne calls) ---
+    const ids = [];
+    const orConds = [];
+    for (const u of updates) {
+      if (u.id) {
+        try { ids.push(new ObjectId(u.id)); } catch { /* skip bad id */ }
+      } else if (u.phone || u.contact) {
+        if (u.phone) orConds.push({ phone: u.phone });
+        if (u.contact) orConds.push({ contact: u.contact });
+      }
+    }
+
+    const fetchOps = [];
+    if (ids.length) fetchOps.push(Client.find({ _id: { $in: ids } }));
+    if (orConds.length) fetchOps.push(Client.find({ $or: orConds }));
+    const fetched = (await Promise.all(fetchOps)).flat();
+
+    const byId = new Map();
+    const byPhone = new Map();
+    const byContact = new Map();
+    for (const c of fetched) {
+      byId.set(String(c._id), c);
+      if (c.phone && !byPhone.has(c.phone)) byPhone.set(c.phone, c);
+      if (c.contact && !byContact.has(c.contact)) byContact.set(c.contact, c);
+    }
+
+    // --- Phase 2: build bulkWrite ops (was N findByIdAndUpdate calls) ---
+    const ops = [];
+    const matchedIds = [];
+
+    for (const update of updates) {
       try {
         const {
           id,
@@ -174,33 +207,46 @@ router.post("/save-all-updates", authenticate, async (req, res) => {
           billingAddress,
         } = update;
 
-        if (!id && !phone && !contact) return null;
+        if (!id && !phone && !contact) continue;
 
-        const query = id
-          ? { _id: new ObjectId(id) }
-          : { $or: [{ phone }, { contact }] };
+        const client = id
+          ? byId.get(String(id))
+          : (phone && byPhone.get(phone)) || (contact && byContact.get(contact));
+        if (!client) continue;
 
-        const client = await Client.findOne(query);
-        if (!client) return null;
+        // Authorization: non-admins may only edit leads assigned to them.
+        if (!isAdmin) {
+          const isAssignee = Array.isArray(client.assignedTo) && client.assignedTo.some(
+            (a) => a && a.user && String(a.user._id) === String(req.user._id)
+          );
+          if (!isAssignee) continue; // silently skip leads they don't own
+        }
 
-       
+
         const cleanDatatype = removeIcons(datatype);
         const cleanCallStatus = removeIcons(callStatus);
         const cleanStatus = removeIcons(status);
 
-        
-        let assignedToTransformed = [];
-        if (Array.isArray(assignedTo) && assignedTo.length > 0) {
-          assignedToTransformed = assignedTo
-            .filter(a => a && a.user && a.user._id && a.user.name)
-            .map(a => ({
-              user: { _id: new ObjectId(a.user._id), name: a.user.name },
-              permissions: {
-                view: !!a.permissions?.view,
-                update: !!a.permissions?.update,
-                delete: !!a.permissions?.delete,
-              },
-            }));
+        // Only admins may (re)assign leads. Non-admins keep their existing
+        // assignment untouched (cannot reassign leads to themselves/others).
+        let assignedToTransformed;
+        if (!isAdmin) {
+          assignedToTransformed = Array.isArray(client.assignedTo) ? client.assignedTo : [];
+        } else {
+          // Original admin behavior preserved exactly.
+          assignedToTransformed = [];
+          if (Array.isArray(assignedTo) && assignedTo.length > 0) {
+            assignedToTransformed = assignedTo
+              .filter(a => a && a.user && a.user._id && a.user.name)
+              .map(a => ({
+                user: { _id: new ObjectId(a.user._id), name: a.user.name },
+                permissions: {
+                  view: !!a.permissions?.view,
+                  update: !!a.permissions?.update,
+                  delete: !!a.permissions?.delete,
+                },
+              }));
+          }
         }
 
         const followUpFields = buildFollowUpDateFields(client, followUpDate);
@@ -224,6 +270,8 @@ router.post("/save-all-updates", authenticate, async (req, res) => {
           }),
           ...(address !== undefined && { address }),
           assignedTo: assignedToTransformed,
+          // Keep the denormalized assignment flag in sync (bulkWrite bypasses hooks).
+          isAssigned: Array.isArray(assignedToTransformed) && assignedToTransformed.length > 0,
           additionalContacts: Array.isArray(additionalContacts)
             ? additionalContacts
             : client.additionalContacts,
@@ -231,23 +279,36 @@ router.post("/save-all-updates", authenticate, async (req, res) => {
           ...followUpFields,
         };
 
-        return Client.findByIdAndUpdate(client._id, { $set: updateFields }, {
-          new: true,
-          runValidators: true,
+        // Keep the normalized lowercase shadow fields in sync. bulkWrite bypasses
+        // Mongoose middleware, so compute them explicitly here.
+        const lcFields = computeLcFields(updateFields);
+
+        ops.push({
+          updateOne: {
+            filter: { _id: client._id },
+            update: { $set: { ...updateFields, ...lcFields } },
+          },
         });
+        matchedIds.push(client._id);
       } catch (innerErr) {
         console.error("Failed to process individual update:", innerErr.message);
-        return null;
       }
-    });
+    }
 
-    const results = await Promise.all(updatePromises);
-    const updatedCount = results.filter(Boolean).length;
+    // --- Phase 3: one bulkWrite instead of N findByIdAndUpdate round trips ---
+    if (ops.length) {
+      await Client.bulkWrite(ops, { ordered: false });
+    }
+
+    // Return the updated docs (one query) to preserve the response shape.
+    const updatedDocs = matchedIds.length
+      ? await Client.find({ _id: { $in: matchedIds } })
+      : [];
 
     res.status(200).json({
       message: "Updates applied successfully",
-      updatedClients: updatedCount,
-      updates: results.filter(Boolean),
+      updatedClients: updatedDocs.length,
+      updates: updatedDocs,
     });
   } catch (error) {
     console.error("Error in /save-all-updates:", error.message);

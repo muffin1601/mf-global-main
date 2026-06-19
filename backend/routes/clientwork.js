@@ -18,7 +18,7 @@ router.get("/clients/assigned/:userId", authenticate, async (req, res) => {
         path: "clientId",
         model: "ClientData",
         options: { lean: true }
-      });
+      }).lean();
 
     const clients = permissions
       .filter(p => p.clientId) // Skip if clientId wasn't found
@@ -55,7 +55,7 @@ router.get("/clients/assigned/:userId/filtered", authenticate, async (req, res) 
         path: "clientId",
         model: "ClientData",
         options: { lean: true },
-      });
+      }).lean();
 
     const clients = permissions
       .filter(p => p.clientId) 
@@ -105,6 +105,28 @@ router.put("/clients/:id", authenticate, async (req, res) => {
 
 const formatDate = d => (d ? new Date(d).toISOString().split("T")[0] : "");
 
+// Dedupe records keeping the first occurrence. A record is a duplicate if its
+// phone OR contact already appeared in an earlier record. Single-pass (O(n))
+// replacement for the previous filter(findIndex) O(n^2) scan — identical result.
+const dedupeByPhoneOrContact = (arr) => {
+  const seenPhones = new Set();
+  const seenContacts = new Set();
+  const out = [];
+  for (const item of arr) {
+    // Matches the original filter(findIndex) semantics exactly: a record is kept
+    // only if it has a phone or contact to match itself by AND no earlier record
+    // shares that phone/contact. (A record with neither phone nor contact was
+    // dropped by the original — findIndex returned -1 — so we drop it too.)
+    const hasKey = Boolean(item.phone) || Boolean(item.contact);
+    const dupPhone = item.phone && seenPhones.has(item.phone);
+    const dupContact = item.contact && seenContacts.has(item.contact);
+    if (hasKey && !dupPhone && !dupContact) out.push(item);
+    if (item.phone) seenPhones.add(item.phone);
+    if (item.contact) seenContacts.add(item.contact);
+  }
+  return out;
+};
+
 
 const formatBillingAddress = addr => {
   if (!addr) return "";
@@ -141,7 +163,7 @@ router.get("/clients/report/:userId/download-csv", authenticate, async (req, res
       model: "ClientData",
       match: { followUpDate: { $gte: fromDate, $lte: toDate } },
       options: { lean: true },
-    });
+    }).lean();
 
     const clients = permissions
       .filter(p => p.clientId)
@@ -170,12 +192,7 @@ router.get("/clients/report/:userId/download-csv", authenticate, async (req, res
         };
       });
 
-    const uniqueClients = clients.filter((client, index, self) =>
-      index === self.findIndex(c =>
-        (c.phone && client.phone && c.phone === client.phone) ||
-        (c.contact && client.contact && c.contact === client.contact)
-      )
-    );
+    const uniqueClients = dedupeByPhoneOrContact(clients);
 
     const parser = new Parser();
     const csv = parser.parse(uniqueClients);
@@ -238,12 +255,7 @@ router.post("/leads/report/download", authenticate, requireRole("admin"), async 
       assignedTo: formatAssignedTo(c.assignedTo),
     }));
 
-    const uniqueLeads = formattedLeads.filter((lead, index, self) =>
-      index === self.findIndex(c =>
-        (c.phone && lead.phone && c.phone === lead.phone) ||
-        (c.contact && lead.contact && c.contact === lead.contact)
-      )
-    );
+    const uniqueLeads = dedupeByPhoneOrContact(formattedLeads);
 
     if (uniqueLeads.length === 0) {
       return res.status(400).json({ message: "No leads found in the given date range." });
@@ -293,12 +305,7 @@ router.post("/leads/report/download-by-leads", authenticate, async (req, res) =>
       assignedTo: formatAssignedTo(c.assignedTo),
     }));
 
-    const uniqueLeads = formattedLeads.filter((lead, index, self) =>
-      index === self.findIndex(c =>
-        (c.phone && lead.phone && c.phone === lead.phone) ||
-        (c.contact && lead.contact && c.contact === lead.contact)
-      )
-    );
+    const uniqueLeads = dedupeByPhoneOrContact(formattedLeads);
 
     const parser = new Parser();
     const csv = parser.parse(uniqueLeads);

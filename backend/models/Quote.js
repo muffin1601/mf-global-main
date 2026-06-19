@@ -75,9 +75,27 @@ const QuotationSchema = new mongoose.Schema(
     bankDetails: BankDetailsSchema,
     invoiceDetails: InvoiceDetailsSchema,
     summary: SummarySchema,
+
+    // Server-computed, authoritative money totals (single source of truth).
+    // Never trusted from the client; recomputed on every create/update.
+    totals: {
+      subtotal: { type: Number, default: 0 },
+      totalTax: { type: Number, default: 0 },
+      totalDiscount: { type: Number, default: 0 },
+      additionalCharges: { type: Number, default: 0 },
+      roundOff: { type: Number, default: 0 },
+      grandTotal: { type: Number, default: 0 },
+      amountReceived: { type: Number, default: 0 },
+      balanceAmount: { type: Number, default: 0 },
+    },
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
+
+// --- P0 performance index ---
+// Admin list (sort by createdAt) and per-user list (find by user, sort createdAt).
+QuotationSchema.index({ user: 1, createdAt: -1 });
+QuotationSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Quotation", QuotationSchema);
 

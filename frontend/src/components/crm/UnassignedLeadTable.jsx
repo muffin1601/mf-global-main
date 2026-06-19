@@ -12,13 +12,35 @@ import DownloadReportModal from './Modals/DownloadModal';
 import BulkUpdateModal from './Modals/BulkUpdateModal';
 import { toast } from 'react-toastify';
 import CustomToast from './CustomToast';
+import { extractPage } from '../../utils/pageMeta';
 
+const cleanOptions = (options) =>
+  Array.isArray(options)
+    ? options.map((o) => (typeof o === 'string' ? o.replace(/^[^\w]*\s*/, '').trim() : o))
+    : options;
+
+// Preserve the unassigned table's existing filter normalization.
+const normalizeUnassigned = (f = {}) => {
+  const fields = ['datatype', 'status', 'callStatus', 'category', 'location', 'state', 'fileName'];
+  const normalized = {};
+  fields.forEach((field) => {
+    if (f[field]) normalized[field] = f[field].map((v) => (v == null ? '' : v));
+  });
+  return {
+    ...normalized,
+    datatype: cleanOptions(f.datatype),
+    status: cleanOptions(f.status),
+    callStatus: cleanOptions(f.callStatus),
+  };
+};
 
 const UnassignedLeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
@@ -41,30 +63,40 @@ const UnassignedLeadTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'))
 
-useEffect(() => {
-  fetchLeads();
-}, []);
+const hasActiveFilters = (filtersObj) =>
+  Object.values(filtersObj).some(
+    (v) => (Array.isArray(v) && v.length > 0) || (!Array.isArray(v) && v)
+  );
 
-const fetchLeads = async () => {
+// Unified server-paginated loader (unassigned filter endpoint when active).
+const loadLeads = async (page = currentPage, activeFilters = filters, signal) => {
+  setLoading(true);
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/unassigned-clients`);
-    
-    const clients = response.data || []; 
-    setLeads(clients);
-    setTotalLeads(clients.length);
+    const params = { page, limit: leadsPerPage };
+    const response = hasActiveFilters(activeFilters)
+      ? await axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, normalizeUnassigned(activeFilters), { params, signal })
+      : await axios.get(`${import.meta.env.VITE_API_URL}/overview/unassigned-clients`, { params, signal });
+    const { rows, total, pages } = extractPage(response);
+    setLeads(rows);
+    setTotalLeads(total);
+    setTotalPages(pages);
   } catch (error) {
+    if (axios.isCancel?.(error) || error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') return;
     console.error("Error fetching leads:", error);
     toast(<CustomToast type="error" title="Error" message="Error fetching leads" />);
+  } finally {
+    setLoading(false);
   }
 };
 
+useEffect(() => {
+  const controller = new AbortController();
+  loadLeads(currentPage, filters, controller.signal);
+  return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [currentPage, filters]);
 
-const totalPages = Math.ceil(totalLeads / leadsPerPage);
-
-const getPaginatedLeads = () => {
-  const startIndex = (currentPage - 1) * leadsPerPage;
-  return leads.slice(startIndex, startIndex + leadsPerPage);
-};
+const fetchLeads = () => loadLeads(currentPage, filters); // back-compat alias
 
 const getStatusClass = (status) => {
   switch (status) {
@@ -77,63 +109,10 @@ const getStatusClass = (status) => {
     }
 };
 
-const filterForAssign = async (incomingFilters = filters) => {
-
-  const cleanOptions = (options) =>
-    Array.isArray(options)
-      ? options.map((o) =>
-          typeof o === "string"
-            ? o.replace(/^[^\w]*\s*/, "").trim()
-            : o
-        )
-      : options;
-
-  const normalizeFilters = (filterObj) => {
-    const fields = ["datatype", "status", "callStatus", "category", "location", "state", "fileName"];
-    const normalized = {};
-
-    fields.forEach((field) => {
-      if (filterObj[field]) {
-        normalized[field] = filterObj[field].map((v) =>
-          v === null || v === undefined ? "" : v
-        );
-      }
-    });
-
-    return normalized;
-  };
-
-  const cleanedFilters = {
-    ...normalizeFilters(incomingFilters),
-    datatype: cleanOptions(incomingFilters.datatype),
-    status: cleanOptions(incomingFilters.status),
-    callStatus: cleanOptions(incomingFilters.callStatus),
-  };
-
-  try {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/clients/unassigned/filter`,
-      cleanedFilters
-    );
-    setTotalLeads(res.data.length);
-    setLeads(res.data);
-    toast(
-      <CustomToast
-        type="success"
-        title="Filtered"
-        message="Leads filtered successfully"
-      />
-    );
-  } catch (err) {
-    console.error("Filter Error:", err);
-    toast(
-      <CustomToast
-        type="error"
-        title="Filter Failed"
-        message="Failed to filter leads."
-      />
-    );
-  }
+// Apply filters: store + jump to page 1; the effect performs the paged fetch.
+const filterForAssign = (incomingFilters = filters) => {
+  setFilters(incomingFilters);
+  setCurrentPage(1);
 };
 
 const handleDeleteLead = async () => {
@@ -223,7 +202,7 @@ const downloadCSVReport = async (leads) => {
             </tr>
           </thead>
           <tbody>
-            {getPaginatedLeads().map((lead, index) => (
+            {leads.map((lead, index) => (
               <tr key={lead.id || `${lead.email}-${index}`}>
                 <td>{(currentPage - 1) * leadsPerPage + index + 1}</td>
                 <td>
@@ -259,13 +238,13 @@ const downloadCSVReport = async (leads) => {
 
       <div className="lead-pagination-wrapper">
         <span className="lead-entries">
-          Showing {getPaginatedLeads().length} of {totalLeads} Entries
+          Showing {leads.length} of {totalLeads} Entries · Page {currentPage} of {totalPages}
         </span>
         <ul className="lead-pagination">
           <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               Prev
             </button>
@@ -274,14 +253,14 @@ const downloadCSVReport = async (leads) => {
             const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
             return (
               <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
+                <button onClick={() => setCurrentPage(pageNumber)} disabled={loading}>{pageNumber}</button>
               </li>
             );
           })}
           <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || loading}
             >
               Next
             </button>

@@ -11,7 +11,7 @@ router.post("/leads/assign", authenticate, requireRole("admin"), async (req, res
   const { Leads, userIds, permissions } = req.body;
 
   try {
-    const users = await User.find({ _id: { $in: userIds } }, "_id name");
+    const users = await User.find({ _id: { $in: userIds } }, "_id name").lean();
 
     await Promise.all(
       Leads.map(async (leadId) => {
@@ -60,7 +60,7 @@ router.post("/leads/assign/single", authenticate, requireRole("admin"), async (r
   try {
     
     const objectUserId = new ObjectId(userId);
-    const user = await User.findById(objectUserId, "_id name");
+    const user = await User.findById(objectUserId, "_id name").lean();
 
     if (!user) {
       return res.status(404).json({ error: "User not found." });
@@ -148,7 +148,7 @@ router.post("/leads/transfer-assignments", authenticate, requireRole("admin"), a
 
   try {
     
-    const targetUser = await User.findOne({ name: newUserName }, "_id name");
+    const targetUser = await User.findOne({ name: newUserName }, "_id name").lean();
     if (!targetUser) {
       return res.status(404).json({ error: "Target user not found" });
     }
@@ -232,13 +232,8 @@ router.get("/clients/assigned/:username/meta", authenticate, async (req, res) =>
 
 router.get("/clients/unassigned/meta", authenticate, requireRole("admin"), async (req, res) => {
   try {
-    const unassignedClients = await Client.find({
-      $or: [
-        { assignedTo: { $exists: false } },
-        { assignedTo: { $size: 0 } },
-        { "assignedTo.user._id": { $exists: false } }
-      ]
-    }).lean();
+    // Index-backed (was a $or/$size/$exists array scan).
+    const unassignedClients = await Client.find({ isAssigned: false }).lean();
 
     const cleanValuesWithBlank = (arr) => {
       const values = [...new Set(arr.filter(v => v != null && v !== "").map(v => String(v).trim()))];

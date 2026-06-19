@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
@@ -15,7 +15,7 @@ const QuotationTable = () => {
   const quotationsPerPage = 5;
 
   const [quotationToDelete, setQuotationToDelete] = useState(null);
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user')), []);
   const userRole = user?.role || 'user';
   const userId = user?._id || '';
 
@@ -60,14 +60,9 @@ const QuotationTable = () => {
 
   const totalPages = Math.ceil(totalQuotations / quotationsPerPage);
 
-  const calculateGrandTotal = (quotation) => {
-    const itemsTotal = quotation.items?.reduce((acc, item) => {
-      return acc + (item.qty * item.price) - (item.discount || 0) + (item.tax || 0);
-    }, 0) || 0;
-    const summary = quotation.summary || {};
-    const roundOff = summary.autoRoundOff ? summary.roundOffAmount * (summary.roundOffSign === '+' ? 1 : -1) : 0;
-    return itemsTotal - (summary.discount || 0) + (summary.additionalCharges || 0) + roundOff;
-  };
+  // Source of truth: the server-computed total. No client-side recalculation.
+  // (Historical quotations are populated by scripts/backfillQuotationTotals.js.)
+  const calculateGrandTotal = (quotation) => Number(quotation?.totals?.grandTotal || 0);
 
   const handleDeleteQuotation = async () => {
     if (!quotationToDelete) return;

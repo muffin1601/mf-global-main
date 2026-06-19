@@ -7,7 +7,7 @@ router.use(authenticate);
 
 router.get("/meta", async (req, res) => {
   try {
-    const cat_names = await Category.find().select("_id name");
+    const cat_names = await Category.find().select("_id name").lean();
     
     res.json({ cat_names });
   } catch (err) {

@@ -3,8 +3,16 @@ const router = express.Router();
 const ActivityLog = require("../models/UserActivity"); 
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
-const User = require("../models/User"); 
+const User = require("../models/User");
 const bcrypt = require("bcrypt");
+
+// Strip password (and other secrets) before any user doc leaves the server.
+const sanitizeUser = (u) => {
+  if (!u) return u;
+  const obj = typeof u.toObject === "function" ? u.toObject() : { ...u };
+  delete obj.password;
+  return obj;
+};
 
 router.get("/activity/user", authenticate, requireRole("admin"), async (req, res) => {
   const { query } = req.query;
@@ -19,7 +27,7 @@ router.get("/activity/user", authenticate, requireRole("admin"), async (req, res
         { name: { $regex: query, $options: "i" } },
         { userId: { $regex: query, $options: "i" } }
       ]
-    }).sort({ timestamp: -1 });
+    }).sort({ timestamp: -1 }).lean();
 
     res.json(logs);
   } catch (err) {
@@ -29,10 +37,18 @@ router.get("/activity/user", authenticate, requireRole("admin"), async (req, res
 });
 
 router.patch('/admin/toggle-user/:id/toggle', authenticate, requireRole("admin"), async (req, res) => {
-  const user = await User.findById(req.params.id);
-  user.enabled = !user.enabled;
-  await user.save();
-  res.json(user);
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    user.enabled = !user.enabled;
+    await user.save();
+    res.json(sanitizeUser(user));
+  } catch (err) {
+    console.error("Error toggling user:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 
@@ -54,7 +70,7 @@ router.post('/admin/register-user', authenticate, requireRole("admin"), async (r
     });
 
     await newUser.save();
-    res.status(201).json({ message: "User created successfully", user: newUser });
+    res.status(201).json({ message: "User created successfully", user: sanitizeUser(newUser) });
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyValue)[0];

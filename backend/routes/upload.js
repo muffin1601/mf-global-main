@@ -17,11 +17,21 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 
+const CSV_MIME = new Set([
+  "text/csv",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "text/plain",
+]);
+
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
-    cb(null, file.mimetype === "text/csv" || file.originalname.endsWith(".csv"));
+    // Require a .csv extension AND a plausible CSV mimetype.
+    const extOk = /\.csv$/i.test(file.originalname);
+    const mimeOk = CSV_MIME.has(file.mimetype);
+    cb(null, extOk && mimeOk);
   },
 });
 

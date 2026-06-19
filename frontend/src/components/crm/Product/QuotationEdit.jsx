@@ -7,7 +7,8 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import generateQuotationPDF from "../../../utils/generateQuotationPDF";
+// generateQuotationPDF is dynamically imported at the point of use so the heavy
+// jsPDF/html2canvas bundle loads only when a PDF is actually generated.
 
 import "./styles/QuotationCreate.css";
 
@@ -23,6 +24,7 @@ const initialTerms = `Payment Terms: 70% Advance at the time of order, Rest Amou
 
 const QuotationEdit = () => {
     const { id } = useParams();
+    const [saving, setSaving] = useState(false);
 
     const [party, setParty] = useState(null);
     const [items, setItems] = useState([]);
@@ -107,6 +109,7 @@ const QuotationEdit = () => {
     }, [party]);
 
     const handleSaveQuotation = async () => {
+        if (saving) return; // guard against double-submit
         if (!party) {
             toast(<CustomToast type="error" title="Client Missing" message="Please add a client first!" />);
             return;
@@ -116,10 +119,13 @@ const QuotationEdit = () => {
             return;
         }
 
+        setSaving(true);
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/quotations/create`,
+            // PUT updates the existing quotation in place (was POST /create, which
+            // created a duplicate). Server recomputes & validates all totals.
+            const response = await axios.put(
+                `${import.meta.env.VITE_API_URL}/quotations/update/${id}`,
                 { party, items, terms, notes, bankDetails, invoiceDetails, summary },
                 { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
             );
@@ -131,6 +137,7 @@ const QuotationEdit = () => {
                     message={`Quotation "${response.data._id}" updated successfully!`}
                 />
             );
+            const { default: generateQuotationPDF } = await import("../../../utils/generateQuotationPDF");
             generateQuotationPDF({
                 party,
                 items,
@@ -152,7 +159,9 @@ const QuotationEdit = () => {
             });
         } catch (err) {
             console.error(err);
-            toast(<CustomToast type="error" title="Save Failed" message="Failed to save quotation." />);
+            toast(<CustomToast type="error" title="Save Failed" message={err.response?.data?.message || "Failed to save quotation."} />);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -279,7 +288,9 @@ const QuotationEdit = () => {
                 <h3>Edit Sales Quotation</h3>
                 <div className="header-actions">
                     {/* <button className="settings-btn"><i className="fas fa-cog"></i> Settings</button> */}
-                    <button className="save-btn" onClick={handleSaveQuotation} >Save Quotation</button>
+                    <button className="save-btn" onClick={handleSaveQuotation} disabled={saving}>
+                        {saving ? "Saving…" : "Update Quotation"}
+                    </button>
                 </div>
             </div>
             <div className="quotation-meta-section">

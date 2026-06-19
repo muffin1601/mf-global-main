@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import '../../../styles/crm/LeadTable.css';
 import {  AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
@@ -21,7 +21,7 @@ const ProductsTable = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user')), []);
 
   useEffect(() => {
     fetchProducts();

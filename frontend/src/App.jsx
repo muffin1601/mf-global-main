@@ -1,78 +1,89 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import Mainhome from "./pages/main/Mainhome";
-import Contact from "./pages/main/Contact";
-import BlogDetail from "./pages/main/BlogDetail";
-import BlogList from "./pages/main/BlogList";
-import BlogForm from "./pages/main/BlogForm";
-
-import NewLeads from "./pages/crm/NewLeads";
-import Dashboard from "./pages/crm/Dashboard";
-import LeadManagement from "./pages/crm/LeadManagement";
-import Home from "./landingpage/components/Home";
-import Login from "./pages/crm/Login";
-import UserManagement from "./pages/crm/UserManagement";
-import AssignedLeadManagement from "./pages/crm/AssignedLeadManagement"
-import UnassignedLeadManagement from "./pages/crm/UnassignedLeadManagement"
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./styles/crm/ToastStyles.css";
 import ProtectedRoute from "./utils/ProtectedRoute";
-import MyLeads from "./pages/crm/MyLeads";
-import MyConversions from "./pages/crm/MyConversions";
-import TodayFollowups from "./pages/crm/TodayFollowups";
-import UpcomingFollowups from "./pages/crm/UpcomingFollowups"
-import ConvertedLeads from "./pages/crm/ConvertedLeads"
-import PDashboard from "./pages/crm/ProductManage/PDashboard";
-import ProductPage from "./pages/crm/ProductManage/ProductPage";
-import VendorPage from "./pages/crm/ProductManage/VendorPage";
-import TrendingLeads from "./pages/crm/TrendingLeads";
-import MyTrendingLeads from "./pages/crm/Mytrending";
-import Quotations from "./pages/crm/ProductManage/Quotations";
-import CreateQuotation from "./pages/crm/ProductManage/CreateQuotation"
-import QuotationEditPage from './pages/crm/ProductManage/QuotationEditPage';
 
+// Route-level code splitting: each page becomes its own lazily-loaded chunk so
+// the first load only ships the matched route (not the entire app).
+const Mainhome = lazy(() => import("./pages/main/Mainhome"));
+const Contact = lazy(() => import("./pages/main/Contact"));
+const BlogDetail = lazy(() => import("./pages/main/BlogDetail"));
+const BlogList = lazy(() => import("./pages/main/BlogList"));
+const BlogForm = lazy(() => import("./pages/main/BlogForm"));
+
+const NewLeads = lazy(() => import("./pages/crm/NewLeads"));
+const Dashboard = lazy(() => import("./pages/crm/Dashboard"));
+const LeadManagement = lazy(() => import("./pages/crm/LeadManagement"));
+const Home = lazy(() => import("./landingpage/components/Home"));
+const Login = lazy(() => import("./pages/crm/Login"));
+const UserManagement = lazy(() => import("./pages/crm/UserManagement"));
+const AssignedLeadManagement = lazy(() => import("./pages/crm/AssignedLeadManagement"));
+const UnassignedLeadManagement = lazy(() => import("./pages/crm/UnassignedLeadManagement"));
+const MyLeads = lazy(() => import("./pages/crm/MyLeads"));
+const MyConversions = lazy(() => import("./pages/crm/MyConversions"));
+const TodayFollowups = lazy(() => import("./pages/crm/TodayFollowups"));
+const UpcomingFollowups = lazy(() => import("./pages/crm/UpcomingFollowups"));
+const ConvertedLeads = lazy(() => import("./pages/crm/ConvertedLeads"));
+const PDashboard = lazy(() => import("./pages/crm/ProductManage/PDashboard"));
+const ProductPage = lazy(() => import("./pages/crm/ProductManage/ProductPage"));
+const VendorPage = lazy(() => import("./pages/crm/ProductManage/VendorPage"));
+const TrendingLeads = lazy(() => import("./pages/crm/TrendingLeads"));
+const MyTrendingLeads = lazy(() => import("./pages/crm/Mytrending"));
+const Quotations = lazy(() => import("./pages/crm/ProductManage/Quotations"));
+const CreateQuotation = lazy(() => import("./pages/crm/ProductManage/CreateQuotation"));
+const QuotationEditPage = lazy(() => import("./pages/crm/ProductManage/QuotationEditPage"));
+
+// Minimal fallback shown only while a route chunk is being fetched.
+const RouteFallback = () => (
+  <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#888" }}>
+    Loading…
+  </div>
+);
 
 const App = () => {
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Mainhome />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/blogs" element={<BlogList />} />
-        <Route path="/blogs/new" element={<BlogForm />} />
-        <Route path="/blogs/:id" element={<BlogDetail />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Mainhome />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/blogs" element={<BlogList />} />
+          <Route path="/blogs/new" element={<BlogForm />} />
+          <Route path="/blogs/:id" element={<BlogDetail />} />
 
 
-        <Route path="/crm" element={<Home />} />
-        <Route path="/crm/login" element={<Login />} />
-        <Route path="/crm/entrydashboard" element={<ProtectedRoute role={["user", "admin"]}><Dashboard /></ProtectedRoute>} />
-        <Route path="/crm/lead-management" element={<ProtectedRoute role={["user", "admin"]}><LeadManagement /></ProtectedRoute>} />
-        <Route path="/crm/unassigned-leads" element={<ProtectedRoute role="admin"><UnassignedLeadManagement /></ProtectedRoute>} />
-        <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
-        <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
-        <Route path="/crm/assigned-leads" element={<ProtectedRoute role="admin"><AssignedLeadManagement /></ProtectedRoute>} />
-        <Route path="/crm/trending-leads" element={<ProtectedRoute role="admin"><TrendingLeads /></ProtectedRoute>} />
-        <Route path="/crm/my-trending-leads" element={<ProtectedRoute role={["admin", "user"]}><MyTrendingLeads /></ProtectedRoute>} />
-        <Route path="/crm/my-leads" element={<ProtectedRoute role={["admin", "user"]}><MyLeads /></ProtectedRoute>} />
-        <Route path="/crm/conversions" element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>} />
-        <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />
-        <Route path="/crm/upcoming-followups" element={<ProtectedRoute role={["user", "admin"]}><UpcomingFollowups /></ProtectedRoute>} />
-        <Route path="/crm/won-leads" element={<ProtectedRoute role="admin"><ConvertedLeads /></ProtectedRoute>} />
-        <Route path="/crm/product-dashboard" element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>} />
-        <Route path="/crm/product-management" element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>} />
-        <Route path="/crm/vendor-management" element={<ProtectedRoute role="admin"><VendorPage /></ProtectedRoute>} />
-        <Route path="/crm/quotations" element={<ProtectedRoute role={["user", "admin"]}><Quotations /></ProtectedRoute>} />
-        <Route path="/crm/quotations/create" element={<ProtectedRoute role={["user", "admin"]}><CreateQuotation /></ProtectedRoute>} />
-        <Route path="/crm/quotations/edit/:id" element={<ProtectedRoute role={["user", "admin"]}><QuotationEditPage /></ProtectedRoute>} />
-      </Routes>
+          <Route path="/crm" element={<Home />} />
+          <Route path="/crm/login" element={<Login />} />
+          <Route path="/crm/entrydashboard" element={<ProtectedRoute role={["user", "admin"]}><Dashboard /></ProtectedRoute>} />
+          <Route path="/crm/lead-management" element={<ProtectedRoute role={["user", "admin"]}><LeadManagement /></ProtectedRoute>} />
+          <Route path="/crm/unassigned-leads" element={<ProtectedRoute role="admin"><UnassignedLeadManagement /></ProtectedRoute>} />
+          <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
+          <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />
+          <Route path="/crm/assigned-leads" element={<ProtectedRoute role="admin"><AssignedLeadManagement /></ProtectedRoute>} />
+          <Route path="/crm/trending-leads" element={<ProtectedRoute role="admin"><TrendingLeads /></ProtectedRoute>} />
+          <Route path="/crm/my-trending-leads" element={<ProtectedRoute role={["admin", "user"]}><MyTrendingLeads /></ProtectedRoute>} />
+          <Route path="/crm/my-leads" element={<ProtectedRoute role={["admin", "user"]}><MyLeads /></ProtectedRoute>} />
+          <Route path="/crm/conversions" element={<ProtectedRoute role={["user", "admin"]}><MyConversions /></ProtectedRoute>} />
+          <Route path="/crm/today-followups" element={<ProtectedRoute role={["user", "admin"]}><TodayFollowups /></ProtectedRoute>} />
+          <Route path="/crm/upcoming-followups" element={<ProtectedRoute role={["user", "admin"]}><UpcomingFollowups /></ProtectedRoute>} />
+          <Route path="/crm/won-leads" element={<ProtectedRoute role="admin"><ConvertedLeads /></ProtectedRoute>} />
+          <Route path="/crm/product-dashboard" element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>} />
+          <Route path="/crm/product-management" element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>} />
+          <Route path="/crm/vendor-management" element={<ProtectedRoute role="admin"><VendorPage /></ProtectedRoute>} />
+          <Route path="/crm/quotations" element={<ProtectedRoute role={["user", "admin"]}><Quotations /></ProtectedRoute>} />
+          <Route path="/crm/quotations/create" element={<ProtectedRoute role={["user", "admin"]}><CreateQuotation /></ProtectedRoute>} />
+          <Route path="/crm/quotations/edit/:id" element={<ProtectedRoute role={["user", "admin"]}><QuotationEditPage /></ProtectedRoute>} />
+        </Routes>
+      </Suspense>
       <ToastContainer
         position="top-center"
         autoClose={3000}
         hideProgressBar
         closeOnClick
-        closeButton={false}  
-        toastClassName="bg-transparent shadow-none p-0" 
+        closeButton={false}
+        toastClassName="bg-transparent shadow-none p-0"
       />
     </>
   );

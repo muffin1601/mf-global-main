@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
+const { loginLimiter } = require("../middleware/rateLimiters");
 
 const publicUserFields = "-password";
 
@@ -28,7 +29,7 @@ router.get("/users/all", authenticate, requireRole("admin"), async (req, res) =>
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { username, password } = req.body;
 
   try {

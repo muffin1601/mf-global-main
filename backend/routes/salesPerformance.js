@@ -2,10 +2,19 @@ const express = require("express");
 const router = express.Router();
 const ClientData = require("../models/ClientData");
 const authenticate = require("../middleware/auth");
+const { createTTLCache } = require("../utils/paginate");
+
+const salesCache = createTTLCache(5 * 60 * 1000); // global aggregation, 5-min TTL
 
 router.get("/sales-performance", authenticate, async (req, res) => {
   try {
-    
+    const cached = salesCache.get();
+    if (cached) {
+      res.set("X-Cache", "HIT");
+      return res.json(cached);
+    }
+
+
     const pipeline = [
       { $unwind: "$assignedTo" }, 
       {
@@ -31,6 +40,8 @@ router.get("/sales-performance", authenticate, async (req, res) => {
 
     const salesData = await ClientData.aggregate(pipeline);
 
+    salesCache.set(salesData);
+    res.set("X-Cache", "MISS");
     res.json(salesData);
   } catch (err) {
     console.error(err);

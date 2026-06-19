@@ -7,6 +7,11 @@ const ClientPermission = require("../models/ClientPermission");
 router.get("/followup/reminder/:userId", authenticate, async (req, res) => {
   const { userId } = req.params;
 
+  // Non-admins may only see their own follow-up reminders.
+  if (req.user.role !== "admin" && String(req.user._id) !== String(userId)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -22,7 +27,7 @@ router.get("/followup/reminder/:userId", authenticate, async (req, res) => {
         followUpDate: { $gte: startOfDay, $lte: endOfDay } 
       },
       options: { lean: true }
-    });
+    }).lean();
 
     
     const followUpClients = permissions
@@ -64,7 +69,16 @@ router.put("/followup/update-status/:clientId", authenticate, async (req, res) =
       return res.status(404).json({ error: "Client not found" });
     }
 
-    
+    // Non-admins may only update the status of a lead assigned to them.
+    if (req.user.role !== "admin") {
+      const isAssignee = Array.isArray(client.assignedTo) && client.assignedTo.some(
+        (a) => a && a.user && String(a.user._id) === String(req.user._id)
+      );
+      if (!isAssignee) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+    }
+
     client.status = status;
     await client.save();
 

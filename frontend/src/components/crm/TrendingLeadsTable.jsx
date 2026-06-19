@@ -8,12 +8,15 @@ import ConfirmModal from './Modals/ConfirmModal';
 import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
 import CustomToast from './CustomToast';
+import { extractPage } from '../../utils/pageMeta';
 
 const TrendingLeadsTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
@@ -21,28 +24,33 @@ const TrendingLeadsTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'));
 
- const fetchLeads = async () => {
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/trending-leads`);
-    
-    const clients = response.data || []; 
-    setLeads(clients);
-    setTotalLeads(clients.length);
-  } catch {
-    toast(<CustomToast type="error" title="Error" message="Error fetching trending leads" />);
-  }
-};
-
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const totalPages = Math.ceil(totalLeads / leadsPerPage);
-
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
+  // True server-side pagination: fetch only the requested page.
+  const fetchLeads = async (page = currentPage, signal) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/trending-leads`, {
+        params: { page, limit: leadsPerPage },
+        signal,
+      });
+      const { rows, total, pages } = extractPage(response);
+      setLeads(rows);
+      setTotalLeads(total);
+      setTotalPages(pages);
+    } catch (err) {
+      if (axios.isCancel?.(err) || err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError') return;
+      toast(<CustomToast type="error" title="Error" message="Error fetching trending leads" />);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Refetch when the page changes; abort the stale request (prevents dup calls).
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchLeads(currentPage, controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -131,7 +139,7 @@ const TrendingLeadsTable = () => {
             </tr>
           </thead>
           <tbody>
-            {getPaginatedLeads().map((lead, index) => (
+            {leads.map((lead, index) => (
               <tr key={lead.id || `${lead.email}-${index}`}>
                 <td>{(currentPage - 1) * leadsPerPage + index + 1}</td>
                 <td>
@@ -166,13 +174,13 @@ const TrendingLeadsTable = () => {
 
       <div className="lead-pagination-wrapper">
         <span className="lead-entries">
-          Showing {getPaginatedLeads().length} of {totalLeads} Entries
+          Showing {leads.length} of {totalLeads} Entries · Page {currentPage} of {totalPages}
         </span>
         <ul className="lead-pagination">
           <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               Prev
             </button>
@@ -181,14 +189,14 @@ const TrendingLeadsTable = () => {
             const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
             return (
               <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
+                <button onClick={() => setCurrentPage(pageNumber)} disabled={loading}>{pageNumber}</button>
               </li>
             );
           })}
           <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || loading}
             >
               Next
             </button>

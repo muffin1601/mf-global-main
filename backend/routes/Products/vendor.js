@@ -3,6 +3,7 @@ const router  = express.Router();
 const Vendor  = require('../../models/VendorData');
 const authenticate = require("../../middleware/auth");
 const requireRole = require("../../middleware/requireRole");
+const { getPaging, setPageHeaders } = require("../../utils/paginate");
 
 router.post('/add-vendor', authenticate, requireRole("admin"), async (req, res) => {
   try {
@@ -30,10 +31,16 @@ router.post('/add-vendor', authenticate, requireRole("admin"), async (req, res) 
 
 
 
-router.get('/vendors', authenticate, async (_req, res) => {
+router.get('/vendors', authenticate, async (req, res) => {
   try {
-    const vendors = await Vendor.find().lean();
-    res.json({ vendors });
+    const { page, limit, skip } = getPaging(req);
+    // VendorData has no timestamps; _id is monotonic so it gives stable recency.
+    const [vendors, total] = await Promise.all([
+      Vendor.find().sort({ _id: -1 }).skip(skip).limit(limit).lean(),
+      Vendor.estimatedDocumentCount(),
+    ]);
+    const pages = setPageHeaders(res, total, page, limit);
+    res.json({ vendors, total, page, pages });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not fetch vendors.' });

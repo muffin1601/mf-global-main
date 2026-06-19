@@ -23,7 +23,7 @@ router.post('/add', requireRole("admin"), async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find().sort({ name: 1 }); // sort alphabetically
+    const categories = await Category.find().sort({ name: 1 }).lean(); // sort alphabetically
     res.status(200).json(categories);
   } catch (err) {
     console.error('Error fetching categories:', err);

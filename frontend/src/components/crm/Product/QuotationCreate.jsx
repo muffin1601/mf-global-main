@@ -7,7 +7,8 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
-import generateQuotationPDF from "../../../utils/generateQuotationPDF";
+// generateQuotationPDF is dynamically imported at the point of use so the heavy
+// jsPDF/html2canvas bundle loads only when a PDF is actually generated.
 
 const initialBankDetails = {
     accountNumber: "9549850787",
@@ -59,9 +60,11 @@ const QuotationCreate = () => {
     const [showPartyModal, setShowPartyModal] = useState(false);
     const [showItemModal, setShowItemModal] = useState(false);
     const [showShipToModal, setShowShipToModal] = useState(false);
+    const [saving, setSaving] = useState(false);
 
 
     const handleSaveQuotation = async () => {
+        if (saving) return; // guard against double-submit -> duplicate quotations
         if (!party) {
             toast(
                 <CustomToast
@@ -84,6 +87,7 @@ const QuotationCreate = () => {
             return;
         }
 
+        setSaving(true);
         try {
             const token = localStorage.getItem("token");
 
@@ -116,6 +120,7 @@ const QuotationCreate = () => {
 
             console.log("Saved Quotation:", response.data);
 
+            const { default: generateQuotationPDF } = await import("../../../utils/generateQuotationPDF");
             generateQuotationPDF({
                 party,
                 items,
@@ -141,9 +146,11 @@ const QuotationCreate = () => {
                 <CustomToast
                     type="error"
                     title="Save Failed"
-                    message="Failed to save quotation. Please try again."
+                    message={err.response?.data?.message || "Failed to save quotation. Please try again."}
                 />
             );
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -270,7 +277,9 @@ const QuotationCreate = () => {
                 <h3>Create Sales Quotation</h3>
                 <div className="header-actions">
                     {/* <button className="settings-btn"><i className="fas fa-cog"></i> Settings</button> */}
-                    <button className="save-btn" onClick={handleSaveQuotation} >Save Quotation</button>
+                    <button className="save-btn" onClick={handleSaveQuotation} disabled={saving}>
+                        {saving ? "Saving…" : "Save Quotation"}
+                    </button>
                 </div>
             </div>
             <div className="quotation-meta-section">

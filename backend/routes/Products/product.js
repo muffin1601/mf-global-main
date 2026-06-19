@@ -7,6 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const authenticate = require("../../middleware/auth");
 const requireRole = require("../../middleware/requireRole");
+const { getPaging, setPageHeaders } = require("../../utils/paginate");
 
 /* ---------------------- MULTER STORAGE ---------------------- */
 const storage = multer.diskStorage({
@@ -20,12 +21,22 @@ const storage = multer.diskStorage({
   }
 });
 
+// Stricter validation: allowlist both extension AND mimetype, cap size.
+const ALLOWED_IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
+const ALLOWED_IMAGE_MIME = /^image\/(jpe?g|png|webp|gif)$/i;
+
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) cb(null, true);
-  else cb(new Error("Only images allowed"), false);
+  const extOk = ALLOWED_IMAGE_EXT.test(path.extname(file.originalname).toLowerCase());
+  const mimeOk = ALLOWED_IMAGE_MIME.test(file.mimetype);
+  if (extOk && mimeOk) return cb(null, true);
+  return cb(new Error("Only JPG, PNG, WEBP or GIF images are allowed"), false);
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 }, // 5MB, single file
+});
 
 /* ---------------------- ADD PRODUCT ---------------------- */
 router.post("/add-product", authenticate, requireRole("admin"), upload.single("p_image"), async (req, res) => {
@@ -75,7 +86,7 @@ router.post("/add-product", authenticate, requireRole("admin"), upload.single("p
 /* ---------------------- GET META CATEGORIES ---------------------- */
 router.get("/meta", authenticate, async (req, res) => {
   try {
-    const cat_names = await Category.find().select("_id name");
+    const cat_names = await Category.find().select("_id name").lean();
     res.json({ cat_names });
   } catch (err) {
     console.error("Meta Error:", err);
@@ -86,8 +97,13 @@ router.get("/meta", authenticate, async (req, res) => {
 /* ---------------------- GET ALL PRODUCTS ---------------------- */
 router.get("/products", authenticate, async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 }).lean();
-    res.status(200).json({ products });
+    const { page, limit, skip } = getPaging(req);
+    const [products, total] = await Promise.all([
+      Product.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Product.estimatedDocumentCount(),
+    ]);
+    const pages = setPageHeaders(res, total, page, limit);
+    res.status(200).json({ products, total, page, pages });
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Failed to fetch products" });
@@ -113,7 +129,7 @@ router.get('/products/search', authenticate, async (req, res) => {
       ]
     };
 
-    const products = await Product.find(mongoQuery);
+    const products = await Product.find(mongoQuery).lean();
 
     res.json({ products });
 

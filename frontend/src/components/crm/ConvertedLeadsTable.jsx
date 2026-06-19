@@ -8,6 +8,7 @@ import ConfirmModal from './Modals/ConfirmModal';
 import { logActivity } from '../../utils/logActivity'; 
 import { toast } from 'react-toastify';
 import CustomToast from './CustomToast';
+import { extractPage } from '../../utils/pageMeta';
 
 const ConvertedLeadsTable = () => {
   const [leads, setLeads] = useState([]);
@@ -18,40 +19,37 @@ const ConvertedLeadsTable = () => {
   const [editLead, setEditLead] = useState(null);
   const [LeadsforDownload, setLeadsforDownload] = useState(false);
   const [leadforDelete, setLeadforDelete] = useState(null);
-  // const [filters, setFilters] = useState({
-  //   category: [],
-  //   datatype: [],
-  //   location: [],
-  //   fileName: [],
-  //   status: [],
-  //   callStatus: [],
-  //   assignedTo: [],
-  // });
-
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user'))
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
- const fetchLeads = async () => {
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/converted-clients`);
-    
-    const clients = response.data || []; 
-    setLeads(clients);
-    setTotalLeads(clients.length);
-  } catch {
-    toast(<CustomToast type="error" title="Error" message="Error fetching converted leads" />);
-  }
-};
-
-  const totalPages = Math.ceil(totalLeads / leadsPerPage);
-
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
+  // True server-side pagination: fetch only the requested page.
+  const fetchLeads = async (page = currentPage, signal) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/converted-clients`, {
+        params: { page, limit: leadsPerPage },
+        signal,
+      });
+      const { rows, total, pages } = extractPage(response);
+      setLeads(rows);
+      setTotalLeads(total);
+      setTotalPages(pages);
+    } catch (err) {
+      if (axios.isCancel?.(err) || err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError') return;
+      toast(<CustomToast type="error" title="Error" message="Error fetching converted leads" />);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchLeads(currentPage, controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -152,7 +150,7 @@ const handleLeadUpdate = (updatedLead) => {
             </tr>
           </thead>
           <tbody>
-            {getPaginatedLeads().map((lead, index) => (
+            {leads.map((lead, index) => (
               <tr key={lead.id || `${lead.email}-${index}`}>
                 <td>{(currentPage - 1) * leadsPerPage + index + 1}</td>
                 <td>
@@ -189,13 +187,13 @@ const handleLeadUpdate = (updatedLead) => {
 
       <div className="lead-pagination-wrapper">
         <span className="lead-entries">
-          Showing {getPaginatedLeads().length} of {totalLeads} Entries
+          Showing {leads.length} of {totalLeads} Entries · Page {currentPage} of {totalPages}
         </span>
         <ul className="lead-pagination">
           <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               Prev
             </button>
@@ -204,14 +202,14 @@ const handleLeadUpdate = (updatedLead) => {
             const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
             return (
               <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
+                <button onClick={() => setCurrentPage(pageNumber)} disabled={loading}>{pageNumber}</button>
               </li>
             );
           })}
           <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || loading}
             >
               Next
             </button>

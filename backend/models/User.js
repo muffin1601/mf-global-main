@@ -31,4 +31,11 @@ userSchema.pre("save", async function (next) {
   }
 });
 
+// --- P0 performance index ---
+// Login does User.findOne({ username }); index it. Unique enforces the
+// integrity login already assumes. NOTE: if duplicate usernames already
+// exist in the collection, the unique build will fail — de-dupe first,
+// or change `{ unique: true }` to a plain index.
+userSchema.index({ username: 1 }, { unique: true });
+
 module.exports = mongoose.model("User", userSchema);

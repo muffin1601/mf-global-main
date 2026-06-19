@@ -9,12 +9,27 @@ import { logActivity } from '../../utils/logActivity';
 import { toast } from 'react-toastify';
 import FetchReportModal from './Modals/FetchReportModal';
 import CustomToast from './CustomToast'
+import { extractPage } from '../../utils/pageMeta';
+
+const removeIcons = (options) =>
+  Array.isArray(options)
+    ? options.map((o) => (typeof o === 'string' ? o.replace(/^[^\w]*\s*/, '').trim() : o))
+    : options;
+
+const cleanFilters = (f = {}) => ({
+  ...f,
+  datatype: removeIcons(f.datatype),
+  status: removeIcons(f.status),
+  callStatus: removeIcons(f.callStatus),
+});
 
 const AssignedLeadsTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
   const [leadforDelete, setLeadforDelete] = useState(null);
@@ -35,28 +50,60 @@ const AssignedLeadsTable = () => {
 
   const user = JSON.parse(localStorage.getItem('user'))
 
-    useEffect(() => {
-    fetchLeads();
-  }, []);
+  const hasActiveFilters = (filtersObj) =>
+    Object.values(filtersObj).some(
+      (v) => (Array.isArray(v) && v.length > 0) || (!Array.isArray(v) && v)
+    );
 
-const fetchLeads = async () => {
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/overview/assigned-clients`);
-    
-    const clients = response.data || []; 
-    setLeads(clients);
-    setTotalLeads(clients.length);
-  } catch (error) {
-    console.error("Error in fetchLeads:", error); 
-    toast(<CustomToast type="error" title="Error" message="Error fetching assigned leads" />);
-  }
-};
+  // Unified server-paginated loader (filter endpoint when filters active).
+  const loadLeads = async (page = currentPage, activeFilters = filters, signal) => {
+    setLoading(true);
+    try {
+      const params = { page, limit: leadsPerPage };
+      const response = hasActiveFilters(activeFilters)
+        ? await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanFilters(activeFilters), { params, signal })
+        : await axios.get(`${import.meta.env.VITE_API_URL}/overview/assigned-clients`, { params, signal });
+      const { rows, total, pages } = extractPage(response);
+      setLeads(rows);
+      setTotalLeads(total);
+      setTotalPages(pages);
+    } catch (error) {
+      if (axios.isCancel?.(error) || error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') return;
+      console.error("Error in fetchLeads:", error);
+      toast(<CustomToast type="error" title="Error" message="Error fetching assigned leads" />);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const totalPages = Math.ceil(totalLeads / leadsPerPage);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadLeads(currentPage, filters, controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, filters]);
 
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
+  const refresh = () => loadLeads(currentPage, filters);
+  const fetchLeads = refresh; // back-compat alias for existing wiring
+
+  // Gather EVERY matching lead across all pages (for bulk remove/transfer).
+  const fetchAllFiltered = async (f) => {
+    const PAGE = 200;
+    let all = [];
+    let page = 1;
+    let pages = 1;
+    do {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/clients/filter`,
+        cleanFilters(f),
+        { params: { page, limit: PAGE } }
+      );
+      const { rows, pages: tp } = extractPage(res);
+      all = all.concat(rows);
+      pages = tp;
+      page += 1;
+    } while (page <= pages);
+    return all;
   };
 
   const getStatusClass = (status) => {
@@ -70,17 +117,10 @@ const fetchLeads = async () => {
     }
   };
 
+  // Apply filters: store + jump to page 1; the effect performs the paged fetch.
   const filterLeads = (incomingFilters = filters) => {
-    const removeIcons = (options) => Array.isArray(options) ? options.map(option => typeof option === "string" ? option.replace(/^[^\w]*\s*/, "").trim() : option) : options;
-    const cleanedFilters = { ...incomingFilters, datatype: removeIcons(incomingFilters.datatype), status: removeIcons(incomingFilters.status), callStatus: removeIcons(incomingFilters.callStatus) };
-
-    axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
-      .then((res) => {
-        setTotalLeads(res.data.length);
-        setLeads(res.data);
-        // toast(<CustomToast type="success" title="Filtered" message="Leads filtered successfully" />);
-      })
-      .catch(() => toast(<CustomToast type="error" title="Failed" message="Failed to apply filters." />));
+    setFilters(incomingFilters);
+    setCurrentPage(1);
   };
 
   const handleDeleteLead = async () => {
@@ -163,8 +203,7 @@ const fetchLeads = async () => {
 
   const handleRemoveAssignments = async (filtersToSend) => {
 
-    const filterResponse = await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, filtersToSend);
-    const filteredLeads = filterResponse.data;
+    const filteredLeads = await fetchAllFiltered(filtersToSend);
 
   if (!filteredLeads || filteredLeads.length === 0) {
     return toast(
@@ -204,8 +243,7 @@ const fetchLeads = async () => {
 
 const handleTransferAssignments = async (filtersToSend, targetUserName) => {
   try {
-    const filterResponse = await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, filtersToSend);
-    const filteredLeads = filterResponse.data;
+    const filteredLeads = await fetchAllFiltered(filtersToSend);
 
     if (!filteredLeads || filteredLeads.length === 0) {
       return toast(
@@ -273,7 +311,7 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
             </tr>
           </thead>
           <tbody>
-            {getPaginatedLeads().map((lead, index) => (
+            {leads.map((lead, index) => (
               <tr key={lead.id || `${lead.email}-${index}`}>
                 <td>{(currentPage - 1) * leadsPerPage + index + 1}</td>
                 <td>
@@ -310,13 +348,13 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
 
       <div className="lead-pagination-wrapper">
         <span className="lead-entries">
-          Showing {getPaginatedLeads().length} of {totalLeads} Entries
+          Showing {leads.length} of {totalLeads} Entries · Page {currentPage} of {totalPages}
         </span>
         <ul className="lead-pagination">
           <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               Prev
             </button>
@@ -325,14 +363,14 @@ const handleTransferAssignments = async (filtersToSend, targetUserName) => {
             const pageNumber = Math.min((Math.floor((currentPage - 1) / 2) * 2) + i + 1, totalPages);
             return (
               <li key={`page-${pageNumber}`} className={`page-item ${currentPage === pageNumber ? 'active' : ''}`}>
-                <button onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>
+                <button onClick={() => setCurrentPage(pageNumber)} disabled={loading}>{pageNumber}</button>
               </li>
             );
           })}
           <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || loading}
             >
               Next
             </button>

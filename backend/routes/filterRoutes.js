@@ -4,15 +4,52 @@ const Client = require("../models/ClientData");
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
 
+const { lcKey, toLc } = require("../utils/normalizeFields");
+const { getPaging } = require("../utils/paginate");
+
+// Exclude Mongoose internals + the normalized shadow fields the frontend never
+// reads. Keeps every field the lead tables / edit modal / CSV download use.
+const LEAD_PROJECTION =
+  "-__v -category_lc -location_lc -state_lc -datatype_lc -callStatus_lc -status_lc -fileName_lc";
+
+// Run a filtered lead query with pagination, projection, indexed sort and lean.
+const runPaginatedLeadQuery = async (req, res, finalQuery) => {
+  const { page, limit, skip } = getPaging(req);
+  const [data, total] = await Promise.all([
+    Client.find(finalQuery)
+      .select(LEAD_PROJECTION)
+      .sort({ createdAt: -1 }) // indexed (createdAt:-1)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Object.keys(finalQuery).length
+      ? Client.countDocuments(finalQuery)
+      : Client.estimatedDocumentCount(),
+  ]);
+  res.json({
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      pages: Math.max(1, Math.ceil(total / limit)),
+    },
+  });
+};
+
 const cleanFilter = (arr) =>
   arr
     .filter((v) => v != null)
     .map((v) => String(v).trim());
 
 
+// Index-backed case-insensitive equality: query the normalized `<field>_lc`
+// shadow column with an exact lowercase $in instead of a case-insensitive
+// RegExp (which forces a collection/index scan).
 const buildFieldQuery = (field, arr) => {
   if (!arr || !arr.length) return null;
 
+  const lcField = lcKey(field);
   const values = arr.map((v) => (v == null ? "" : String(v).trim()));
   const hasBlank = values.includes("");
   const nonBlankValues = values.filter((v) => v !== "");
@@ -20,10 +57,11 @@ const buildFieldQuery = (field, arr) => {
   const orClauses = [];
 
   if (nonBlankValues.length) {
-    orClauses.push({ [field]: { $in: nonBlankValues.map((v) => new RegExp(`^${v}$`, "i")) } });
+    orClauses.push({ [lcField]: { $in: nonBlankValues.map((v) => toLc(v)) } });
   }
   if (hasBlank) {
-    orClauses.push({ [field]: { $in: [null, ""] } });
+    // Missing/blank docs may have null, "", or no _lc value at all.
+    orClauses.push({ [lcField]: { $in: [null, ""] } });
   }
 
   if (!orClauses.length) return null;
@@ -54,16 +92,14 @@ router.post("/clients/filter", authenticate, requireRole("admin"), async (req, r
     if (fileName?.length) query.push(buildFieldQuery("fileName", fileName));
     if (status?.length) query.push(buildFieldQuery("status", status));
 
-    if (assigned === "assigned") query.push({ assignedTo: { $exists: true, $ne: [] } });
-    if (assigned === "unassigned")
-      query.push({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: { $size: 0 } }] });
+    if (assigned === "assigned") query.push({ isAssigned: true });
+    if (assigned === "unassigned") query.push({ isAssigned: false });
 
     if (assignedTo?.length)
       query.push({ "assignedTo.user.name": { $in: cleanFilter(assignedTo) } });
 
     const finalQuery = query.length ? { $and: query } : {};
-    const clients = await Client.find(finalQuery).lean();
-    res.json(clients);
+    await runPaginatedLeadQuery(req, res, finalQuery);
   } catch (err) {
     console.error("General Filter Error:", err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -90,8 +126,7 @@ router.post("/clients/assigned/:userName/filter", authenticate, async (req, res)
       }
     });
 
-    const assignedClients = await Client.find(query).lean();
-    res.json(assignedClients);
+    await runPaginatedLeadQuery(req, res, query);
   } catch (err) {
     console.error("Assigned Filter Error:", err);
     res.status(500).json({ message: "Server Error" });
@@ -102,17 +137,8 @@ router.post("/clients/unassigned/filter", authenticate, requireRole("admin"), as
   const filters = req.body;
 
   try {
-    const query = {
-      $and: [
-        {
-          $or: [
-            { assignedTo: { $exists: false } },           
-            { assignedTo: { $size: 0 } },                 
-            { "assignedTo.user._id": { $exists: false } } 
-          ]
-        }
-      ]
-    };
+    // Index-backed (was a $or/$size/$exists array scan).
+    const query = { $and: [{ isAssigned: false }] };
 
     const fields = ["category", "datatype", "location", "state", "status", "callStatus", "fileName"];
     fields.forEach((field) => {
@@ -122,8 +148,7 @@ router.post("/clients/unassigned/filter", authenticate, requireRole("admin"), as
       }
     });
 
-    const unassignedClients = await Client.find(query).lean();
-    res.json(unassignedClients);
+    await runPaginatedLeadQuery(req, res, query);
   } catch (err) {
     console.error("Unassigned Filter Error:", err);
     res.status(500).json({ message: "Server Error" });

@@ -2,9 +2,11 @@ const express = require('express');
 const { Resend } = require('resend');
 const router = express.Router();
 
+const { emailLimiter } = require("../../middleware/rateLimiters");
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-router.post("/send-email", async (req, res) => {
+router.post("/send-email", emailLimiter, async (req, res) => {
   const { name, email, phone, companyname, message } = req.body;
 
   try {

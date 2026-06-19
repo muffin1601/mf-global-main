@@ -72,7 +72,7 @@ router.get("/count", async (req, res) => {
     }
 
     // Return total visitors across all days
-    const allVisitors = await Visitor.find({});
+    const allVisitors = await Visitor.find({}).lean();
     const totalCount = allVisitors.reduce((acc, v) => acc + v.count, 0);
 
     res.json({

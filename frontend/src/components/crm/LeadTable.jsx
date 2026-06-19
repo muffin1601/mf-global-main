@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import '../../styles/crm/LeadTable.css';
 import { AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
@@ -13,12 +13,27 @@ import BulkUpdateModal from './Modals/BulkUpdateModal';
 import SearchProductModal from './Modals/SearchProductModal';
 import { toast } from 'react-toastify';
 import CustomToast from './CustomToast';
+import { extractPage } from '../../utils/pageMeta';
+
+const removeIcons = (options) =>
+  Array.isArray(options)
+    ? options.map((o) => (typeof o === 'string' ? o.replace(/^[^\w]*\s*/, '').trim() : o))
+    : options;
+
+const cleanFilters = (f) => ({
+  ...f,
+  datatype: removeIcons(f.datatype),
+  status: removeIcons(f.status),
+  callStatus: removeIcons(f.callStatus),
+});
 
 const LeadTable = () => {
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const [selectedLead, setSelectedLead] = useState(null);
   const [editLead, setEditLead] = useState(null);
@@ -43,49 +58,38 @@ const LeadTable = () => {
     callStatus: [],
   });
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  // Parse the stored user once per mount instead of on every render.
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user')), []);
 
-  useEffect(() => {
-    fetchLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchLeads = async () => {
+  // Unified server-paginated loader: uses the filter endpoint when filters are
+  // active, otherwise the full list. Both honor ?page & ?limit.
+  const loadLeads = async (page = currentPage, activeFilters = filters, signal) => {
+    setLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/overview/all-clients`
-      );
-      const uniqueClients = response.data.data || [];
-      setLeads(uniqueClients);
-      setTotalLeads(uniqueClients.length);
-      setCurrentPage(1);
-      setFilters({
-        category: [],
-        datatype: [],
-        location: [],
-        state: [],
-        fileName: [],
-        status: [],
-        callStatus: [],
-      });
+      const params = { page, limit: leadsPerPage };
+      const response = hasActiveFilters(activeFilters)
+        ? await axios.post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanFilters(activeFilters), { params, signal })
+        : await axios.get(`${import.meta.env.VITE_API_URL}/overview/all-clients`, { params, signal });
+      const { rows, total, pages } = extractPage(response);
+      setLeads(rows);
+      setTotalLeads(total);
+      setTotalPages(pages);
     } catch (error) {
+      if (axios.isCancel?.(error) || error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') return;
       console.error('Error fetching leads:', error);
-      toast(
-        <CustomToast
-          type="error"
-          title="Fetch Failed"
-          message="Failed to fetch leads."
-        />
-      );
+      toast(<CustomToast type="error" title="Fetch Failed" message="Failed to fetch leads." />);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const totalPages = Math.ceil(totalLeads / leadsPerPage);
-
-  const getPaginatedLeads = () => {
-    const startIndex = (currentPage - 1) * leadsPerPage;
-    return leads.slice(startIndex, startIndex + leadsPerPage);
-  };
+  // Reload on page or filter change; abort stale requests (prevents dup calls).
+  useEffect(() => {
+    const controller = new AbortController();
+    loadLeads(currentPage, filters, controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, filters]);
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -104,65 +108,20 @@ const LeadTable = () => {
     }
   };
 
-  const filterLeads = (incomingFilters = filters) => {
-    const removeIcons = (options) => {
-      if (Array.isArray(options)) {
-        return options.map((option) =>
-          typeof option === 'string'
-            ? option.replace(/^[^\w]*\s*/, '').trim()
-            : option
-        );
-      }
-      return options;
-    };
-
-    const cleanedFilters = {
-      ...incomingFilters,
-      datatype: removeIcons(incomingFilters.datatype),
-      status: removeIcons(incomingFilters.status),
-      callStatus: removeIcons(incomingFilters.callStatus),
-    };
-
-    axios
-      .post(`${import.meta.env.VITE_API_URL}/clients/filter`, cleanedFilters)
-      .then((res) => {
-        setLeads(res.data);
-        setTotalLeads(res.data.length);
-        setCurrentPage(1); // UX: go to first page after filter
-        toast(
-          <CustomToast
-            type="success"
-            title="Filtered"
-            message="Leads filtered successfully"
-          />
-        );
-      })
-      .catch((err) => {
-        console.error('Filter Error:', err);
-        toast(
-          <CustomToast
-            type="error"
-            title="Filter Failed"
-            message="Failed to apply filters."
-          />
-        );
-      });
-  };
-
   // utility to know if any filter is active
   const hasActiveFilters = (filtersObj) =>
     Object.values(filtersObj).some(
       (v) => (Array.isArray(v) && v.length > 0) || (!Array.isArray(v) && v)
     );
 
-  // main refresh function: respects current filters
-  const refreshLeads = () => {
-    if (hasActiveFilters(filters)) {
-      filterLeads(filters);
-    } else {
-      fetchLeads();
-    }
+  // Apply filters: store them + jump to page 1. The effect performs the fetch.
+  const filterLeads = (incomingFilters = filters) => {
+    setFilters(incomingFilters);
+    setCurrentPage(1);
   };
+
+  // Refresh the current page, respecting active filters.
+  const refreshLeads = () => loadLeads(currentPage, filters);
 
   const handleAddLead = () => {
     setFormModalOpen(true);
@@ -200,24 +159,26 @@ const LeadTable = () => {
   };
 
   const handleDeleteFilteredLeads = async (filterSet) => {
-    const removeIcons = (options) =>
-      Array.isArray(options)
-        ? options.map((opt) => opt.replace(/^[^\w]*\s*/, '').trim())
-        : options;
-
-    const cleanedFilters = {
-      ...filterSet,
-      datatype: removeIcons(filterSet.datatype),
-      status: removeIcons(filterSet.status),
-      callStatus: removeIcons(filterSet.callStatus),
-    };
+    const cleanedFilters = cleanFilters(filterSet);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/clients/filter`,
-        cleanedFilters
-      );
-      const leadsToDelete = response.data || [];
+      // Backend now paginates the filter endpoint — gather every matching id
+      // across all pages so "delete all filtered" still affects the full set.
+      const PAGE_SIZE = 200;
+      let leadsToDelete = [];
+      let page = 1;
+      let pages = 1;
+      do {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/clients/filter`,
+          cleanedFilters,
+          { params: { page, limit: PAGE_SIZE } }
+        );
+        const { rows, pages: totalPagesResp } = extractPage(res);
+        leadsToDelete = leadsToDelete.concat(rows);
+        pages = totalPagesResp;
+        page += 1;
+      } while (page <= pages);
 
       if (leadsToDelete.length === 0) {
         return toast(
@@ -373,14 +334,14 @@ const LeadTable = () => {
               </tr>
             </thead>
             <tbody>
-              {getPaginatedLeads().length === 0 ? (
+              {leads.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="no-data">
-                    No leads found.
+                    {loading ? 'Loading…' : 'No leads found.'}
                   </td>
                 </tr>
               ) : (
-                getPaginatedLeads().map((lead, index) => (
+                leads.map((lead, index) => (
                   <tr key={lead.id || lead._id || `${lead.email}-${index}`}>
                     <td data-label="S.NO">
                       {(currentPage - 1) * leadsPerPage + index + 1}
@@ -442,7 +403,7 @@ const LeadTable = () => {
 
         <div className="lead-pagination-wrapper">
           <span className="lead-entries">
-            Showing {getPaginatedLeads().length} of {totalLeads} Entries
+            Showing {leads.length} of {totalLeads} Entries · Page {currentPage} of {totalPages}
           </span>
           <ul className="lead-pagination">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -450,7 +411,7 @@ const LeadTable = () => {
                 onClick={() =>
                   setCurrentPage((prev) => Math.max(prev - 1, 1))
                 }
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || loading}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -480,7 +441,7 @@ const LeadTable = () => {
                     currentPage === pageNumber ? 'active' : ''
                   }`}
                 >
-                  <button onClick={() => setCurrentPage(pageNumber)}>
+                  <button onClick={() => setCurrentPage(pageNumber)} disabled={loading}>
                     {pageNumber}
                   </button>
                 </li>
@@ -495,7 +456,7 @@ const LeadTable = () => {
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || loading}
               >
                 Next
                 <svg

@@ -6,6 +6,8 @@ const path = require("path");
 
 const Blog = require("../../models/blog");
 const Comment = require("../../models/comment");
+const authenticate = require("../../middleware/auth");
+const requireRole = require("../../middleware/requireRole");
 
 /* ==========================
    Multer Setup
@@ -43,7 +45,7 @@ const upload = multer({
 
 router.get("/", async (req, res) => {
   try {
-    const blogs = await Blog.find().sort({ createdAt: -1 });
+    const blogs = await Blog.find().sort({ createdAt: -1 }).lean();
     res.json(blogs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -58,7 +60,7 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const blog = await Blog.findById(id);
+    const blog = await Blog.findById(id).lean();
     if (!blog) return res.status(404).json({ error: "Blog not found" });
     res.json(blog);
   } catch (err) {
@@ -70,7 +72,7 @@ router.get("/:id", async (req, res) => {
    CREATE BLOG (IMAGE UPLOAD)
 ========================== */
 
-router.post("/post-blogs", upload.single("media"), async (req, res) => {
+router.post("/post-blogs", authenticate, requireRole("admin"), upload.single("media"), async (req, res) => {
   try {
     const { title, content, author } = req.body;
 
@@ -103,7 +105,7 @@ router.get("/comments/:blogId", async (req, res) => {
   try {
     const comments = await Comment.find({
       blogId: req.params.blogId,
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
     res.json(comments);
   } catch (err) {
     res.status(500).json({ error: err.message });

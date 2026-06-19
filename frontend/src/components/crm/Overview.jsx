@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../../styles/crm/Overview.css';
 
 
 const AnimatedCounter = ({ value, isPercentage }) => {
@@ -63,11 +64,11 @@ const Overview = () => {
   const [trendingLeads, settrendingLeads] = useState(0);
   const [myTrendingLeads, setMyTrendingLeads] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem('user')) || {
+  const user = useMemo(() => JSON.parse(localStorage.getItem('user')) || {
     name: "Mr.Henry",
     profile: "/assets/profile.jpg",
     role: "user"
-  };
+  }, []);
 
   useEffect(() => {
     const fetchLeadsAndConversion = async () => {

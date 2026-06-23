@@ -37,6 +37,41 @@ const upload = multer({
 
 const PHONE_REGEX = /^[6-9][0-9]{9}$/;
 
+// Parse a date cell. Supports DD-MM-YYYY / DD/MM/YYYY (the format produced by
+// Excel exports here) as well as anything Date can natively parse. Returns a
+// valid Date or null so toISOString() never throws on a bad value.
+const parseDate = (raw) => {
+  if (!raw) return null;
+  const dmy = String(raw).trim().match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  const d = dmy
+    ? new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]))
+    : new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+// Canonical datatype values, keyed by a lowercase alias so the match is
+// case-insensitive and tolerant of the labels that show up in real lead files.
+const DATATYPE_ALIASES = {
+  indiamart: "IndiaMart",
+  offline: "Offline",
+  tradeindia: "TradeIndia",
+  justdial: "JustDial",
+  webportals: "WebPortals",
+  linkedin: "LinkedIn",
+  linkend: "LinkedIn",
+  calling: "Offline",
+  other: "Other",
+};
+
+// Strip a leading +91/91 country code (and any non-digits) so 12-digit and
+// 0-prefixed numbers normalise to a bare 10-digit mobile number.
+const normalizePhone = (raw) => {
+  let digits = (raw || "").replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return digits;
+};
+
 const cleanInput = (input) => {
   return input
     .replace(/[^\x20-\x7E]/g, "")
@@ -83,7 +118,7 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
         normalizedRow[key.trim().toLowerCase()] = cleanInput(row[key]);
       }
 
-      const phone = (normalizedRow["phone"] || "").replace(/\s+/g, "");
+      const phone = normalizePhone(normalizedRow["phone"]);
       const contact = (normalizedRow["contact"] || "").replace(/\s+/g, "");
       const company = normalizedRow["company"] || null;
       const location = normalizedRow["location"] || null;
@@ -92,7 +127,7 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
       if (category) {
         category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
       }
-      const datatype = normalizedRow["datatype"] || null;
+      const datatype = DATATYPE_ALIASES[(normalizedRow["datatype"] || "").toLowerCase()] || null;
 
       if (!phone && !contact) {
         return addSkipped({ phone, contact, company, location, category, datatype, reason: "Missing phone and contact" });
@@ -114,13 +149,13 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
           }
       }
 
-      const validDatatypes = [ "IndiaMart", "Offline", "TradeIndia", "JustDial", "WebPortals", "Other" ];
+      const validDatatypes = [ "IndiaMart", "Offline", "TradeIndia", "JustDial", "WebPortals", "LinkedIn", "Other" ];
       if (!validDatatypes.includes(datatype)) {
         return addSkipped({ phone, contact, company, location, state, category, datatype, reason: "Invalid datatype" });
       }
 
-      const inquiryDateValue = normalizedRow["inquiry date"] ? new Date(normalizedRow["inquiry date"]) : new Date();
-      const followUpDateValue = normalizedRow["follow up date"] ? new Date(normalizedRow["follow up date"]) : null;
+      const inquiryDateValue = parseDate(normalizedRow["inquiry date"]) || new Date();
+      const followUpDateValue = parseDate(normalizedRow["follow up date"]);
 
       results.push({
         name: normalizedRow["name"] || "",

@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
+/* Make padding/border count inside declared widths so fixed-sidebar offsets
+   (e.g. .main-content-wrapper's 260px padding-left) don't overflow the viewport. */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body{
     font-family: 'Poppins', sans-serif;
     margin: 0;

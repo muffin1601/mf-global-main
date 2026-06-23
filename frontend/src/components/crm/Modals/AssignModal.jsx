@@ -95,7 +95,9 @@ const filterLeadsForAssign = (incomingFilters = modalFilters) => {
     callStatus: removeIcons(incomingFilters.callStatus),
   };
 
-  axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter`, cleanedFilters)
+  // Pull a large page so the bulk assign covers all matching leads, not just
+  // the default 50. The endpoint is paginated ({ data, pagination }).
+  axios.post(`${import.meta.env.VITE_API_URL}/clients/unassigned/filter?limit=200`, cleanedFilters)
     .then(res => setFilteredLeads(res.data))
     .catch(err => {
       console.error("Filter Error:", err);
@@ -126,11 +128,27 @@ const handleAssign = async () => {
     );
   }
 
+  // The filter endpoint returns { data: [...leads], pagination }. Send only the
+  // lead IDs and user IDs the backend actually expects (not the whole objects).
+  const leadIds = Array.isArray(filteredLeads?.data)
+    ? filteredLeads.data.map((lead) => lead._id).filter(Boolean)
+    : [];
+  const userIds = selectedUsers.map((u) => u._id).filter(Boolean);
+
+  if (leadIds.length === 0) {
+    return toast(
+      <CustomToast
+        type="warning"
+        title="No Leads Selected"
+        message="No leads matched the current filters."
+      />
+    );
+  }
+
   try {
     await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign`, {
-      
-      Leads: filteredLeads,
-      userIds: selectedUsers,
+      Leads: leadIds,
+      userIds,
       permissions,
     });
     onAssigndone();

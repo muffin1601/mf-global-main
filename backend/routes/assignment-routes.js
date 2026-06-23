@@ -5,13 +5,31 @@ const User = require('../models/User');
 const mongoose = require("mongoose");
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
+const countsCache = require("../utils/countsCache");
 const ObjectId = mongoose.Types.ObjectId;
 
 router.post("/leads/assign", authenticate, requireRole("admin"), async (req, res) => {
   const { Leads, userIds, permissions } = req.body;
 
+  console.log("Bulk Lead Assignment Request:", {
+    leadCount: Array.isArray(Leads) ? Leads.length : Leads,
+    userIds,
+    currentUser: req.user?._id,
+  });
+
+  if (!Array.isArray(Leads) || Leads.length === 0) {
+    return res.status(400).json({ error: "No leads provided for assignment." });
+  }
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({ error: "No users provided for assignment." });
+  }
+
   try {
     const users = await User.find({ _id: { $in: userIds } }, "_id name").lean();
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "No valid users found to assign." });
+    }
 
     await Promise.all(
       Leads.map(async (leadId) => {
@@ -38,6 +56,7 @@ router.post("/leads/assign", authenticate, requireRole("admin"), async (req, res
       })
     );
 
+    countsCache.clear(); // assigned/unassigned counts changed
     res.json({ message: "Leads assigned successfully" });
   } catch (error) {
     console.error("Lead assignment error:", error);
@@ -100,6 +119,7 @@ router.post("/leads/assign/single", authenticate, requireRole("admin"), async (r
     lead.assignedTo = Array.from(updatedAssignments.values());
     await lead.save();
 
+    countsCache.clear(); // assigned/unassigned counts changed
     res.json({ message: "Lead assigned successfully." });
   } catch (error) {
     console.error("Single lead assignment error:", error);
@@ -128,6 +148,7 @@ router.post('/leads/remove-assignments', authenticate, requireRole("admin"), asy
       })
     );
 
+    countsCache.clear(); // assigned/unassigned counts changed
     res.json({ message: 'Assignments removed successfully' });
   } catch (error) {
     console.error('Remove assignments error:', error);
@@ -170,6 +191,7 @@ router.post("/leads/transfer-assignments", authenticate, requireRole("admin"), a
       })
     );
 
+    countsCache.clear(); // assigned/unassigned counts changed
     res.json({ message: "Assignments transferred successfully" });
   } catch (error) {
     console.error("Transfer assignments error:", error);

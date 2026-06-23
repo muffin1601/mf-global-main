@@ -3,13 +3,12 @@ const router = express.Router();
 const Client = require("../models/ClientData");
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
-const { getPaging, setPageHeaders, createTTLCache } = require("../utils/paginate");
+const { getPaging, setPageHeaders } = require("../utils/paginate");
+const countsCache = require("../utils/countsCache");
 
 // Lean projection: every field the lead tables + edit modal actually read.
 // Excludes only Mongoose internals (__v). Keeps UI behavior identical.
 const LEAD_FIELDS = "-__v";
-
-const countsCache = createTTLCache(5 * 60 * 1000); // /counts is global admin data
 
 router.use(authenticate);
 

@@ -4,6 +4,11 @@ import { logActivity } from "../../../utils/logActivity";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast"; 
 
+// Cap how many skipped rows we render. A large mostly-duplicate file can produce
+// tens of thousands of skipped rows; rendering them all as DOM <tr> crashed the
+// tab ("Aw, Snap! Out of Memory"). The full count is still shown in the heading.
+const SKIPPED_PREVIEW_LIMIT = 100;
+
 const CsvUploadModal = ({ onClose }) => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
@@ -28,10 +33,12 @@ const CsvUploadModal = ({ onClose }) => {
     formData.append("file", file);
 
     try {
+      // Do NOT set Content-Type manually — axios/the browser must generate the
+      // multipart boundary (e.g. "multipart/form-data; boundary=----WebKit...").
+      // Hard-coding it without a boundary makes multer unable to parse the file.
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/upload-csv`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        formData
       );
 
       const { inserted, skipped, skippedData } = response.data;
@@ -50,7 +57,14 @@ const CsvUploadModal = ({ onClose }) => {
 
       setFile(null);
     } catch (error) {
-      const msg = error.response?.data?.error || "Upload failed. Please try again.";
+      // No error.response means the request never reached the server (network
+      // layer failure) — typically the file is locked by another process (open
+      // in Excel), an extension/AV blocked the POST, or the server is down.
+      const msg = !error.response
+        ? "Could not reach the server, or the file is locked (is it open in Excel?). Close it and try again."
+        : error.response.data?.message ||
+          error.response.data?.error ||
+          "Upload failed. Please try again.";
       setMessage(`❌ ${msg}`);
       toast(
         <CustomToast type="error" title="Upload Failed" message={msg} />
@@ -87,7 +101,12 @@ const CsvUploadModal = ({ onClose }) => {
 
           {skippedData && skippedData.length > 0 && (
             <div className="csv-skipped-data">
-              <h3 className="csv-skipped-heading">Skipped Data:</h3>
+              <h3 className="csv-skipped-heading">
+                Skipped Data ({skippedData.length})
+                {skippedData.length > SKIPPED_PREVIEW_LIMIT &&
+                  ` — showing first ${SKIPPED_PREVIEW_LIMIT}`}
+                :
+              </h3>
               <div className="csv-skipped-table-wrapper">
                 <table className="csv-skipped-table">
                   <thead>
@@ -98,7 +117,7 @@ const CsvUploadModal = ({ onClose }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {skippedData.map((row, index) => (
+                    {skippedData.slice(0, SKIPPED_PREVIEW_LIMIT).map((row, index) => (
                       <tr key={index}>
                         {Object.values(row).map((val, idx) => (
                           <td key={idx}>{val}</td>

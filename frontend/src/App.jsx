@@ -34,6 +34,7 @@ const MyTrendingLeads = lazy(() => import("./pages/crm/Mytrending"));
 const Quotations = lazy(() => import("./pages/crm/ProductManage/Quotations"));
 const CreateQuotation = lazy(() => import("./pages/crm/ProductManage/CreateQuotation"));
 const QuotationEditPage = lazy(() => import("./pages/crm/ProductManage/QuotationEditPage"));
+const ImportLeads = lazy(() => import("./pages/crm/ImportLeads"));
 
 // Minimal fallback shown only while a route chunk is being fetched.
 const RouteFallback = () => (
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="/crm/login" element={<Login />} />
           <Route path="/crm/entrydashboard" element={<ProtectedRoute role={["user", "admin"]}><Dashboard /></ProtectedRoute>} />
           <Route path="/crm/lead-management" element={<ProtectedRoute role={["user", "admin"]}><LeadManagement /></ProtectedRoute>} />
+          <Route path="/crm/import-leads" element={<ProtectedRoute role={["user", "admin"]}><ImportLeads /></ProtectedRoute>} />
           <Route path="/crm/unassigned-leads" element={<ProtectedRoute role="admin"><UnassignedLeadManagement /></ProtectedRoute>} />
           <Route path="/crm/new-leads" element={<ProtectedRoute role="admin"><NewLeads /></ProtectedRoute>} />
           <Route path="/crm/user-management" element={<ProtectedRoute role="admin"><UserManagement /></ProtectedRoute>} />

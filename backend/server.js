@@ -148,6 +148,7 @@ app.use ("/api/visitors", require("./routes/main/visitor"));
 app.use("/api/blogs", require("./routes/main/blogRoutes"));
 app.use("/api", require("./routes/client"));
 app.use("/api", require("./routes/upload"));
+app.use("/api", require("./routes/leadImport"));
 app.use("/api", require("./routes/filterRoutes"));
 app.use("/api", require("./routes/login"));
 app.use("/api", require("./routes/dashboard"));

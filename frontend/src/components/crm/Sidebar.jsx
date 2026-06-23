@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaAngleRight, FaAngleDown, FaChartBar, FaUserTie } from 'react-icons/fa';
+import { FaHome, FaAngleRight, FaAngleDown, FaChartBar, FaUserTie, FaFileImport } from 'react-icons/fa';
 import '../../styles/crm/Sidebar.css';
 
 const Sidebar = () => {
@@ -19,9 +19,10 @@ const Sidebar = () => {
 
   const mainNavigation = [
     // { label: "Dashboard Overview", path: "/crm/overview", icon: FaChartBar },
+    { label: "Import Leads", path: "/crm/import-leads", icon: FaFileImport },
     { label: "User Management", path: "/crm/user-management", icon: FaUserTie, roles: ['admin'] },
     // { label: "Settings", path: "/crm/settings", icon: FaCog },
-    
+
   ];
 
   const dashboards = [

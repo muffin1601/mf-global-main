@@ -100,9 +100,12 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
         { updates: [updates] }
       );
 
-      // Assign user if admin changed assignment
+      // Assign user only when an admin changed the assignment. The assignment
+      // dropdown is disabled for non-admins, and /leads/assign/single is gated by
+      // requireRole("admin") — firing it as a non-admin returns 403 "Access denied"
+      // even though /save-all-updates already succeeded.
       const assignedUser = editedLead.assignedTo?.[0]?.user;
-      if (assignedUser?._id) {
+      if (userRole === "admin" && assignedUser?._id) {
         await axios.post(`${import.meta.env.VITE_API_URL}/leads/assign/single`, {
           Leads: [editedLead._id],
           userIds: [assignedUser._id],

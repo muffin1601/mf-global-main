@@ -212,7 +212,7 @@ function cleanValuesWithBlank(arr) {
   return hasBlank ? ["", ...uniqueValues] : uniqueValues;
 }
 
-router.get("/clients/meta", authenticate, requireRole("admin"), async (req, res) => {
+router.get("/clients/meta", authenticate, async (req, res) => {
   try {
     const categories = cleanValuesWithBlank(await Client.distinct("category"));
     const locations = cleanValuesWithBlank(await Client.distinct("location"));

@@ -6,7 +6,6 @@ const fs = require("fs");
 const path = require("path");
 const ClientData = require("../models/ClientData");
 const authenticate = require("../middleware/auth");
-const requireRole = require("../middleware/requireRole");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -84,7 +83,7 @@ const addSkippedData = ({ phone = null, contact = null, company = null, location
   return skipped;
 };
 
-router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("file"), async (req, res) => {
+router.post("/upload-csv", authenticate, upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No CSV file uploaded." });
   }
@@ -127,7 +126,16 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
       if (category) {
         category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
       }
-      const datatype = DATATYPE_ALIASES[(normalizedRow["datatype"] || "").toLowerCase()] || null;
+      // Map known aliases to canonical values; anything blank or unrecognised
+      // falls back to "Other" so a lead with valid phone/company isn't dropped
+      // just because its source label is missing or non-standard.
+      const datatype = DATATYPE_ALIASES[(normalizedRow["datatype"] || "").toLowerCase()] || "Other";
+
+      // Completely empty row (e.g. the ~1M blank trailing rows Excel appends when
+      // a sheet is saved as CSV). Drop it silently — don't flood skippedData with
+      // a million "Missing phone and contact" entries.
+      const isBlankRow = Object.values(normalizedRow).every(v => !v || !String(v).trim());
+      if (isBlankRow) return;
 
       if (!phone && !contact) {
         return addSkipped({ phone, contact, company, location, category, datatype, reason: "Missing phone and contact" });
@@ -137,10 +145,10 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
       }
 
       const maxLenChecks = [
-          { field: category, max: 15, name: "Category" },
-          { field: location, max: 15, name: "Location" },
-          { field: state, max: 15, name: "State" },
-          { field: company, max: 50, name: "Company" },
+          { field: category, max: 100, name: "Category" },
+          { field: location, max: 100, name: "Location" },
+          { field: state, max: 100, name: "State" },
+          { field: company, max: 150, name: "Company" },
       ];
       
       for (const check of maxLenChecks) {
@@ -194,19 +202,27 @@ router.post("/upload-csv", authenticate, requireRole("admin"), upload.single("fi
         const phones = results.map(r => r.phone).filter(Boolean);
         const contacts = results.map(r => r.contact).filter(Boolean);
 
+        // Only pull the two fields we dedup on, as plain objects (lean) — avoids
+        // hydrating full Mongoose docs for what can be a large match set.
         const existing = await ClientData.find({
           $or: [
             { phone: { $in: phones } },
             { contact: { $in: contacts } },
           ],
-        });
+        }).select("phone contact").lean();
+
+        // Index the existing phones/contacts into Sets so each row is an O(1)
+        // lookup instead of an O(n) scan of `existing` (was O(rows × existing),
+        // which pinned the CPU on large uploads).
+        const existingPhones = new Set(existing.map(e => e.phone).filter(Boolean));
+        const existingContacts = new Set(existing.map(e => e.contact).filter(Boolean));
 
         const seenPhones = new Set();
         const seenContacts = new Set();
 
         const finalData = results.filter((r) => {
-          const isDupPhone = r.phone && (seenPhones.has(r.phone) || existing.some(e => e.phone === r.phone));
-          const isDupContact = r.contact && (seenContacts.has(r.contact) || existing.some(e => e.contact === r.contact));
+          const isDupPhone = r.phone && (seenPhones.has(r.phone) || existingPhones.has(r.phone));
+          const isDupContact = r.contact && (seenContacts.has(r.contact) || existingContacts.has(r.contact));
 
           if (isDupPhone || isDupContact) {
             const reason = [

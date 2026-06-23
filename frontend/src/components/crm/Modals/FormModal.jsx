@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
-import { logActivity } from "../../../utils/logActivity"; 
-import CsvUploadModal from './CsvUploadModal';
+import { logActivity } from "../../../utils/logActivity";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
 
@@ -34,7 +34,7 @@ const FormModal = ({
   const [existingContactUser, setExistingContactUser] = useState(null);
   const [showPhoneDetails, setShowPhoneDetails] = useState(false);
   const [showContactDetails, setShowContactDetails] = useState(false);
-  const [showCsvModal, setShowCsvModal] = useState(false);
+  const navigate = useNavigate();
 
   // ---------------------------------------------
   // Load Users & Categories
@@ -388,8 +388,12 @@ const FormModal = ({
 
         {/* Footer */}
         <div className="fe-footer-buttons">
-          <button type="button" className="fe-btn-upload" onClick={() => setShowCsvModal(true)}>
-            Upload CSV
+          <button
+            type="button"
+            className="fe-btn-upload"
+            onClick={() => { onClose(); navigate("/crm/import-leads"); }}
+          >
+            Import Leads (CSV)
           </button>
 
           <div className="fe-action-buttons">
@@ -401,8 +405,6 @@ const FormModal = ({
             </button>
           </div>
         </div>
-
-        {showCsvModal && <CsvUploadModal onClose={() => setShowCsvModal(false)} />}
 
       </div>
     </div>

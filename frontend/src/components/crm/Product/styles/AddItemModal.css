@@ -193,3 +193,39 @@
     font-size: 1.4rem;
   }
 }
+
+/* --- Product image in search suggestions & item form --- */
+
+.additem-modal__suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.additem-modal__suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.additem-modal__image-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.additem-modal__suggestion-item .qtn-product-thumb,
+.additem-modal__image-row .qtn-product-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f4f6f8;
+  border: 1px solid #e2e6ea;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.additem-modal__image-row .qtn-product-thumb {
+  width: 64px;
+  height: 64px;
+}

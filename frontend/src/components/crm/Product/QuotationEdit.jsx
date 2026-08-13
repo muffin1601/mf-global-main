@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { AiOutlineDelete } from 'react-icons/ai';
 import AddClientModal from "./AddClientModal";
 import AddItemModal from "./AddItemModal";
+import ProductThumb from "./ProductThumb";
 import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
@@ -386,6 +387,7 @@ const QuotationEdit = () => {
                     <thead>
                         <tr>
                             <th className="qtn-no">No</th>
+                            <th className="qtn-image">Image</th>
                             <th className="qtn-items-services">Products</th>
                             <th className="qtn-hsn-sac">HSN</th>
                             <th className="qtn-qty">Qty</th>
@@ -404,6 +406,9 @@ const QuotationEdit = () => {
                                 return (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
+                                        <td className="qtn-image-cell" data-label="Image">
+                                            <ProductThumb src={item.image} alt={item.name} />
+                                        </td>
                                         <td>
                                             <div className="qtn-item-name-box">
                                                 <input
@@ -524,7 +529,7 @@ const QuotationEdit = () => {
 
                         {/* Add Item Row */}
                         <tr className="qtn-input-row">
-                            <td colSpan="2">
+                            <td colSpan="3">
                                 <button
                                     className="qtn-create-item-btn"
                                     onClick={() => setShowItemModal(true)}

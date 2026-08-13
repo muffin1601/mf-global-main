@@ -2,6 +2,7 @@ import html2pdf from "html2pdf.js";
 import "./quotation.css";
 import logoDataUrl from "/assets/crm/logo.webp";
 import qrCodeDataUrl from "/QR.png";
+import { toProductImageDataUrl } from "./productImage";
 
 export const generateQuotationPDF = async (quotation) => {
   if (!quotation) return;
@@ -48,6 +49,13 @@ export const generateQuotationPDF = async (quotation) => {
 
     return { ...it, qty, price, gstPercent, taxable, gstAmount, lineTotal };
   });
+
+  // Inline the product images as data URIs before rendering. html2canvas skips
+  // cross-origin images it cannot read, and a missing/broken one resolves to
+  // the placeholder — so the PDF never fails because of an image.
+  const imageDataUrls = await Promise.all(
+    processedItems.map((it) => toProductImageDataUrl(it.image))
+  );
 
   subtotal = +subtotal.toFixed(2);
   totalGst = +totalGst.toFixed(2);
@@ -125,6 +133,7 @@ export const generateQuotationPDF = async (quotation) => {
             <thead>
               <tr>
                 <th>No</th>
+                <th>Image</th>
                 <th>Description</th>
                 <th>Qty</th>
                 <th>Rate</th>
@@ -140,6 +149,9 @@ export const generateQuotationPDF = async (quotation) => {
                   (it, i) => `
                 <tr>
                   <td>${i + 1}</td>
+                  <td class="mfq-item-image-cell">
+                    <img class="mfq-item-image" src="${imageDataUrls[i]}" alt="">
+                  </td>
                   <td>${it.name}</td>
                   <td style="text-align:right">${it.qty}</td>
                   <td style="text-align:right">${it.price.toFixed(2)}</td>

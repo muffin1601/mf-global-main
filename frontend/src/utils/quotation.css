@@ -318,3 +318,24 @@
     padding: 15mm;
   }
 }
+
+/* ---------------------------------------------
+   PRODUCT IMAGE (printed / PDF quotation)
+----------------------------------------------*/
+
+.mfq-items-table .mfq-item-image-cell {
+  width: 62px;
+  text-align: center !important;
+  padding: 4px;
+}
+
+.mfq-item-image {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;   /* keep aspect ratio on paper as well */
+  display: block;
+  margin: 0 auto;
+  border: 1px solid #eceff3;
+  border-radius: 4px;
+  background: #fff;
+}

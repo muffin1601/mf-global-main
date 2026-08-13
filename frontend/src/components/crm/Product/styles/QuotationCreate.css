@@ -656,3 +656,44 @@ background: rgba(0, 0, 0, 0.267);
         gap: 0.5rem;
     }
 }
+
+/* ---------------------------------------------------------------------------------- */
+/* --- Product image thumbnails on quotation item rows --- */
+/* ---------------------------------------------------------------------------------- */
+
+.qtn-image {
+  width: 64px;
+}
+
+.qtn-image-cell {
+  width: 64px;
+}
+
+.qtn-product-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;          /* never stretch or distort the product */
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 2px;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  /* Rows stack into cards on mobile — keep the thumb aligned with its label. */
+  .qtn-image,
+  .qtn-image-cell {
+    width: auto;
+  }
+
+  .qtn-image-cell {
+    align-items: center;
+  }
+
+  .qtn-product-thumb {
+    width: 56px;
+    height: 56px;
+  }
+}

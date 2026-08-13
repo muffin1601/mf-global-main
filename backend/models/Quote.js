@@ -29,6 +29,11 @@ const ItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   hsn: { type: String },
+  // Snapshot of the product's `p_image` path (Product.p_image) taken when the
+  // item was added. Only the path is copied — never the file — so the quotation
+  // keeps referencing the single existing upload. Optional: items typed in by
+  // hand, or products without an image, simply leave this empty.
+  image: { type: String },
   qty: { type: Number, required: true },
   price: { type: Number, required: true },
   discount: { type: Number, default: 0 },

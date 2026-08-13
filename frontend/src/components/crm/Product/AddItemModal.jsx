@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FiX, FiSearch } from "react-icons/fi";
 import axios from "axios";
+import ProductThumb from "./ProductThumb";
 import "./styles/AddItemModal.css";
 
 const AddItemModal = ({ onClose, onSave }) => {
   const [itemData, setItemData] = useState({
     name: "",
     style_code: "",
+    image: "",
     qty: 1,
     price: "",
     discount: 0,
@@ -87,6 +89,8 @@ const AddItemModal = ({ onClose, onSave }) => {
     setItemData({
       name: product.p_name,
       style_code: product.s_code || "",
+      // Reuse the product's existing image path — nothing is re-uploaded.
+      image: product.p_image || "",
       qty: 1,
       price: priceValue,
       discount: 0,
@@ -159,6 +163,8 @@ const AddItemModal = ({ onClose, onSave }) => {
                   onClick={() => handleProductSelect(prod)}
                   className="additem-modal__suggestion-item"
                 >
+                  <ProductThumb src={prod.p_image} alt={prod.p_name} />
+                  <div className="additem-modal__suggestion-info">
                   <strong>{prod.p_name}</strong>
                   <div className="suggestion-details">
                     <span>Style: {prod.s_code || "—"}</span>
@@ -166,6 +172,7 @@ const AddItemModal = ({ onClose, onSave }) => {
                     <span>HSN: {prod.HSN_code || "—"}</span>
                     <span>GST: {extractGST(prod)}%</span>
                     <span>₹{extractPrice(prod)}</span>
+                  </div>
                   </div>
                 </li>
               ))}
@@ -175,6 +182,11 @@ const AddItemModal = ({ onClose, onSave }) => {
 
         {/* FORM */}
         <div className="additem-modal__body">
+
+          <div className="additem-modal__form-row additem-modal__image-row">
+            <label>Product Image</label>
+            <ProductThumb src={itemData.image} alt={itemData.name || "Product"} />
+          </div>
 
           <div className="additem-modal__form-row">
             <label>Item / Service Name</label>

@@ -27,3 +27,8 @@ dist-ssr
 frontend/.env
 backend/.env
 uploads
+
+# Vendor documents and import files: confidential, and deliberately stored
+# outside backend/uploads so they are never served statically.
+private-uploads
+backend/private-uploads

@@ -4,6 +4,14 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Vitest runs the same transform pipeline as the app, so tests import
+  // components exactly as the build does.
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+    include: ['src/**/*.test.{js,jsx}'],
+  },
   build: {
     // Skip the gzip-size computation for the output table — it's purely
     // informational and noticeably slows large-chunk builds.

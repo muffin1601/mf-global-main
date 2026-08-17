@@ -32,8 +32,12 @@ const ProductOverview = () => {
         setReturnedProducts(productRes.data.returnedProducts || 0);
 
         
-        const vendorRes = await axios.get(`${import.meta.env.VITE_API_URL}/vendors`);
-        setTotalVendors(vendorRes.data.vendors.length || 0);
+        // /vendors is paginated, so `vendors.length` is only the current page —
+        // use the `total` the endpoint reports for the real count.
+        const vendorRes = await axios.get(`${import.meta.env.VITE_API_URL}/vendors`, {
+          params: { limit: 1 },
+        });
+        setTotalVendors(vendorRes.data.total ?? vendorRes.data.vendors?.length ?? 0);
 
         
         // const quotationRes = await axios.get(`${import.meta.env.VITE_API_URL}/quotations/data/count`);
@@ -87,7 +91,7 @@ const ProductOverview = () => {
 
   const cards = [
     { title: 'Total Products', value: totalProducts, icon: icons.totalProducts, bg: '#42a5f5', route: '/crm/product-management' },
-    { title: 'Total Vendors', value: totalVendors, icon: icons.totalVendors, bg: '#26a69a', route: '/crm/vendor-management' },
+    { title: 'Total Vendors', value: totalVendors, icon: icons.totalVendors, bg: '#26a69a', route: '/crm/vendors' },
     { title: 'Low Stock Items', value: lowStock, icon: icons.lowStock, bg: '#ef5350', route: '/products/low-stock' },
     { title: 'Top Selling Product', value: topSellingProduct, icon: icons.topSellingProduct, bg: '#ab47bc', route: '/products/top-selling' },
     { title: 'Out of Stock', value: outOfStock, icon: icons.outOfStock, bg: '#ffa726', route: '/products/out-of-stock' },

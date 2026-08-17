@@ -20,6 +20,13 @@
   flex-direction: column;
   padding-left: 260px;
   transition: padding-left 0.3s ease-in-out;
+  /* As a flex item this defaults to min-width:auto, i.e. it refuses to shrink
+     below its content's min-content width. A wide child (such as a data table)
+     therefore pushes the whole page wider than the viewport and produces a
+     horizontal scrollbar, even when that child scrolls internally.
+     min-width:0 lets the wrapper match the viewport and hands overflow back to
+     the child that opted into it. */
+  min-width: 0;
 }
 
 .premium-dashboard-main {

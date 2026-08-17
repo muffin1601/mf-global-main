@@ -36,6 +36,13 @@ const CreateQuotation = lazy(() => import("./pages/crm/ProductManage/CreateQuota
 const QuotationEditPage = lazy(() => import("./pages/crm/ProductManage/QuotationEditPage"));
 const ImportLeads = lazy(() => import("./pages/crm/ImportLeads"));
 
+// Vendor Management module.
+const VendorsPage = lazy(() => import("./pages/crm/VendorManage/VendorsPage"));
+const VendorProfilePage = lazy(() => import("./pages/crm/VendorManage/VendorProfilePage"));
+const VendorCategoriesPage = lazy(() => import("./pages/crm/VendorManage/VendorCategoriesPage"));
+const VendorPerformancePage = lazy(() => import("./pages/crm/VendorManage/VendorPerformancePage"));
+const VendorSettingsPage = lazy(() => import("./pages/crm/VendorManage/VendorSettingsPage"));
+
 // Minimal fallback shown only while a route chunk is being fetched.
 const RouteFallback = () => (
   <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#888" }}>
@@ -74,6 +81,19 @@ const App = () => {
           <Route path="/crm/product-dashboard" element={<ProtectedRoute role="admin"><PDashboard /></ProtectedRoute>} />
           <Route path="/crm/product-management" element={<ProtectedRoute role="admin"><ProductPage /></ProtectedRoute>} />
           <Route path="/crm/vendor-management" element={<ProtectedRoute role="admin"><VendorPage /></ProtectedRoute>} />
+
+          {/* Vendor Management. Route guards mirror the server's permission
+              table: viewing is open to both roles, while the performance board
+              (vendor.performance) is admin-only. The API enforces this
+              independently, so a hand-typed URL cannot bypass it. */}
+          <Route path="/crm/vendors" element={<ProtectedRoute role={["user", "admin"]}><VendorsPage preset="all" /></ProtectedRoute>} />
+          <Route path="/crm/vendors/active" element={<ProtectedRoute role={["user", "admin"]}><VendorsPage preset="active" /></ProtectedRoute>} />
+          <Route path="/crm/vendors/pending" element={<ProtectedRoute role={["user", "admin"]}><VendorsPage preset="pending" /></ProtectedRoute>} />
+          <Route path="/crm/vendors/inactive" element={<ProtectedRoute role={["user", "admin"]}><VendorsPage preset="inactive" /></ProtectedRoute>} />
+          <Route path="/crm/vendors/categories" element={<ProtectedRoute role={["user", "admin"]}><VendorCategoriesPage /></ProtectedRoute>} />
+          <Route path="/crm/vendors/performance" element={<ProtectedRoute role="admin"><VendorPerformancePage /></ProtectedRoute>} />
+          <Route path="/crm/vendors/settings" element={<ProtectedRoute role={["user", "admin"]}><VendorSettingsPage /></ProtectedRoute>} />
+          <Route path="/crm/vendors/:id" element={<ProtectedRoute role={["user", "admin"]}><VendorProfilePage /></ProtectedRoute>} />
           <Route path="/crm/quotations" element={<ProtectedRoute role={["user", "admin"]}><Quotations /></ProtectedRoute>} />
           <Route path="/crm/quotations/create" element={<ProtectedRoute role={["user", "admin"]}><CreateQuotation /></ProtectedRoute>} />
           <Route path="/crm/quotations/edit/:id" element={<ProtectedRoute role={["user", "admin"]}><QuotationEditPage /></ProtectedRoute>} />

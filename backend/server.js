@@ -163,6 +163,9 @@ app.use("/api", require("./routes/Products/product"));
 app.use("/api/categories", require("./routes/Products/Category"));
 app.use("/api", require("./routes/Products/vendor"));
 app.use("/api/products", require("./routes/Products/ProductOverview"));
+// Vendor Management module (see routes/Vendors/index.js). Mounted on its own
+// prefix so the legacy /api/vendors endpoints keep working unchanged.
+app.use("/api/vendor-management", require("./routes/Vendors"));
 
 // JSON error handler (must be last). Ensures clients always get JSON — e.g. a
 // CORS rejection returns {message:"Not allowed by CORS"} with the right status

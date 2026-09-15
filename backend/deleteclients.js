@@ -23,5 +23,5 @@ async function deleteAllClients() {
         mongoose.connection.close();
     }
 }
-
+ 
 deleteAllClients();

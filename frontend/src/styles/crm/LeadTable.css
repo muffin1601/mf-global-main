@@ -303,6 +303,45 @@
     border-color: rgba(255, 255, 255, 0.1);
   }
 
+  .product-subtitle { margin: .35rem 0 0; color: #4b5563; }
+  .product-header { margin-bottom: 1.25rem; }
+  .product-toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: .65rem; flex-wrap: wrap; }
+  .product-toolbar input, .product-toolbar select { min-height: 42px; border: 1px solid rgba(255,255,255,.28); border-radius: 9px; padding: .55rem .75rem; font: inherit; background: rgba(255,255,255,.9); color: #1f2937; }
+  .product-toolbar input { min-width: min(100%, 300px); flex: 1 1 270px; }
+  .product-toolbar select { max-width: 210px; }
+  .product-count { margin: 0 0 1rem; color: #4b5563; font-weight: 600; }
+  .product-refresh { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid #6b7280; border-radius: 9px; color: #fff; background: #4b5563; cursor: pointer; font-size: 1.1rem; }
+  .product-refresh:disabled { opacity: .6; cursor: wait; }
+  .product-name { display: flex; align-items: center; gap: .65rem; min-width: 180px; }
+  .product-name img { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 7px; object-fit: cover; background: #e5e7eb; }
+  .product-table small { color: rgba(255,255,255,.7); }
+  .product-pagination { display: flex; align-items: center; gap: .65rem; }
+  .product-pagination label { display: flex; align-items: center; gap: .35rem; }
+  .product-pagination select, .product-pagination button { min-height: 36px; padding: .35rem .6rem; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; background: rgba(82,82,82,.5); color: #fff; font: inherit; }
+  .product-pagination button { cursor: pointer; }
+  .product-pagination button:disabled { cursor: not-allowed; opacity: .5; }
+  .product-controls { display: flex; gap: .75rem; align-items: center; margin: 0 0 1.25rem; flex-wrap: wrap; }
+  .product-controls input, .product-controls select { min-height: 42px; border: 1px solid rgba(255,255,255,.28); border-radius: 9px; padding: .55rem .75rem; font: inherit; background: rgba(255,255,255,.9); color: #1f2937; }
+  .product-controls input { min-width: min(100%, 320px); flex: 1 1 280px; }
+  .product-clear-filter { min-height: 42px; padding: .55rem .8rem; border: 1px solid #6b7280; border-radius: 9px; color: #fff; background: #4b5563; cursor: pointer; font: inherit; }
+  .product-message { margin-bottom: 1rem; padding: .75rem 1rem; border-radius: 8px; }
+  .product-error { color: #7f1d1d; background: #fee2e2; }
+  .product-error button { margin-left: .5rem; border: 0; background: transparent; color: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+  .product-row { cursor: pointer; }
+  .product-row:focus { outline: 3px solid #60a5fa; outline-offset: -3px; }
+  .product-empty { padding: 2.5rem !important; text-align: center; color: #e5e7eb; }
+  .product-details { align-items: stretch; max-width: 500px; }
+  .product-details h2 { margin: 0; color: #222; }
+  .product-details dl { display: grid; grid-template-columns: max-content 1fr; gap: .65rem 1rem; margin: 0; }
+  .product-details dt { color: #4b5563; font-weight: 600; }
+  .product-details dd { margin: 0; color: #111827; overflow-wrap: anywhere; }
+  .product-details header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+  .product-details header button { border: 0; background: transparent; font-size: 1.3rem; cursor: pointer; }
+  .product-detail-image { width: 112px; height: 112px; align-self: center; border-radius: 10px; object-fit: cover; background: #e5e7eb; }
+  .product-details footer { display: flex; gap: .65rem; justify-content: flex-end; }
+  .glasso-confirm-btn.edit { background: #7c3aed; color: #fff; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
   @media (max-width: 768px) {
     .lead-header {
       flex-direction: column;
@@ -320,6 +359,8 @@
     .lead-btn-group button {
       flex-grow: 1;
     }
+    .product-controls input, .product-controls select, .product-clear-filter, .product-toolbar input, .product-toolbar select { width: 100%; max-width: none; }
+    .product-pagination { width: 100%; justify-content: center; flex-wrap: wrap; }
 
     .lead-table thead {
       display: none;

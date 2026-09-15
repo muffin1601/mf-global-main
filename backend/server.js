@@ -186,7 +186,13 @@ app.use((err, req, res, next) => {
 const isPrimaryWorker = !process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE === "0";
 if (isPrimaryWorker) {
   require("./cron/tradeIndiaCron");
-  require("./cron/indiaMartCron");
+  // IndiaMART sync is deliberately opt-in while the current API key is expired.
+  // Re-enable it after rotating the key by setting ENABLE_INDIAMART_SYNC=true.
+  if (process.env.ENABLE_INDIAMART_SYNC === "true") {
+    require("./cron/indiaMartCron");
+  } else {
+    console.log("IndiaMART cron disabled (set ENABLE_INDIAMART_SYNC=true to re-enable).");
+  }
 } else {
   console.log(`ℹ️  Worker ${process.env.NODE_APP_INSTANCE}: crons skipped (run on instance 0 only)`);
 }

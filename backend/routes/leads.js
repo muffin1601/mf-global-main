@@ -65,14 +65,16 @@ router.post('/printkee/capture-lead', webhookLimiter, async (req, res) => {
       email,
       phone,
       requirements,
+      location,
     } = req.body;
 
-    
+
     const newClient = await ClientData.create({
       name: name,
       company: company,
       email: email,
       phone: phone,
+      location: location,
       requirements: requirements || productCode,
       inquiryDate: new Date(),
       callStatus: "Not Called",

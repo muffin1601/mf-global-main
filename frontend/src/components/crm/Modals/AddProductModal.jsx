@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CustomToast from '../CustomToast';
+import './ProductModal.css';
 
 const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryNames, setCategoryNames] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     s_code: '',
@@ -35,7 +37,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   useEffect(() => {
     const { basic_amount, GST_rate } = formData.p_price;
 
-    if (basic_amount && GST_rate) {
+    if (basic_amount !== '' && GST_rate !== '' && Number.isFinite(Number(basic_amount)) && Number.isFinite(Number(GST_rate))) {
       const basic = parseFloat(basic_amount);
       const gst = parseFloat(GST_rate);
       const net = basic + (basic * gst) / 100;
@@ -86,6 +88,8 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (saving) return;
+    setSaving(true);
     try {
       const fd = new FormData();
 
@@ -103,14 +107,8 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
         fd.append("p_image", selectedImage);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/add-product`, {
-        method: "POST",
-        body: fd,
-      });
-
-      if (!response.ok) throw new Error("Failed to add product");
-
-      const result = await response.json();
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/add-product`, fd);
+      const result = response.data;
 
       toast(
         <CustomToast
@@ -128,10 +126,10 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
         <CustomToast
           type="error"
           title="Add Product Failed"
-          message={error.message}
+          message={error.response?.data?.error || error.message || 'The product could not be saved.'}
         />
       );
-    }
+    } finally { setSaving(false); }
   };
 
   if (!isOpen) return null;
@@ -141,7 +139,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
       <div className="fe-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="fe-modal-header">
           <h3 className="fe-modal-title">Add New Product</h3>
-          <button className="fe-modal-close" onClick={onClose}>×</button>
+          <button type="button" className="fe-modal-close" aria-label="Close add product" onClick={onClose} disabled={saving}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -149,7 +147,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* Image Upload */}
             <div className="fe-input-group" style={{ gridColumn: "span 2" }}>
-              <label>Product Image</label>
+              <label htmlFor="product-image">Product Image</label>
 
               {previewImage ? (
                 <div style={{ textAlign: "left" }}>
@@ -184,7 +182,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                   </button>
                 </div>
               ) : (
-                <input type="file" accept="image/*" onChange={handleImageUpload} />
+                <input id="product-image" type="file" accept="image/*" onChange={handleImageUpload} disabled={saving} />
               )}
             </div>
 
@@ -198,8 +196,9 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
               { label: 'Dimensions', name: 'dimension' },   // ⭐ NEW FIELD ⭐
             ].map(({ label, name, required }) => (
               <div className="fe-input-group" key={name}>
-                <label>{label}</label>
+                <label htmlFor={`add-product-${name}`}>{label}{required ? ' *' : ''}</label>
                 <input
+                  id={`add-product-${name}`}
                   type="text"
                   name={name}
                   value={formData[name]}
@@ -210,8 +209,9 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             ))}
 
             <div className="fe-input-group">
-              <label>Category</label>
+              <label htmlFor="add-product-category">Category *</label>
               <select
+                id="add-product-category"
                 name="cat_id"
                 value={formData.cat_id}
                 onChange={handleChange}
@@ -227,8 +227,9 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="fe-input-group" style={{ gridColumn: "span 2" }}>
-              <label>Description</label>
+              <label htmlFor="add-product-description">Description</label>
               <textarea
+                id="add-product-description"
                 name="p_description"
                 value={formData.p_description}
                 onChange={handleChange}
@@ -237,9 +238,12 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* Pricing */}
             <div className="fe-input-group">
-              <label>Purchase Amount</label>
+              <label htmlFor="add-product-purchase-price">Purchase Amount</label>
               <input
+                id="add-product-purchase-price"
                 type="number"
+                min="0"
+                step="0.01"
                 name="purchase_price"
                 value={formData.p_price.purchase_price}
                 onChange={handleChange}
@@ -247,9 +251,12 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="fe-input-group">
-              <label>Basic Amount</label>
+              <label htmlFor="add-product-basic-amount">Basic Amount *</label>
               <input
+                id="add-product-basic-amount"
                 type="number"
+                min="0"
+                step="0.01"
                 name="basic_amount"
                 value={formData.p_price.basic_amount}
                 onChange={handleChange}
@@ -258,8 +265,9 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="fe-input-group">
-              <label>GST Rate (%)</label>
+              <label htmlFor="add-product-gst">GST Rate (%) *</label>
               <select
+                id="add-product-gst"
                 name="GST_rate"
                 value={formData.p_price.GST_rate}
                 onChange={handleChange}
@@ -272,8 +280,9 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="fe-input-group">
-              <label>Net Amount</label>
+              <label htmlFor="add-product-net-amount">Net Amount</label>
               <input
+                id="add-product-net-amount"
                 type="number"
                 name="net_amount"
                 value={Math.round(formData.p_price.net_amount || 0)}
@@ -283,11 +292,11 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div className="fe-footer-buttons fe-action-buttons">
-            <button type="button" className="fe-btn-close" onClick={onClose}>
+            <button type="button" className="fe-btn-close" onClick={onClose} disabled={saving}>
               Cancel
             </button>
-            <button type="submit" className="fe-btn-submit">
-              Save Product
+            <button type="submit" className="fe-btn-submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save Product'}
             </button>
           </div>
         </form>

@@ -32,6 +32,11 @@ const productSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+// Supports the product catalogue's common list filters and sort order.
+productSchema.index({ cat_id: 1, updatedAt: -1 });
+productSchema.index({ p_name: 1 });
+productSchema.index({ p_code: 1 });
+
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
     if (!this.p_code) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../../models/Category'); 
+const Product = require('../../models/ProductData');
 const authenticate = require("../../middleware/auth");
 const requireRole = require("../../middleware/requireRole");
 
@@ -71,8 +72,15 @@ router.put('/update/:id', requireRole("admin"), async (req, res) => {
 
 router.delete('/delete/:id', requireRole("admin"), async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ error: 'Category not found' });
+
+    const productCount = await Product.countDocuments({ cat_id: category._id.toString() });
+    if (productCount) {
+      return res.status(409).json({ error: `This category is used by ${productCount} product${productCount === 1 ? '' : 's'}. Move those products to another category before deleting it.` });
+    }
+
+    await category.deleteOne();
 
     res.status(200).json({ message: 'Category deleted successfully' });
   } catch (err) {

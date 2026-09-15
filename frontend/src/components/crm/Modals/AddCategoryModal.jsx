@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
+import axios from 'axios';
+import ConfirmModal from './ConfirmModal';
 
 const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryName, setCategoryName] = useState('');
   const [categories, setCategories] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
@@ -14,9 +19,8 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_URL}/categories`);
-      const data = await response.json();
-      setCategories(data || []);
+      const response = await axios.get(`${API_URL}/categories`);
+      setCategories(response.data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -30,6 +34,8 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
       return;
     }
 
+    if (saving) return;
+    setSaving(true);
     try {
       const url = editingCategory
         ? `${API_URL}/categories/update/${editingCategory._id}`
@@ -37,15 +43,8 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
 
       const method = editingCategory ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: categoryName }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save category');
-
-      const result = await response.json();
+      const response = await axios({ url, method, data: { name: categoryName } });
+      const result = response.data;
 
       toast(
         <CustomToast
@@ -65,10 +64,10 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
         <CustomToast
           type="error"
           title="Save Failed"
-          message={error.message || 'Failed to save category. Please try again.'}
+          message={error.response?.data?.error || error.message || 'Failed to save category. Please try again.'}
         />
       );
-    }
+    } finally { setSaving(false); }
   };
 
   const handleEdit = (category) => {
@@ -81,6 +80,21 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
     setEditingCategory(null);
   };
 
+  const handleDelete = async () => {
+    if (!categoryToDelete || deleting) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`${API_URL}/categories/delete/${categoryToDelete._id}`);
+      setCategories((current) => current.filter((category) => category._id !== categoryToDelete._id));
+      if (editingCategory?._id === categoryToDelete._id) handleCancelEdit();
+      toast(<CustomToast type="success" title="Category Deleted" message={`Category "${categoryToDelete.name}" was deleted.`} />);
+      setCategoryToDelete(null);
+      if (onSubmit) onSubmit();
+    } catch (error) {
+      toast(<CustomToast type="error" title="Cannot Delete Category" message={error.response?.data?.error || 'The category could not be deleted.'} />);
+    } finally { setDeleting(false); }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -91,7 +105,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
           <h3 className="category-modal-title">
             {editingCategory ? 'Edit Category' : 'Add New Category'}
           </h3>
-          <button className="category-modal-close-btn" onClick={onClose}>
+          <button type="button" className="category-modal-close-btn" aria-label="Close category management" onClick={onClose} disabled={saving}>
             ×
           </button>
         </div>
@@ -99,8 +113,9 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Body */}
         <div className="category-modal-body">
           <div className="category-input-group">
-            <label className="category-input-label">Category Name *</label>
+            <label htmlFor="category-name" className="category-input-label">Category Name *</label>
             <input
+              id="category-name"
               type="text"
               name="name"
               className="category-input-field"
@@ -118,13 +133,10 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
                 {categories.map((cat) => (
                   <li key={cat._id} className="category-list-item">
                     <span className="category-item-name">{cat.name}</span>
-                    <button
-                      type="button"
-                      className="category-edit-btn"
-                      onClick={() => handleEdit(cat)}
-                    >
-                      Edit
-                    </button>
+                    <div className="category-item-actions">
+                      <button type="button" className="category-edit-btn" onClick={() => handleEdit(cat)} disabled={saving || deleting}>Edit</button>
+                      <button type="button" className="category-delete-btn" onClick={() => setCategoryToDelete(cat)} disabled={saving || deleting}>Delete</button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -142,6 +154,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
                 type="button"
                 className="category-btn-cancel-edit"
                 onClick={handleCancelEdit}
+                disabled={saving}
               >
                 Cancel Edit
               </button>
@@ -149,6 +162,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
                 type="submit"
                 className="category-btn-update"
                 onClick={handleSubmit}
+                disabled={saving}
               >
                 Update Category
               </button>
@@ -159,6 +173,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
                 type="button"
                 className="category-btn-cancel"
                 onClick={onClose}
+                disabled={saving}
               >
                 Cancel
               </button>
@@ -166,6 +181,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
                 type="submit"
                 className="category-btn-save"
                 onClick={handleSubmit}
+                disabled={saving}
               >
                 Save Category
               </button>
@@ -173,6 +189,7 @@ const AddCategoryModal = ({ isOpen, onClose, onSubmit }) => {
           )}
         </div>
       </div>
+      {categoryToDelete && <ConfirmModal title="Delete category?" message={`Delete "${categoryToDelete.name}"? Products using this category must be moved first.`} confirmLabel="Delete category" loading={deleting} onCancel={() => !deleting && setCategoryToDelete(null)} onConfirm={handleDelete} />}
     </div>
   );
 };
@@ -351,6 +368,10 @@ const css = `
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
+.category-item-actions { display: flex; gap: .5rem; }
+.category-delete-btn { background: rgba(220, 38, 38, .88); border: none; color: #fff; padding: .4rem .8rem; border-radius: 8px; font-family: 'Outfit', sans-serif; cursor: pointer; }
+.category-delete-btn:hover { background: rgba(185, 28, 28, 1); }
+
 .category-edit-btn:hover {
   background: rgba(0, 0, 180, 0.8);
   box-shadow: 0 2px 6px rgba(0, 0, 255, 0.15);
@@ -390,6 +411,7 @@ const css = `
 .category-btn-save { background: rgba(23, 146, 23, 1); }
 .category-btn-cancel-edit { background: rgba(255, 140, 0, 0.8); }
 .category-btn-update { background: rgba(0, 123, 255, 0.8); }
+.category-modal-container button:disabled { opacity: .65; cursor: wait; }
 
 /* Hover Effects */
 .category-btn-cancel:hover {

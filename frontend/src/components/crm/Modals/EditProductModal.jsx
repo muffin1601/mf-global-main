@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
+import "./ProductModal.css";
 
 const EditProductModal = ({ product, onClose, onSave }) => {
   const [categoryNames, setCategoryNames] = useState([]);
@@ -25,6 +26,8 @@ const EditProductModal = ({ product, onClose, onSave }) => {
 
   const [previewImage, setPreviewImage] = useState(null);
   const [newImage, setNewImage] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   /* --------------------------------------------------
      LOAD PRODUCT DATA
@@ -54,6 +57,8 @@ const EditProductModal = ({ product, onClose, onSave }) => {
         ? `${import.meta.env.VITE_IMAGE_URL}${product.p_image}`
         : null
     );
+    setNewImage(null);
+    setRemoveImage(false);
   }, [product]);
 
   /* --------------------------------------------------
@@ -72,7 +77,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
   useEffect(() => {
     const { basic_amount, GST_rate } = editedProduct.p_price;
 
-    if (basic_amount && GST_rate) {
+    if (basic_amount !== '' && GST_rate !== '' && Number.isFinite(Number(basic_amount)) && Number.isFinite(Number(GST_rate))) {
       const basic = parseFloat(basic_amount);
       const gst = parseFloat(GST_rate);
       const net = basic + (basic * gst) / 100;
@@ -103,7 +108,10 @@ const EditProductModal = ({ product, onClose, onSave }) => {
   /* --------------------------------------------------
      SAVE PRODUCT (SEND FORMDATA)
   -------------------------------------------------- */
-  const saveProduct = async () => {
+  const saveProduct = async (event) => {
+    event?.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try {
       const fd = new FormData();
 
@@ -117,6 +125,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
       fd.append("cat_id", editedProduct.cat_id);
       fd.append("p_description", editedProduct.p_description);
       fd.append("p_price", JSON.stringify(editedProduct.p_price));
+      fd.append("remove_image", String(removeImage));
 
       if (newImage) {
         fd.append("p_image", newImage);
@@ -146,25 +155,25 @@ const EditProductModal = ({ product, onClose, onSave }) => {
           message={error.response?.data?.message || error.message}
         />
       );
-    }
+    } finally { setSaving(false); }
   };
 
   if (!product) return null;
 
   return (
-    <div className="glasso-modal-overlay" onClick={onClose}>
+    <div className="glasso-modal-overlay" onClick={() => !saving && onClose()}>
       <div
         className="glasso-modal-container"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="glasso-modal-header">
           <h3 className="glasso-modal-title">Edit Product</h3>
-          <button className="glasso-close-btn" onClick={onClose}>
+          <button type="button" className="glasso-close-btn" aria-label="Close edit product" onClick={onClose} disabled={saving}>
             ×
           </button>
         </div>
 
-        <div className="glasso-modal-body">
+        <form id="edit-product-form" className="glasso-modal-body" onSubmit={saveProduct}>
           {/* IMAGE UPLOAD */}
           <div className="glasso-input-group" style={{ gridColumn: "span 2" }}>
             <label>Product Image</label>
@@ -198,6 +207,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                   onClick={() => {
                     setPreviewImage(null);
                     setNewImage(null);
+                    setRemoveImage(true);
                   }}
                 >
                   Remove Image
@@ -212,6 +222,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                   if (file) {
                     setNewImage(file);
                     setPreviewImage(URL.createObjectURL(file));
+                    setRemoveImage(false);
                   }
                 }}
               />
@@ -228,12 +239,14 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             { label: "Dimensions", name: "dimension" },  // ⭐ NEW FIELD
           ].map(({ label, name }) => (
             <div className="glasso-input-group" key={name}>
-              <label>{label}</label>
+              <label htmlFor={`edit-product-${name}`}>{label}{name === 'p_name' ? ' *' : ''}</label>
               <input
+                id={`edit-product-${name}`}
                 type="text"
                 name={name}
                 value={editedProduct[name] || ""}
                 onChange={handleChange}
+                required={name === "p_name"}
               />
             </div>
           ))}
@@ -313,14 +326,14 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               style={{ backgroundColor: "#f5f5f5" }}
             />
           </div>
-        </div>
+        </form>
 
         <div className="glasso-footer-buttons glasso-action-buttons">
-          <button className="glasso-btn-cancel" onClick={onClose}>
+          <button type="button" className="glasso-btn-cancel" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className="glasso-btn-save" onClick={saveProduct}>
-            Save
+          <button type="submit" form="edit-product-form" className="glasso-btn-save" disabled={saving}>
+            {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
       </div>

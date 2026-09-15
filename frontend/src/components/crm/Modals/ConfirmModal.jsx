@@ -1,14 +1,15 @@
 import React from 'react';
 
 
-const ConfirmModal = ({ message, onConfirm, onCancel }) => {
+const ConfirmModal = ({ title = 'Please confirm', message, confirmLabel = 'Confirm', loading = false, onConfirm, onCancel }) => {
   return (
-    <div className="glasso-confirm-overlay">
-      <div className="glasso-confirm-container">
+    <div className="glasso-confirm-overlay" role="presentation" onMouseDown={() => !loading && onCancel()}>
+      <div className="glasso-confirm-container" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" onMouseDown={(event) => event.stopPropagation()}>
+        <h2 id="confirm-title">{title}</h2>
         <p className="glasso-confirm-message">{message}</p>
         <div className="glasso-confirm-buttons">
-          <button className="glasso-confirm-btn delete" onClick={onConfirm}>Yes</button>
-          <button className="glasso-confirm-btn cancel" onClick={onCancel}>Cancel</button>
+          <button type="button" className="glasso-confirm-btn delete" disabled={loading} onClick={onConfirm}>{loading ? 'Deleting…' : confirmLabel}</button>
+          <button type="button" className="glasso-confirm-btn cancel" disabled={loading} onClick={onCancel}>Cancel</button>
         </div>
       </div>
     </div>
@@ -50,6 +51,9 @@ const css = `
   color: #313131ff;
   text-align: center;
 }
+
+.glasso-confirm-container h2 { margin: 0; color: #222; font-size: 1.3rem; }
+.glasso-confirm-btn:disabled { cursor: wait; opacity: .65; }
 
 .glasso-confirm-buttons {
   display: flex;

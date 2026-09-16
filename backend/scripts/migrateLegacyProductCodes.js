@@ -15,6 +15,7 @@ const { productCodePrefix } = require("../services/productCode");
 const apply = process.argv.includes("--apply");
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const codeFor = (prefix, sequence) => `${prefix}-${String(sequence).padStart(3, "0")}`;
+const normalizeCategoryName = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
 
 const buildPlan = async (session) => {
   const queryOptions = session ? { session } : undefined;
@@ -23,20 +24,35 @@ const buildPlan = async (session) => {
     Product.find().select("_id cat_id p_code p_name createdAt").sort({ createdAt: 1, _id: 1 }).lean(queryOptions),
   ]);
   const categoryById = new Map(categories.map((category) => [String(category._id), category]));
+  const categoriesByName = new Map();
+  for (const category of categories) {
+    const key = normalizeCategoryName(category.name);
+    if (!categoriesByName.has(key)) categoriesByName.set(key, category);
+    else categoriesByName.set(key, null); // never guess where names are ambiguous
+  }
   const reserved = new Set(products.map((product) => product.p_code).filter(Boolean));
   const nextByPrefix = new Map();
   const updates = [];
   const skipped = [];
 
   for (const product of products) {
-    const category = categoryById.get(String(product.cat_id));
+    const storedCategory = String(product.cat_id || "");
+    const category = categoryById.get(storedCategory) || categoriesByName.get(normalizeCategoryName(storedCategory));
     if (!category) {
       skipped.push({ id: String(product._id), name: product.p_name || "", reason: "missing category" });
       continue;
     }
     const prefix = productCodePrefix(category.name);
     const validCode = new RegExp(`^${escapeRegex(prefix)}-\\d+$`).test(product.p_code || "");
-    if (validCode) continue; // Do not change already-migrated category codes.
+    const normalizedCategoryId = String(category._id);
+    if (validCode) {
+      // Older product records stored the category name in cat_id. Normalize
+      // that reference too, so the edit dropdown can show the selected value.
+      if (storedCategory !== normalizedCategoryId) {
+        updates.push({ id: product._id, from: product.p_code || null, to: product.p_code, catId: normalizedCategoryId, prefix, sequence: 0 });
+      }
+      continue;
+    }
 
     let sequence = nextByPrefix.get(prefix);
     if (!sequence) {
@@ -50,7 +66,7 @@ const buildPlan = async (session) => {
     while (reserved.has(code)) code = codeFor(prefix, ++sequence);
     reserved.add(code);
     nextByPrefix.set(prefix, sequence + 1);
-    updates.push({ id: product._id, from: product.p_code || null, to: code, prefix, sequence });
+    updates.push({ id: product._id, from: product.p_code || null, to: code, catId: normalizedCategoryId, prefix, sequence });
   }
   return { products: products.length, updates, skipped };
 };
@@ -62,16 +78,15 @@ const run = async () => {
     const initialPlan = await buildPlan();
     console.log(JSON.stringify({ mode: apply ? "apply" : "dry-run", products: initialPlan.products, updates: initialPlan.updates.length, skipped: initialPlan.skipped, preview: initialPlan.updates.slice(0, 10) }, null, 2));
     if (!apply || !initialPlan.updates.length) return;
-    if (initialPlan.skipped.length) throw new Error("Migration stopped: products with missing categories cannot be safely recoded.");
-
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
         const plan = await buildPlan(session);
-        if (plan.skipped.length) throw new Error("Migration stopped: products with missing categories cannot be safely recoded.");
-        await Product.collection.bulkWrite(plan.updates.map((item) => ({
-          updateOne: { filter: { _id: item.id }, update: { $set: { p_code: item.to } } },
-        })), { session });
+        if (plan.updates.length) {
+          await Product.collection.bulkWrite(plan.updates.map((item) => ({
+            updateOne: { filter: { _id: item.id }, update: { $set: { p_code: item.to, cat_id: item.catId } } },
+          })), { session });
+        }
         const maxima = new Map();
         for (const item of plan.updates) maxima.set(item.prefix, Math.max(maxima.get(item.prefix) || 0, item.sequence));
         for (const [prefix, sequence] of maxima) {

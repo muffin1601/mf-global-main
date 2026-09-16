@@ -6,6 +6,8 @@ import "./ProductModal.css";
 
 const EditProductModal = ({ product, onClose, onSave }) => {
   const [categoryNames, setCategoryNames] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
 
   const [editedProduct, setEditedProduct] = useState({
     s_code: "",
@@ -65,10 +67,17 @@ const EditProductModal = ({ product, onClose, onSave }) => {
      FETCH CATEGORIES
   -------------------------------------------------- */
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/products/meta`)
-      .then((res) => setCategoryNames(res.data.cat_names))
-      .catch((err) => console.error("Error fetching categories:", err));
+    let active = true;
+    setCategoriesLoading(true);
+    setCategoriesError("");
+    // Use the same category API that powers Product Management itself. Older
+    // products can have a stale cat_id, but that must not prevent the current
+    // category list from being offered in the edit form.
+    axios.get(`${import.meta.env.VITE_API_URL}/categories`)
+      .then((res) => { if (active) setCategoryNames(Array.isArray(res.data) ? res.data : []); })
+      .catch(() => { if (active) setCategoriesError("Categories could not be loaded. Please retry."); })
+      .finally(() => { if (active) setCategoriesLoading(false); });
+    return () => { active = false; };
   }, []);
 
   /* --------------------------------------------------
@@ -258,19 +267,24 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             <small>Product codes remain unchanged when the category changes.</small>
           </div>
           <div className="glasso-input-group">
-            <label>Category</label>
+            <label htmlFor="edit-product-category">Category *</label>
             <select
+              id="edit-product-category"
               name="cat_id"
               value={editedProduct.cat_id || ""}
               onChange={handleChange}
+              required
+              disabled={categoriesLoading || saving}
             >
-              <option value="">Select Category</option>
+              <option value="">{categoriesLoading ? "Loading categories…" : "Select Category"}</option>
               {categoryNames.map((cat) => (
                 <option key={cat._id} value={cat._id}>
                   {cat.name}
                 </option>
               ))}
             </select>
+            {categoriesError && <small role="alert">{categoriesError}</small>}
+            {!categoriesLoading && !categoriesError && categoryNames.length === 0 && <small role="alert">No categories are available. Add a category first.</small>}
           </div>
 
           {/* DESCRIPTION */}

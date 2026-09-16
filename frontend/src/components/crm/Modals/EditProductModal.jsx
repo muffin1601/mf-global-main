@@ -253,6 +253,11 @@ const EditProductModal = ({ product, onClose, onSave }) => {
 
           {/* CATEGORY */}
           <div className="glasso-input-group">
+            <label htmlFor="edit-product-code">Product Code</label>
+            <input id="edit-product-code" type="text" value={product.p_code || 'Legacy product code unavailable'} readOnly />
+            <small>Product codes remain unchanged when the category changes.</small>
+          </div>
+          <div className="glasso-input-group">
             <label>Category</label>
             <select
               name="cat_id"

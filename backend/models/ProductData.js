@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { generateProductCode } = require('../services/productCode');
 
 const priceSchema = new mongoose.Schema({
   price_code: { type: String, unique: true },
@@ -12,7 +13,7 @@ const priceSchema = new mongoose.Schema({
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({
-  p_code: String,
+  p_code: { type: String, unique: true, sparse: true, immutable: true },
   s_code: String,
   p_name: String,
   cat_id: String,
@@ -35,26 +36,11 @@ const productSchema = new mongoose.Schema({
 // Supports the product catalogue's common list filters and sort order.
 productSchema.index({ cat_id: 1, updatedAt: -1 });
 productSchema.index({ p_name: 1 });
-productSchema.index({ p_code: 1 });
 
 productSchema.pre('save', async function (next) {
   if (this.isNew) {
-    if (!this.p_code) {
-      const prefix = "MF";
-      const regex = new RegExp(`^${prefix}(\\d+)$`);
-
-      const lastProduct = await mongoose.model('Product')
-        .find({ p_code: { $regex: regex } })
-        .sort({ p_code: -1 })
-        .limit(1);
-
-      let nextNum = 1;
-      if (lastProduct.length && lastProduct[0].p_code) {
-        const numPart = parseInt(lastProduct[0].p_code.replace(prefix, ''), 10);
-        if (!isNaN(numPart)) nextNum = numPart + 1;
-      }
-
-      this.p_code = `${prefix}${String(nextNum).padStart(3, '0')}`;
+    if (!this.p_code && this.cat_id) {
+      this.p_code = await generateProductCode(this.cat_id);
     }
 
     if (this.p_price && !this.p_price.price_code) {

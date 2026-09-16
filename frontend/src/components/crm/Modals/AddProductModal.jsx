@@ -9,6 +9,11 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+  const [categoryError, setCategoryError] = useState('');
+  const [productCode, setProductCode] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
+  const [codeError, setCodeError] = useState('');
 
   const [formData, setFormData] = useState({
     s_code: '',
@@ -28,11 +33,27 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   });
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/products/meta`)
-      .then((res) => setCategoryNames(res.data.cat_names))
-      .catch((err) => console.error('Failed to fetch categories:', err));
+    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`)
+      .then((res) => setCategoryNames(res.data.cat_names || []))
+      .catch(() => setCategoryError('Categories could not be loaded. Please try again.'))
+      .finally(() => setCategoryLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!formData.cat_id) {
+      setProductCode('');
+      setCodeError('');
+      return undefined;
+    }
+    let active = true;
+    setCodeLoading(true);
+    setCodeError('');
+    axios.get(`${import.meta.env.VITE_API_URL}/product-code-preview`, { params: { categoryId: formData.cat_id } })
+      .then((res) => { if (active) setProductCode(res.data.productCode || ''); })
+      .catch((error) => { if (active) setCodeError(error.response?.data?.error || 'Unable to preview the product code.'); })
+      .finally(() => { if (active) setCodeLoading(false); });
+    return () => { active = false; };
+  }, [formData.cat_id]);
 
   useEffect(() => {
     const { basic_amount, GST_rate } = formData.p_price;
@@ -135,7 +156,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fe-modal-overlay" onClick={onClose}>
+    <div className="fe-modal-overlay" onClick={() => !saving && onClose()}>
       <div className="fe-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="fe-modal-header">
           <h3 className="fe-modal-title">Add New Product</h3>
@@ -216,14 +237,22 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.cat_id}
                 onChange={handleChange}
                 required
+                disabled={categoryLoading || saving}
               >
-                <option value="">Select Category</option>
+                <option value="">{categoryLoading ? 'Loading categories…' : 'Select Category'}</option>
                 {categoryNames.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
               </select>
+              {categoryError && <small role="alert">{categoryError}</small>}
+            </div>
+
+            <div className="fe-input-group">
+              <label htmlFor="add-product-code">Product Code</label>
+              <input id="add-product-code" type="text" value={codeLoading ? 'Generating…' : productCode} readOnly placeholder="Select a category first" aria-describedby="add-product-code-note" />
+              <small id="add-product-code-note" role={codeError ? 'alert' : undefined}>{codeError || (formData.cat_id ? 'Auto-generated when the product is saved.' : 'Auto-generated from the category.')}</small>
             </div>
 
             <div className="fe-input-group" style={{ gridColumn: "span 2" }}>

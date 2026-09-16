@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const authenticate = require("../../middleware/auth");
 const requireRole = require("../../middleware/requireRole");
 const { getPaging, setPageHeaders } = require("../../utils/paginate");
+const { previewProductCode } = require("../../services/productCode");
 
 /* ---------------------- MULTER STORAGE ---------------------- */
 const storage = multer.diskStorage({
@@ -96,6 +97,9 @@ router.post("/add-product", authenticate, requireRole("admin"), upload.single("p
 
   } catch (error) {
     console.error("Error creating product:", error);
+    if (error?.code === 11000 && error?.keyPattern?.p_code) {
+      return res.status(409).json({ error: "A product code collision was detected. Please submit again." });
+    }
     return res.status(500).json({ error: "Internal server error." });
   }
 });
@@ -144,6 +148,17 @@ router.get("/products", authenticate, async (req, res) => {
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+// Informational only: final allocation occurs in the model save hook so this
+// endpoint never reserves a code or creates a race condition.
+router.get("/product-code-preview", authenticate, async (req, res) => {
+  try {
+    if (!req.query.categoryId) return res.status(400).json({ error: "Category is required." });
+    return res.json({ productCode: await previewProductCode(req.query.categoryId) });
+  } catch (error) {
+    return res.status(400).json({ error: error.message || "Unable to generate product code preview." });
   }
 });
 

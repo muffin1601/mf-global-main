@@ -33,8 +33,10 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
   });
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/products/meta`)
-      .then((res) => setCategoryNames(res.data.cat_names || []))
+    // Use the canonical category API rather than the legacy product metadata
+    // alias so Add and Edit always receive the same list.
+    axios.get(`${import.meta.env.VITE_API_URL}/categories`)
+      .then((res) => setCategoryNames(Array.isArray(res.data) ? res.data : []))
       .catch(() => setCategoryError('Categories could not be loaded. Please try again.'))
       .finally(() => setCategoryLoading(false));
   }, []);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
 
@@ -54,11 +55,13 @@ const SearchProductModal = ({ isOpen, onClose }) => {
 
     try {
       setLoading(true);
-      const url = `${import.meta.env.VITE_API_URL
-        }/products/search?query=${encodeURIComponent(searchTerm)}`;
-
-      const res = await fetch(url);
-      const data = await res.json();
+      // Axios carries the application's JWT interceptor. The product search
+      // API is authenticated, so native fetch here previously sent no token
+      // and every valid search failed with 401 in the leads workflow.
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/search`, {
+        params: { query: searchTerm.trim() },
+      });
+      const data = res.data;
 
       if (!data.products?.length) {
         toast(
@@ -85,7 +88,7 @@ const SearchProductModal = ({ isOpen, onClose }) => {
         <CustomToast
           type="error"
           title="Search Failed"
-          message={err.message}
+          message={err.response?.data?.message || "Unable to search products. Please try again."}
         />
       );
     } finally {

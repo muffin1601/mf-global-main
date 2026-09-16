@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { start, stop, resetCollections } = require('./helpers/testApp');
+const express = require('express');
+const request = require('supertest');
+const { start, stop, resetCollections, createUser } = require('./helpers/testApp');
 const Category = require('../models/Category');
 const Product = require('../models/ProductData');
 const Counter = require('../models/Counter');
@@ -66,4 +68,14 @@ test('starts above matching legacy codes without overwriting them', async () => 
   const category = await Category.create({ name: 'Electronics' });
   await Product.collection.insertOne({ p_name: 'Legacy', s_code: 'L', cat_id: category._id.toString(), p_code: 'EL-007' });
   assert.equal((await createProduct(category)).p_code, 'EL-008');
+});
+
+test('product metadata remains reachable before the dynamic product-id route', async () => {
+  const category = await Category.create({ name: 'Electronics' });
+  const admin = await createUser({ role: 'admin' });
+  const app = express();
+  app.use('/api', require('../routes/Products/product'));
+  const response = await request(app).get('/api/products/meta').set('Authorization', admin.auth);
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.cat_names.map((item) => item.name), [category.name]);
 });

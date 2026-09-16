@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../../models/ProductData');
 const Category = require('../../models/Category');
+const VendorProduct = require('../../models/VendorProduct');
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -151,6 +152,19 @@ router.get("/products", authenticate, async (req, res) => {
   }
 });
 
+// Backwards-compatible metadata path used by the deployed Product Management
+// frontend. It must be registered before /products/:id; otherwise "meta" is
+// interpreted as a product id and category dropdowns receive a 400 response.
+router.get("/products/meta", authenticate, async (req, res) => {
+  try {
+    const cat_names = await Category.find().select("_id name").lean();
+    return res.json({ cat_names });
+  } catch (err) {
+    console.error("Product metadata error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // Informational only: final allocation occurs in the model save hook so this
 // endpoint never reserves a code or creates a race condition.
 router.get("/product-code-preview", authenticate, async (req, res) => {
@@ -283,6 +297,15 @@ router.delete('/products/delete/:id', authenticate, requireRole("admin"), async 
   try {
     const existing = await Product.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Product not found" });
+
+    // Product master records are referenced by vendor pricing/history. Refuse
+    // a destructive delete instead of leaving orphan VendorProduct rows.
+    const vendorReferenceCount = await VendorProduct.countDocuments({ product: existing._id });
+    if (vendorReferenceCount) {
+      return res.status(409).json({
+        message: `This product is used by ${vendorReferenceCount} vendor record${vendorReferenceCount === 1 ? "" : "s"} and cannot be deleted.`,
+      });
+    }
 
     if (existing.p_image) {
       const imagePath = path.join(process.cwd(), existing.p_image.replace(/^\//, ""));

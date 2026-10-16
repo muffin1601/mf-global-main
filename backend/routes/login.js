@@ -9,7 +9,7 @@ const { loginLimiter } = require("../middleware/rateLimiters");
 
 const publicUserFields = "-password";
 
-router.get("/users", authenticate, async (req, res) => {
+router.get("/users", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const users = await User.find({ enabled: true, role:'user' }).select(publicUserFields);
     res.json(users);

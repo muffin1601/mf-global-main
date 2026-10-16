@@ -8,7 +8,7 @@ const salesCache = createTTLCache(5 * 60 * 1000); // global aggregation, 5-min T
 
 router.get("/sales-performance", authenticate, async (req, res) => {
   try {
-    const cached = salesCache.get();
+    const cached = req.user.role === "admin" ? salesCache.get() : null;
     if (cached) {
       res.set("X-Cache", "HIT");
       return res.json(cached);
@@ -16,7 +16,9 @@ router.get("/sales-performance", authenticate, async (req, res) => {
 
 
     const pipeline = [
+      ...(req.user.role === "admin" ? [] : [{ $match: { "assignedTo.user._id": req.user._id } }]),
       { $unwind: "$assignedTo" }, 
+      ...(req.user.role === "admin" ? [] : [{ $match: { "assignedTo.user._id": req.user._id } }]),
       {
         $group: {
           _id: "$assignedTo.user._id",
@@ -40,7 +42,7 @@ router.get("/sales-performance", authenticate, async (req, res) => {
 
     const salesData = await ClientData.aggregate(pipeline);
 
-    salesCache.set(salesData);
+    if (req.user.role === "admin") salesCache.set(salesData);
     res.set("X-Cache", "MISS");
     res.json(salesData);
   } catch (err) {

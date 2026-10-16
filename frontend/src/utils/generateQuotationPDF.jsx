@@ -13,7 +13,16 @@ export const generateQuotationPDF = async (quotation) => {
     invoiceDetails = {},
     terms = [],
     bankDetails = {},
+    summary = {},
+    totals = {},
   } = quotation;
+
+  const escapeHtml = (value) => String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
   if (typeof terms === "string") {
     terms = terms.split("\n").map(t => t.trim()).filter(Boolean);
@@ -39,7 +48,8 @@ export const generateQuotationPDF = async (quotation) => {
     const price = Number(it.price || 0);
     const gstPercent = Number(it.tax || 0);
 
-    const taxable = qty * price;
+    const discountPercent = Math.min(100, Math.max(0, Number(it.discount || 0)));
+    const taxable = qty * price * (1 - discountPercent / 100);
     const gstAmount = taxable * gstPercent / 100;
     const lineTotal = taxable + gstAmount;
 
@@ -47,7 +57,7 @@ export const generateQuotationPDF = async (quotation) => {
     totalGst += gstAmount;
     grandTotal += lineTotal;
 
-    return { ...it, qty, price, gstPercent, taxable, gstAmount, lineTotal };
+    return { ...it, qty, price, discountPercent, gstPercent, taxable, gstAmount, lineTotal };
   });
 
   // Inline the product images as data URIs before rendering. html2canvas skips
@@ -61,13 +71,12 @@ export const generateQuotationPDF = async (quotation) => {
   totalGst = +totalGst.toFixed(2);
   grandTotal = +grandTotal.toFixed(2);
 
-  const gstPercentSummary =
-    processedItems.length ? processedItems[0].gstPercent : 18;
-
-  const isSplit = invoiceDetails.splitGst === true;
-  const cgst = isSplit ? +(totalGst / 2).toFixed(2) : 0;
-  const sgst = isSplit ? +(totalGst / 2).toFixed(2) : 0;
-  const igst = isSplit ? 0 : totalGst;
+  const displaySubtotal = Number.isFinite(Number(totals.subtotal)) ? Number(totals.subtotal) : subtotal;
+  const displayTax = Number.isFinite(Number(totals.totalTax)) ? Number(totals.totalTax) : totalGst;
+  const displayDiscount = Number(totals.totalDiscount || 0);
+  const displayCharges = Number(totals.additionalCharges ?? summary.additionalCharges ?? 0);
+  const displayRoundOff = Number(totals.roundOff || 0);
+  const displayGrandTotal = Number.isFinite(Number(totals.grandTotal)) ? Number(totals.grandTotal) : grandTotal;
 
 
   const wrapper = document.createElement("div");
@@ -107,7 +116,7 @@ export const generateQuotationPDF = async (quotation) => {
             </thead>
             <tbody>
               <tr>
-                <td>${invoiceDetails.prefix}${invoiceDetails.number}</td>
+                <td>${escapeHtml(invoiceDetails.prefix)}${escapeHtml(invoiceDetails.number)}</td>
                 <td>${formatDate(invoiceDetails.date)}</td>
                 <td>${formatDate(invoiceDetails.validityDate)}</td>
               </tr>
@@ -118,13 +127,13 @@ export const generateQuotationPDF = async (quotation) => {
         <section class="mfq-party-section">
           <div class="mfq-party-card">
             <h3>BILL TO</h3>
-            <strong>${party.company || party.name}</strong>
-            <p>${party.billToAddress}</p>
+            <strong>${escapeHtml(party.company || party.name)}</strong>
+            <p>${escapeHtml(party.billToAddress)}</p>
           </div>
 
           <div class="mfq-party-card">
             <h3>SHIP TO</h3>
-            <p>${party.selectedShippingAddress?.address || party.billToAddress}</p>
+            <p>${escapeHtml(party.selectedShippingAddress?.address || party.billToAddress)}</p>
           </div>
         </section>
 
@@ -152,7 +161,7 @@ export const generateQuotationPDF = async (quotation) => {
                   <td class="mfq-item-image-cell">
                     <img class="mfq-item-image" src="${imageDataUrls[i]}" alt="">
                   </td>
-                  <td>${it.name}</td>
+                  <td>${escapeHtml(it.name)}</td>
                   <td style="text-align:right">${it.qty}</td>
                   <td style="text-align:right">${it.price.toFixed(2)}</td>
                   <td style="text-align:right">${it.taxable.toFixed(2)}</td>
@@ -171,26 +180,20 @@ export const generateQuotationPDF = async (quotation) => {
           <div class="mfq-summary-left">
             <h4>Terms & Conditions</h4>
             <ul>
-              ${terms.map((t) => `<li>${t}</li>`).join("")}
+              ${terms.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}
             </ul>
           </div>
 
           <div class="mfq-summary-right">
             <table>
-              <tr><td>Subtotal</td><td style="text-align:right">₹${subtotal}</td></tr>
-              ${
-                isSplit
-                  ? `
-              <tr><td>CGST (${gstPercentSummary / 2}%)</td><td style="text-align:right">₹${cgst}</td></tr>
-              <tr><td>SGST (${gstPercentSummary / 2}%)</td><td style="text-align:right">₹${sgst}</td></tr>
-            `
-                  : `
-              <tr><td>IGST (${gstPercentSummary}%)</td><td style="text-align:right">₹${igst}</td></tr>
-            `
-              }
+              <tr><td>Subtotal</td><td style="text-align:right">&#8377;${displaySubtotal.toFixed(2)}</td></tr>
+              <tr><td>Tax / GST</td><td style="text-align:right">&#8377;${displayTax.toFixed(2)}</td></tr>
+              ${displayDiscount ? `<tr><td>Discount</td><td style="text-align:right">-&#8377;${displayDiscount.toFixed(2)}</td></tr>` : ""}
+              ${displayCharges ? `<tr><td>Additional Charges</td><td style="text-align:right">&#8377;${displayCharges.toFixed(2)}</td></tr>` : ""}
+              ${displayRoundOff ? `<tr><td>Round Off</td><td style="text-align:right">&#8377;${displayRoundOff.toFixed(2)}</td></tr>` : ""}
               <tr class="total-row">
                 <td><b>Grand Total</b></td>
-                <td style="text-align:right"><b>₹${grandTotal}</b></td>
+                <td style="text-align:right"><b>&#8377;${displayGrandTotal.toFixed(2)}</b></td>
               </tr>
             </table>
           </div>
@@ -199,9 +202,9 @@ export const generateQuotationPDF = async (quotation) => {
         <footer class="mfq-footer">
   <div class="mfq-bank-block">
     <h4>Bank Details</h4>
-    <p><b>Bank:</b> ${bankDetails.bankName}</p>
-    <p><b>A/C:</b> ${bankDetails.accountNumber}</p>
-    <p><b>IFSC:</b> ${bankDetails.ifscCode}</p>
+    <p><b>Bank:</b> ${escapeHtml(bankDetails.bankName)}</p>
+    <p><b>A/C:</b> ${escapeHtml(bankDetails.accountNumber)}</p>
+    <p><b>IFSC:</b> ${escapeHtml(bankDetails.ifscCode)}</p>
 
     <!-- QR Code -->
     <div class="mfq-qr-section">
@@ -213,7 +216,7 @@ export const generateQuotationPDF = async (quotation) => {
         alt="UPI Payment QR"
       />
       <p class="mfq-qr-upi">
-        UPI ID: ${bankDetails.upiId || "8750708222-1@okbizaxis"}
+        UPI ID: ${escapeHtml(bankDetails.upiId || "8750708222-1@okbizaxis")}
       </p>
     </div>
   </div>

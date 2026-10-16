@@ -1,49 +1,58 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
 import "./styles/AddClientModal.css"; 
 
 const AddClientModal = ({ isOpen, onClose, onSelect }) => {
-  const [allClients, setAllClients] = useState([]);
+  const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredClients, setFilteredClients] = useState([]);
+  const [loading, setLoading] = useState(false);
   const searchInputRef = useRef(null);
 
   
   useEffect(() => {
-    if (isOpen) {
-      setSearchTerm("");
-      fetch(`${import.meta.env.VITE_API_URL}/overview/all-clients`)
-        .then((res) => (res.ok ? res.json() : Promise.reject("Failed to fetch clients")))
-        .then((data) => setAllClients(data.data || []))
-        .catch(() =>
+    if (!isOpen) return undefined;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/overview/quotation-clients`,
+          {
+            params: { q: searchTerm.trim(), limit: 10 },
+            signal: controller.signal,
+          }
+        );
+        setClients(response.data.data || []);
+      } catch (error) {
+        if (error.code !== "ERR_CANCELED") {
+          setClients([]);
           toast(
             <CustomToast
               type="error"
               title="Error"
               message="Could not load client list."
             />
-          )
-        );
-    }
-  }, [isOpen]);
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, searchTerm ? 250 : 0);
 
- 
-  useEffect(() => {
-    const filtered = allClients
-      .filter(
-        (c) =>
-          c.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.phone?.includes(searchTerm)
-      )
-      .slice(0, 10);
-    setFilteredClients(filtered);
-  }, [searchTerm, allClients]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [isOpen, searchTerm]);
 
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
+      setSearchTerm("");
       searchInputRef.current.focus();
     }
   }, [isOpen]);
@@ -61,7 +70,7 @@ const AddClientModal = ({ isOpen, onClose, onSelect }) => {
       <div className="client-modal__content">
         <div className="client-modal__header">
           <h3 className="client-modal__title">Select Client</h3>
-          <button className="client-modal__close-btn" onClick={onClose}>
+          <button className="client-modal__close-btn" onClick={onClose} aria-label="Close client picker">
             <FiX size={20} />
           </button>
         </div>
@@ -71,27 +80,31 @@ const AddClientModal = ({ isOpen, onClose, onSelect }) => {
             ref={searchInputRef}
             type="text"
             className="client-modal__search-input"
-            placeholder="Search by company name or phone..."
+            placeholder="Search by client name, company, phone or contact..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         <div className="client-modal__list-container">
-          {filteredClients.length > 0 ? (
+          {loading ? (
+            <p className="client-modal__no-results">Searching clients...</p>
+          ) : clients.length > 0 ? (
             <table className="client-table">
               <thead>
                 <tr>
+                  <th>Client Name</th>
                   <th>Company</th>
-                  <th>Contact Person</th>
+                  <th>Contact</th>
                   <th>Phone</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredClients.map((client) => (
+                {clients.map((client) => (
                   <tr key={client._id}>
-                    <td>{client.company}</td>
+                    <td>{client.name || "—"}</td>
+                    <td>{client.company || "—"}</td>
                     <td>{client.contact || "—"}</td>
                     <td>{client.phone || "—"}</td>
                     <td>

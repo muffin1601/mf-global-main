@@ -35,11 +35,18 @@ async function nextInvoiceNumber(session) {
   const exists = await Counter.findOne({ role: INVOICE_KEY }).lean();
   if (!exists) {
     const seed = await computeMaxExistingInvoiceNumber();
-    await Counter.updateOne(
-      { role: INVOICE_KEY },
-      { $setOnInsert: { seq: seed } },
-      { upsert: true }
-    );
+    try {
+      await Counter.updateOne(
+        { role: INVOICE_KEY },
+        { $setOnInsert: { seq: seed } },
+        { upsert: true }
+      );
+    } catch (error) {
+      // Two first-ever quotations can race while seeding. The unique counter
+      // key makes one initializer win; every loser can safely continue to the
+      // atomic $inc below.
+      if (error?.code !== 11000) throw error;
+    }
   }
 
   const opts = { new: true };

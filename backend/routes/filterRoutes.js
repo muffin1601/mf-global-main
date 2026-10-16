@@ -116,7 +116,10 @@ router.post("/clients/assigned/:userName/filter", authenticate, async (req, res)
   }
 
   try {
-    const query = { $and: [{ "assignedTo.user.name": userName }] };
+    const ownerScope = req.user.role === "admin"
+      ? { "assignedTo.user.name": userName }
+      : { "assignedTo.user._id": req.user._id };
+    const query = { $and: [ownerScope] };
 
     const fields = ["category", "datatype", "location", "state", "status", "callStatus", "fileName"];
     fields.forEach((field) => {

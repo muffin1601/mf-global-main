@@ -176,6 +176,9 @@ router.get("/data/user/:userId", authMiddleware, async (req, res) => {
 
 router.delete("/delete/:id", authMiddleware, requireRole("admin"), async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid quotation id" });
+    }
     const deleted = await Quotation.findByIdAndDelete(req.params.id);
     if (!deleted) {
       return res.status(404).json({ success: false, message: "Quotation not found" });
@@ -190,6 +193,10 @@ router.delete("/delete/:id", authMiddleware, requireRole("admin"), async (req, r
 router.get("/fetch/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid quotation id" });
+    }
 
     const quotation = await Quotation.findById(id).lean();
     if (!quotation) {

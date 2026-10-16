@@ -86,17 +86,23 @@ router.put("/clients/:id", authenticate, async (req, res) => {
   const { name, remarks, callStatus, requirements, location, category } = req.body;
 
   try {
-    const updatedClient = await Client.findByIdAndUpdate(
-      req.params.id,
-      { name, remarks, callStatus, requirements, location, category },
-      { new: true }
-    );
-
-    if (!updatedClient) {
+    const client = await Client.findById(req.params.id);
+    if (!client) {
       return res.status(404).json({ message: "Client not found" });
     }
 
-    res.json({ success: true, client: updatedClient });
+    if (req.user.role !== "admin") {
+      const isAssignee = client.assignedTo?.some(
+        (assignment) => String(assignment?.user?._id) === String(req.user._id)
+          && assignment?.permissions?.update !== false
+      );
+      if (!isAssignee) return res.status(403).json({ message: "Access denied" });
+    }
+
+    Object.assign(client, { name, remarks, callStatus, requirements, location, category });
+    await client.save();
+
+    res.json({ success: true, client });
   } catch (err) {
     console.error("Error updating client:", err);
     res.status(500).json({ message: "Server Error" });

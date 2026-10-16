@@ -8,9 +8,12 @@ import CustomToast from '../CustomToast';
 const FormModal = ({
   isOpen,
   onClose,
-  userRole = 'admin',
+  onCreated,
+  userRole,
   dropdownFields = {}
 }) => {
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const effectiveUserRole = userRole || currentUser.role || 'user';
   const [formData, setFormData] = useState({
     name: "",
     company: "",
@@ -40,11 +43,11 @@ const FormModal = ({
   // Load Users & Categories
   // ---------------------------------------------
   useEffect(() => {
-    fetchUsers();
+    if (effectiveUserRole === 'admin') fetchUsers();
     axios.get(`${import.meta.env.VITE_API_URL}/clients/meta`).then((res) => {
       setCategories(res.data.categories);
     });
-  }, []);
+  }, [effectiveUserRole]);
 
   const fetchUsers = async () => {
     try {
@@ -152,7 +155,7 @@ const FormModal = ({
     }
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/add-client`, formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/add-client`, formData);
 
       toast(
         <CustomToast
@@ -169,6 +172,11 @@ const FormModal = ({
         email: formData.email,
       });
 
+      onCreated?.(response.data.client);
+      window.dispatchEvent(new CustomEvent('crm:client-created', {
+        detail: response.data.client,
+      }));
+
       setFormData({
         name: "",
         company: "",
@@ -183,6 +191,7 @@ const FormModal = ({
         requirements: "",
         assignedTo: [],
       });
+      onClose();
     } catch (error) {
       toast(
         <CustomToast
@@ -264,7 +273,7 @@ const FormModal = ({
             <label>Assigned To</label>
             <select
               value={formData.assignedTo?.[0]?.user?._id || ""}
-              disabled={userRole !== "admin"}
+              disabled={effectiveUserRole !== "admin"}
               onChange={(e) => {
                 const selected = users.find(u => u._id === e.target.value);
                 setField(

@@ -538,6 +538,8 @@ const LeadTable = () => {
           <FormModal
             isOpen={isFormModalOpen}
             onClose={() => setFormModalOpen(false)}
+            onCreated={refreshLeads}
+            userRole={user.role}
           />
         )}
 

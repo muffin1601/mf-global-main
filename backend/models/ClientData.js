@@ -17,6 +17,9 @@ const addressSchema = new mongoose.Schema({
 
 const clientSchema = new mongoose.Schema(
   {
+    // Immutable audit owner: who originally created/imported the record.
+    // Existing records remain valid because this is intentionally optional.
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
     name: { type: String },
     company: { type: String },
     email: { type: String },

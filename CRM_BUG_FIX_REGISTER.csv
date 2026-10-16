@@ -1,0 +1,13 @@
+ID,Priority,Module,Problem,Root Cause,Files Changed,Test,Result,Remaining Limitation
+CRM-001,P0,Clients,"Created lead invisible to user","Non-admin saved with empty assignedTo","ClientData.js; client.js; dashboardoverview.js; FormModal.jsx; lead tables","clientVisibility.test.js",PASS,"Cross-worker cache requires shared cache"
+CRM-002,P0,Clients,"List stale after create","No parent refresh callback","FormModal.jsx; lead tables","Frontend build and integration retrieval",PASS,"No multi-tab broadcast"
+CRM-003,P0,Quotations,"PDF disagreed with persisted totals","Independent incomplete browser math","quotationCalc.js; quotation create/edit; generateQuotationPDF.jsx","quotation API and frontend unit tests",PASS,"Visual multipage PDF not tested"
+CRM-004,P0,Quotations,"Concurrent first counter seed could fail","Duplicate-key race on counter initialization","invoiceNumber.js","12 concurrent creates",PASS,"Requires Mongo unique counter index"
+CRM-005,P1,Security,"Direct client update IDOR","No ownership check","clientwork.js","Code review; backend suite",PASS,"Route-specific UI E2E not run"
+CRM-006,P1,Security,"Staff saw global sales metrics/user directory","Global aggregation/directory available to any token","salesPerformance.js; login.js; EditLeadModal.jsx", "Backend suite; frontend build",PASS,"Staging role matrix not run"
+CRM-007,P1,Quotations,"Invalid IDs returned 500","Missing ObjectId validation","quotation.js","quotationApi.test.js",PASS,"None known"
+CRM-008,P1,Purchase Orders,"No PO module","Feature absent from repository","Documentation only","Repository discovery",NOT TESTED,"Requires business design and implementation"
+CRM-009,P2,Frontend,"Hook warnings","Unstable/missing effect dependencies in legacy components","Not changed","ESLint",FAIL,"27 warnings remain"
+CRM-010,P1,QA,"No browser E2E harness","Playwright absent and no isolated staging credentials","Documentation only","Test inventory",BLOCKED,"Add Playwright plus staging fixtures"
+CRM-011,P0,Quotations,"Client name absent/unsearchable in quotation picker","Unauthenticated first-page fetch searched only company/phone and mapped contact before name","dashboardoverview.js; AddClientModal.jsx; QuotationCreate.jsx; QuotationEdit.jsx","Backend scoped-search and frontend picker tests",PASS,"Search is intentionally limited to authorized clients"
+

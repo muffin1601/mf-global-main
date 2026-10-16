@@ -6,18 +6,20 @@ const { computeLcFields } = require("../utils/normalizeFields");
 const ClientPermission = require("../models/ClientPermission"); 
 const authenticate = require("../middleware/auth");
 const requireRole = require("../middleware/requireRole");
+const countsCache = require("../utils/countsCache");
 
 router.post("/add-client", authenticate, async (req, res) => {
   try {
-    const { contact, phone } = req.body;
+    const payload = { ...req.body };
+    const { contact, phone } = payload;
 
     
     const removeIcons = (value) =>
       typeof value === "string" ? value.replace(/^[^\w\s]*\s*/, "").trim() : value;
 
-    req.body.datatype = removeIcons(req.body.datatype);
-    req.body.status = removeIcons(req.body.status);
-    req.body.callStatus = removeIcons(req.body.callStatus);
+    payload.datatype = removeIcons(payload.datatype);
+    payload.status = removeIcons(payload.status);
+    payload.callStatus = removeIcons(payload.callStatus);
 
     
     const existingClient = await Client.findOne({
@@ -31,10 +33,23 @@ router.post("/add-client", authenticate, async (req, res) => {
       return res.status(400).json({ error: "Client already exists" });
     }
 
-    const client = new Client(req.body);
-    await client.save();
+    // Ownership is server-authoritative. A regular user's newly-created lead
+    // must belong to that user; otherwise every user dashboard query excludes
+    // the successfully-saved record. Admins retain the existing ability to
+    // create either assigned or unassigned leads.
+    if (req.user.role !== "admin") {
+      payload.assignedTo = [{
+        user: { _id: req.user._id, name: req.user.name },
+        permissions: { view: true, update: true, delete: false },
+      }];
+    }
+    payload.createdBy = req.user._id;
 
-    res.status(201).json({ message: "Client added successfully" });
+    const client = new Client(payload);
+    await client.save();
+    countsCache.clear();
+
+    res.status(201).json({ message: "Client added successfully", client });
   } catch (error) {
     console.error("Error saving client:", error);
     res.status(500).json({ error: "Failed to add client" });

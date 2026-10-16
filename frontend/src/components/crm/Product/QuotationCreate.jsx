@@ -8,6 +8,7 @@ import ShipToModal from "./ShipToModal";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import CustomToast from '../CustomToast';
+import { calculateQuotationLine, calculateQuotationPreview } from '../../../utils/quotationCalc';
 // generateQuotationPDF is dynamically imported at the point of use so the heavy
 // jsPDF/html2canvas bundle loads only when a PDF is actually generated.
 
@@ -122,25 +123,7 @@ const QuotationCreate = () => {
             console.log("Saved Quotation:", response.data);
 
             const { default: generateQuotationPDF } = await import("../../../utils/generateQuotationPDF");
-            generateQuotationPDF({
-                party,
-                items,
-                terms,
-                notes,
-                bankDetails,
-                invoiceDetails,
-                summary: {
-                    ...summary,
-                    subtotal: totals.subtotal.toFixed(2),
-                    tax: totals.tax.toFixed(2),
-                    total: finalTotal.toFixed(2),
-                    discount: summaryDiscount.toFixed(2),
-                    additionalCharges: summary.additionalCharges || 0,
-                    roundOff: roundOff.toFixed(2),
-                    balanceAmount: balanceAmount.toFixed(2),
-                },
-                qrCodeDataUrl: null,
-            });
+            await generateQuotationPDF(response.data);
         } catch (err) {
             console.error(err);
             toast(
@@ -195,7 +178,7 @@ const QuotationCreate = () => {
         }
 
         setParty({
-            name: clientData.contact || clientData.name || clientData.company || "Unnamed Contact",
+            name: clientData.name || clientData.company || clientData.contact || "Unnamed Contact",
             company: clientData.company || "Unnamed Company",
             phone: clientData.phone || "—",
             billToAddress: billAddress,
@@ -236,39 +219,10 @@ const QuotationCreate = () => {
     };
 
 
-    const calculateItemAmount = (item) => {
-        const amount = item.qty * item.price;
-        const discountAmount = amount * (item.discount / 100);
-        const taxableValue = amount - discountAmount;
-        const taxRate = item.tax || 0;
-        const taxAmount = taxableValue * (taxRate / 100);
-
-        return {
-            taxableValue: taxableValue,
-            taxAmount: taxAmount,
-            total: taxableValue + taxAmount
-        };
-    };
-
-    const totals = items.reduce((acc, item) => {
-        const itemCalc = calculateItemAmount(item);
-        acc.subtotal += itemCalc.taxableValue;
-        acc.tax += itemCalc.taxAmount;
-        return acc;
-    }, { subtotal: 0, tax: 0 });
-
-    const summaryDiscount = summary.discountType === '%'
-        ? totals.subtotal * (parseFloat(summary.discount) / 100)
-        : parseFloat(summary.discount);
-
-    let preRoundTotal = totals.subtotal + totals.tax + parseFloat(summary.additionalCharges) - summaryDiscount;
-
-    const roundOff = summary.autoRoundOff
-        ? (summary.roundOffSign === '+' ? parseFloat(summary.roundOffAmount) : -parseFloat(summary.roundOffAmount))
-        : 0;
-
-    const finalTotal = preRoundTotal + roundOff;
-    const balanceAmount = finalTotal - parseFloat(summary.amountReceived);
+    const preview = calculateQuotationPreview(items, summary);
+    const totals = { subtotal: preview.subtotal, tax: preview.tax };
+    const { finalTotal, balanceAmount } = preview;
+    const calculateItemAmount = calculateQuotationLine;
 
 
 

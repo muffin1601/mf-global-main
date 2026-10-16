@@ -17,12 +17,12 @@ const EditLeadModal = ({ lead, onClose, onSave, userRole }) => {
   // Fetch users & load initial lead data
   // -------------------------
   useEffect(() => {
-    fetchUsers();
+    if (userRole === "admin") fetchUsers();
     if (lead) {
       setEditedLead({ ...lead });
       setAdditionalContacts(lead.additionalContacts || []);
     }
-  }, [lead]);
+  }, [lead, userRole]);
 
   const fetchUsers = async () => {
     try {

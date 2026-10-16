@@ -306,7 +306,10 @@ const downloadCSVReport = async (leads) => {
       )} */}
       {isFormModalOpen && (
         <FormModal
-        isOpen={isFormModalOpen} onClose={() => setFormModalOpen(false)}
+        isOpen={isFormModalOpen}
+        onClose={() => setFormModalOpen(false)}
+        onCreated={fetchLeads}
+        userRole={user.role}
         />
       )}
       {showModal && (

@@ -25,6 +25,12 @@ const productSchema = new mongoose.Schema({
   GST_rate: Number,
   p_price: priceSchema,
 
+  status: { type: String, enum: ['active', 'inactive', 'archived'], default: 'active', index: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  archivedAt: Date,
+  archivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
 
   dimension: {
     type: String,
@@ -36,6 +42,7 @@ const productSchema = new mongoose.Schema({
 // Supports the product catalogue's common list filters and sort order.
 productSchema.index({ cat_id: 1, updatedAt: -1 });
 productSchema.index({ p_name: 1 });
+productSchema.index({ status: 1, updatedAt: -1 });
 
 productSchema.pre('save', async function (next) {
   if (this.isNew) {

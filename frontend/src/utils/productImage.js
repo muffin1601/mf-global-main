@@ -18,6 +18,18 @@ export const PRODUCT_IMAGE_PLACEHOLDER =
     </svg>`.replace(/\s+/g, " ")
   );
 
+const getImageBaseUrl = () => {
+  const configured = (import.meta.env.VITE_IMAGE_URL || "").trim();
+  if (configured) return configured.replace(/\/$/, "");
+  const apiUrl = (import.meta.env.VITE_API_URL || "").trim();
+  if (!apiUrl) return "";
+  try {
+    return new URL(apiUrl, window.location.origin).origin.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Turn a stored `p_image` path into a loadable URL.
  * Returns "" when there is no image so callers can render the placeholder.
@@ -28,7 +40,7 @@ export const resolveProductImageUrl = (path) => {
   if (!trimmed) return "";
   // Already absolute (or a data URI) — use as-is.
   if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith("data:")) return trimmed;
-  const base = (import.meta.env.VITE_IMAGE_URL || "").replace(/\/$/, "");
+  const base = getImageBaseUrl();
   return `${base}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;
 };
 

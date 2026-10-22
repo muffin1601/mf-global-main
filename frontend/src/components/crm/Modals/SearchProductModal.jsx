@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
+import { PRODUCT_IMAGE_PLACEHOLDER, resolveProductImageUrl } from "../../../utils/productImage";
 
 const PriceCard = ({ product, taxRate }) => (
   <div className="premium-price-card">
@@ -139,14 +140,15 @@ const SearchProductModal = ({ isOpen, onClose }) => {
             <div key={p._id} className="product-card glass-card">
 
               <a
-                href={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
+                href={resolveProductImageUrl(p.p_image) || PRODUCT_IMAGE_PLACEHOLDER}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <img
-                  src={`${import.meta.env.VITE_IMAGE_URL}${p.p_image}`}
+                  src={resolveProductImageUrl(p.p_image) || PRODUCT_IMAGE_PLACEHOLDER}
                   className="product-img"
                   alt={p.p_name}
+                  onError={(event) => { event.currentTarget.src = PRODUCT_IMAGE_PLACEHOLDER; }}
                   style={{ cursor: "pointer" }}
                 />
               </a>

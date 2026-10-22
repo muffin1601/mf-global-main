@@ -24,8 +24,8 @@ const ProductOverview = () => {
     const fetchProductStats = async () => {
       try {
        
-        const productRes = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
-        setTotalProducts(productRes.data.products.length || 0);
+        const productRes = await axios.get(`${import.meta.env.VITE_API_URL}/products`, { params: { limit: 1 } });
+        setTotalProducts(productRes.data.total ?? productRes.data.products?.length ?? 0);
         setLowStock(productRes.data.lowStock || 0);
         setTopSellingProduct(productRes.data.topSellingProduct || 'N/A');
         setOutOfStock(productRes.data.outOfStock || 0);

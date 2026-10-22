@@ -4,39 +4,28 @@ const Product = require('../../models/ProductData');
 const Category = require('../../models/Category');
 const VendorProduct = require('../../models/VendorProduct');
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const mongoose = require("mongoose");
 const authenticate = require("../../middleware/auth");
 const requireRole = require("../../middleware/requireRole");
 const { getPaging, setPageHeaders } = require("../../utils/paginate");
 const { previewProductCode } = require("../../services/productCode");
+const ActivityLog = require("../../models/UserActivity");
+const { saveProductImage, deleteProductImage } = require("../../utils/productImages");
 
 /* ---------------------- MULTER STORAGE ---------------------- */
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/products");
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "product-" + unique + ext);
-  }
-});
-
 // Stricter validation: allowlist both extension AND mimetype, cap size.
 const ALLOWED_IMAGE_EXT = /\.(jpe?g|png|webp|gif)$/i;
 const ALLOWED_IMAGE_MIME = /^image\/(jpe?g|png|webp|gif)$/i;
 
 const fileFilter = (req, file, cb) => {
-  const extOk = ALLOWED_IMAGE_EXT.test(path.extname(file.originalname).toLowerCase());
+  const extOk = ALLOWED_IMAGE_EXT.test(require("path").extname(file.originalname).toLowerCase());
   const mimeOk = ALLOWED_IMAGE_MIME.test(file.mimetype);
   if (extOk && mimeOk) return cb(null, true);
   return cb(new Error("Only JPG, PNG, WEBP or GIF images are allowed"), false);
 };
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024, files: 1 }, // 5MB, single file
 });
@@ -53,9 +42,18 @@ const parseAndValidatePrice = (rawPrice) => {
   return { price: { ...price, basic_amount: basic, GST_rate: gst, ...(purchase !== undefined ? { purchase_price: purchase } : {}), net_amount: Number((basic + (basic * gst) / 100).toFixed(2)) } };
 };
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const activeFilter = { status: { $ne: "archived" } };
+const recordProductActivity = (req, action, details) => ActivityLog.create({
+  userId: req.user.userId || String(req.user._id),
+  name: req.user.name,
+  role: req.user.role,
+  action,
+  details,
+}).catch((error) => console.error("Product audit log error:", error));
 
 /* ---------------------- ADD PRODUCT ---------------------- */
 router.post("/add-product", authenticate, requireRole("admin"), upload.single("p_image"), async (req, res) => {
+  let savedImagePath = null;
   try {
     const {
       p_name,
@@ -79,6 +77,11 @@ router.post("/add-product", authenticate, requireRole("admin"), upload.single("p
       });
     }
     if (!mongoose.isValidObjectId(cat_id) || !await Category.exists({ _id: cat_id })) return res.status(400).json({ error: "Please select a valid category." });
+    if (await Product.exists({ s_code: { $regex: `^${escapeRegex(s_code.trim())}$`, $options: "i" }, ...activeFilter })) {
+      return res.status(409).json({ error: "A product with this style/SKU code already exists." });
+    }
+
+    savedImagePath = await saveProductImage(req.file);
 
     const newProduct = new Product({
       p_name: p_name.trim(),
@@ -90,18 +93,22 @@ router.post("/add-product", authenticate, requireRole("admin"), upload.single("p
       HSN_code,
       dimension,          
       p_price: priceObj,
-      p_image: req.file ? `/uploads/products/${req.file.filename}` : null,
+      p_image: savedImagePath,
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
     });
 
     const savedProduct = await newProduct.save();
+    await recordProductActivity(req, "product.created", { productId: savedProduct._id, productCode: savedProduct.p_code });
     return res.status(201).json(savedProduct);
 
   } catch (error) {
+    if (savedImagePath) await deleteProductImage(savedImagePath).catch(() => {});
     console.error("Error creating product:", error);
     if (error?.code === 11000 && error?.keyPattern?.p_code) {
       return res.status(409).json({ error: "A product code collision was detected. Please submit again." });
     }
-    return res.status(500).json({ error: "Internal server error." });
+    return res.status(error.status || 500).json({ error: error.status ? error.message : "Internal server error." });
   }
 });
 
@@ -122,7 +129,8 @@ router.get("/products", authenticate, async (req, res) => {
     const { page, limit, skip } = getPaging(req);
     const query = String(req.query.query || "").trim();
     const category = String(req.query.category || "").trim();
-    const filters = {};
+    const status = String(req.query.status || "active").trim();
+    const filters = status === "all" ? {} : status === "archived" ? { status: "archived" } : status === "inactive" ? { status: "inactive" } : { ...activeFilter };
     if (category) filters.cat_id = category;
     if (query) {
       const safeQuery = escapeRegex(query);
@@ -200,18 +208,19 @@ router.get('/products/search', authenticate, async (req, res) => {
     const safeSearchTerm = escapeRegex(searchTerm);
 
     const mongoQuery = {
+      ...activeFilter,
       $or: [
         { p_code: { $regex: safeSearchTerm, $options: "i" } },
         { p_name: { $regex: safeSearchTerm, $options: "i" } },
         { s_code: { $regex: safeSearchTerm, $options: "i" } },
         { p_type: { $regex: safeSearchTerm, $options: "i" } },
         { p_color: { $regex: safeSearchTerm, $options: "i" } },
-        { dimension: { $regex: searchTerm, $options: "i" } },     // ⭐ NEW FIELD SEARCH
+        { dimension: { $regex: safeSearchTerm, $options: "i" } },
         { 'p_price.GST_rate': !isNaN(Number(searchTerm)) ? Number(searchTerm) : -1 }
       ]
     };
 
-    const products = await Product.find(mongoQuery).lean();
+    const products = await Product.find(mongoQuery).limit(50).lean();
 
     res.json({ products });
 
@@ -223,6 +232,7 @@ router.get('/products/search', authenticate, async (req, res) => {
 
 /* ---------------------- UPDATE PRODUCT + IMAGE ---------------------- */
 router.post('/products/update', authenticate, requireRole("admin"), upload.single("p_image"), async (req, res) => {
+  let newImagePath = null;
   try {
     const {
       _id, s_code,
@@ -233,7 +243,7 @@ router.post('/products/update', authenticate, requireRole("admin"), upload.singl
       dimension,       
       cat_id,
       p_description,
-      p_price, remove_image
+      p_price, remove_image, version
     } = req.body;
 
     if (!_id)
@@ -244,6 +254,7 @@ router.post('/products/update', authenticate, requireRole("admin"), upload.singl
 
     if (!existingProduct)
       return res.status(404).json({ message: "Product not found." });
+    if (existingProduct.status === "archived") return res.status(409).json({ message: "Archived products cannot be edited." });
 
     const parsedPrice = parseAndValidatePrice(p_price);
     if (parsedPrice.error) return res.status(400).json({ message: parsedPrice.error });
@@ -251,21 +262,23 @@ router.post('/products/update', authenticate, requireRole("admin"), upload.singl
     if (!p_name?.trim() || !s_code?.trim() || !cat_id) return res.status(400).json({ message: "Product name, style code, and category are required." });
     if (!mongoose.isValidObjectId(cat_id) || !await Category.exists({ _id: cat_id })) return res.status(400).json({ message: "Please select a valid category." });
 
+    if (await Product.exists({ _id: { $ne: existingProduct._id }, s_code: { $regex: `^${escapeRegex(s_code.trim())}$`, $options: "i" }, ...activeFilter })) {
+      return res.status(409).json({ message: "A product with this style/SKU code already exists." });
+    }
+
     let imagePath = existingProduct.p_image;
 
     // If new image uploaded → replace old image
     if (req.file || remove_image === "true") {
-      imagePath = req.file ? `/uploads/products/${req.file.filename}` : null;
-
-      if (existingProduct.p_image) {
-        const oldImagePath = path.join(process.cwd(), existingProduct.p_image.replace(/^\//, ""));
-        if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
-      }
+      newImagePath = req.file ? await saveProductImage(req.file) : null;
+      imagePath = newImagePath;
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      _id,
-      {
+    const updateFilter = { _id };
+    if (version !== undefined && version !== "") updateFilter.__v = Number(version);
+    const updatedProduct = await Product.findOneAndUpdate(
+      updateFilter,
+      { $set: {
         s_code: s_code.trim(),
         p_name: p_name.trim(),
         p_type,
@@ -277,17 +290,28 @@ router.post('/products/update', authenticate, requireRole("admin"), upload.singl
         p_image: imagePath,
         p_price: {
           ...priceObj,
-          price_code: existingProduct.p_price.price_code,
-        }
-      },
-      { new: true }
+          price_code: existingProduct.p_price?.price_code,
+        },
+        updatedBy: req.user._id,
+      }, $inc: { __v: 1 } },
+      { new: true, runValidators: true }
     );
+
+    if (!updatedProduct) {
+      if (newImagePath) await deleteProductImage(newImagePath).catch(() => {});
+      return res.status(409).json({ message: "This product was changed by another user. Refresh and try again." });
+    }
+    if ((req.file || remove_image === "true") && existingProduct.p_image && existingProduct.p_image !== imagePath) {
+      await deleteProductImage(existingProduct.p_image).catch((cleanupError) => console.error("Old product image cleanup failed:", cleanupError));
+    }
+    await recordProductActivity(req, "product.updated", { productId: updatedProduct._id, imageChanged: Boolean(req.file || remove_image === "true") });
 
     res.status(200).json(updatedProduct);
 
   } catch (error) {
+    if (newImagePath) await deleteProductImage(newImagePath).catch(() => {});
     console.error("Update Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(error.status || 500).json({ message: error.status ? error.message : "Internal Server Error" });
   }
 });
 
@@ -297,24 +321,16 @@ router.delete('/products/delete/:id', authenticate, requireRole("admin"), async 
   try {
     const existing = await Product.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Product not found" });
+    if (existing.status === "archived") return res.status(409).json({ message: "Product is already archived." });
 
-    // Product master records are referenced by vendor pricing/history. Refuse
-    // a destructive delete instead of leaving orphan VendorProduct rows.
     const vendorReferenceCount = await VendorProduct.countDocuments({ product: existing._id });
-    if (vendorReferenceCount) {
-      return res.status(409).json({
-        message: `This product is used by ${vendorReferenceCount} vendor record${vendorReferenceCount === 1 ? "" : "s"} and cannot be deleted.`,
-      });
-    }
-
-    if (existing.p_image) {
-      const imagePath = path.join(process.cwd(), existing.p_image.replace(/^\//, ""));
-      if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-    }
-
-    await Product.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({ message: "Deleted", product: existing });
+    existing.status = "archived";
+    existing.archivedAt = new Date();
+    existing.archivedBy = req.user._id;
+    existing.updatedBy = req.user._id;
+    await existing.save();
+    await recordProductActivity(req, "product.archived", { productId: existing._id, vendorReferenceCount });
+    res.status(200).json({ message: "Archived", product: existing });
 
   } catch (error) {
     res.status(500).json({ message: "Internal error" });

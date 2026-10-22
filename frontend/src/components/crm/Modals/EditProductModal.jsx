@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import CustomToast from "../CustomToast";
 import "./ProductModal.css";
+import { resolveProductImageUrl } from "../../../utils/productImage";
 
 const EditProductModal = ({ product, onClose, onSave }) => {
   const [categoryNames, setCategoryNames] = useState([]);
@@ -54,11 +55,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
       },
     });
 
-    setPreviewImage(
-      product.p_image
-        ? `${import.meta.env.VITE_IMAGE_URL}${product.p_image}`
-        : null
-    );
+    setPreviewImage(resolveProductImageUrl(product.p_image) || null);
     setNewImage(null);
     setRemoveImage(false);
   }, [product]);
@@ -136,6 +133,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
       fd.append("p_description", editedProduct.p_description);
       fd.append("p_price", JSON.stringify(editedProduct.p_price));
       fd.append("remove_image", String(removeImage));
+      fd.append("version", String(product.__v ?? ""));
 
       if (newImage) {
         fd.append("p_image", newImage);

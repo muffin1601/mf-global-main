@@ -1,13 +1,12 @@
 import React from "react";
 import "../../styles/main/OurServices.css";
 
-import img1 from "/assets/main/printkee-img.webp";
+import premiumGiftsImage from "/assets/main/other-img.webp";
 import img2 from "/assets/main/coachingpromo-img.webp";
-import img4 from "/assets/main/5 (2).png";
 
 const services = [
   {
-    image: img1,
+    image: premiumGiftsImage,
     tag: "PREMIUM GIFTS",
     title: "Premium Gifts",
     description:
@@ -21,14 +20,6 @@ const services = [
     description:
       "High-quality educational printing and promotional materials for institutes, coaching centers, and brands. Designed to communicate clearly, consistently, and professionally across channels.",
     url: "https://coachingpromo.in",
-  },
-  {
-    image: img4,
-    tag: "DIGITAL",
-    title: "Digital Branding",
-    description:
-      "End-to-end digital branding solutions to build a strong and consistent online presence. From brand identity to digital touchpoints, we help brands connect and grow effectively.",
-    url: null,
   },
 ];
 
@@ -46,8 +37,8 @@ const OurServices = () => {
       </p>
 
       <div className="services-grid">
-        {services.map((service, index) => (
-          <div className="service-card" key={index}>
+        {services.map((service) => (
+          <div className="service-card" key={service.title}>
             <img
               src={service.image}
               alt={service.title}

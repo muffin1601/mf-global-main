@@ -133,8 +133,18 @@
   transform: rotate(180deg);
 }
 
+.marketing-site .dropdown-wrapper::after {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: max(100%, 218px);
+  height: 16px;
+  content: "";
+}
+
 .marketing-site .dropdown-menu {
   top: calc(100% + 10px);
+  margin-top: 0;
   min-width: 218px;
   padding: 8px;
   border: 1px solid var(--site-line);

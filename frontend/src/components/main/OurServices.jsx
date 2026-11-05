@@ -3,7 +3,6 @@ import "../../styles/main/OurServices.css";
 
 import img1 from "/assets/main/printkee-img.webp";
 import img2 from "/assets/main/coachingpromo-img.webp";
-import img3 from "/assets/main/5 (1).png";
 import img4 from "/assets/main/5 (2).png";
 
 const services = [
@@ -22,14 +21,6 @@ const services = [
     description:
       "High-quality educational printing and promotional materials for institutes, coaching centers, and brands. Designed to communicate clearly, consistently, and professionally across channels.",
     url: "https://coachingpromo.in",
-  },
-  {
-    image: img3,
-    tag: "CREATIVE",
-    title: "Creative Team",
-    description:
-      "Our in-house creative team brings ideas to life through compelling visuals, layouts, and concepts. We focus on clarity, originality, and brand alignment across every deliverable.",
-    url: null,
   },
   {
     image: img4,

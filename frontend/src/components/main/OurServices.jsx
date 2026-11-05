@@ -9,11 +9,11 @@ import img4 from "/assets/main/5 (2).png";
 const services = [
   {
     image: img1,
-    tag: "GIFTING",
-    title: "Corporate Gifting",
+    tag: "PREMIUM GIFTS",
+    title: "Premium Gifts",
     description:
-      "Thoughtfully curated corporate gifts designed to strengthen relationships with clients, partners, and employees. From onboarding kits to festive hampers, we deliver memorable brand experiences.",
-    url: "https://printkee.com",
+      "Thoughtfully curated premium gifts designed to strengthen relationships with clients, partners, and employees. From onboarding kits to festive hampers, we deliver memorable brand experiences.",
+    url: "https://giftaguru.com/",
   },
   {
     image: img2,
@@ -43,8 +43,8 @@ const services = [
 
 const OurServices = () => {
   return (
-    <section className="services-section">
-      <h2 className="services-heading">
+    <section className="services-section" id="services" aria-labelledby="services-title">
+      <h2 className="services-heading" id="services-title">
         Empowering Brands Through Curated Corporate Gifting Solutions
       </h2>
 
@@ -61,6 +61,8 @@ const OurServices = () => {
               src={service.image}
               alt={service.title}
               className="service-image"
+              loading="lazy"
+              decoding="async"
             />
 
             <div className="service-content">
@@ -69,12 +71,14 @@ const OurServices = () => {
               <p className="service-description">{service.description}</p>
 
               {service.url && (
-                <button
+                <a
                   className="explore-button"
-                  onClick={() => window.open(service.url, "_blank")}
+                  href={service.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Explore <span className="arrow">→</span>
-                </button>
+                </a>
               )}
             </div>
           </div>

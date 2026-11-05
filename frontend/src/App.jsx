@@ -12,6 +12,7 @@ const Contact = lazy(() => import("./pages/main/Contact"));
 const BlogDetail = lazy(() => import("./pages/main/BlogDetail"));
 const BlogList = lazy(() => import("./pages/main/BlogList"));
 const BlogForm = lazy(() => import("./pages/main/BlogForm"));
+const Careers = lazy(() => import("./pages/main/Careers"));
 
 const NewLeads = lazy(() => import("./pages/crm/NewLeads"));
 const Dashboard = lazy(() => import("./pages/crm/Dashboard"));
@@ -60,6 +61,7 @@ const App = () => {
           <Route path="/blogs" element={<BlogList />} />
           <Route path="/blogs/new" element={<BlogForm />} />
           <Route path="/blogs/:id" element={<BlogDetail />} />
+          <Route path="/careers" element={<Careers />} />
 
 
           <Route path="/crm" element={<Home />} />

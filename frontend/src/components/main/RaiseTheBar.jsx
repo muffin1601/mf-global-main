@@ -3,11 +3,11 @@ import "../../styles/main/RaiseTheBar.css";
 
 const RaiseTheBar = () => {
   return (
-    <section className="raise-container">
+    <section className="raise-container" id="about" aria-labelledby="about-title">
       <div className="raise-content">
         <h5 className="raise-subtitle">ABOUT MF GLOBAL SERVICES</h5>
 
-        <h2 className="raise-title">
+        <h2 className="raise-title" id="about-title">
           Building brands through <span>gifting, digital marketing & technology</span>
         </h2>
 
@@ -46,6 +46,8 @@ const RaiseTheBar = () => {
           <img
             src="https://images.pexels.com/photos/6400307/pexels-photo-6400307.jpeg"
             alt="MF Global Services branding and corporate solutions"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </div>

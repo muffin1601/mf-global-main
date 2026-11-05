@@ -144,6 +144,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api/quotations', require('./routes/quotation'));
 app.use("/api/overview", require("./routes/dashboardoverview"));
 app.use("/api", require("./routes/main/emailRoutes"));
+app.use("/api", require("./routes/main/careersRoutes"));
 app.use ("/api/visitors", require("./routes/main/visitor"));
 app.use("/api/blogs", require("./routes/main/blogRoutes"));
 app.use("/api", require("./routes/client"));

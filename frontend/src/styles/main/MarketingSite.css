@@ -1,0 +1,2108 @@
+.marketing-site {
+  --site-ink: #1b2935;
+  --site-muted: #63717d;
+  --site-red: #8b0000;
+  --site-red-dark: #680000;
+  --site-gold: #e2b665;
+  --site-paper: #f7f8fa;
+  --site-line: #e4e8ec;
+  color: var(--site-ink);
+  background: #fff;
+  font-family: "Outfit", "Poppins", sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  overflow: clip;
+}
+
+.marketing-site *,
+.marketing-site *::before,
+.marketing-site *::after {
+  box-sizing: border-box;
+}
+
+.marketing-site img {
+  max-width: 100%;
+}
+
+.marketing-site a,
+.marketing-site button,
+.marketing-site input,
+.marketing-site select,
+.marketing-site textarea {
+  font: inherit;
+}
+
+.marketing-site :focus-visible {
+  outline: 3px solid #e6b458;
+  outline-offset: 3px;
+}
+
+.marketing-site [id] {
+  scroll-margin-top: 100px;
+}
+
+.marketing-site .navbar {
+  min-height: 82px;
+  padding: 10px clamp(20px, 5vw, 76px);
+  background: linear-gradient(180deg, rgba(14, 22, 29, .72), rgba(14, 22, 29, .15));
+  gap: 24px;
+  transition: background .25s ease, box-shadow .25s ease;
+}
+
+.marketing-site .navbar.scrolled {
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 8px 26px rgba(17, 33, 47, .1);
+  backdrop-filter: blur(12px);
+}
+
+.marketing-site .navbar.scrolled .navbar-logo {
+  color: var(--site-ink);
+}
+
+.marketing-site .navbar-left-main {
+  color: inherit;
+  text-decoration: none;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.marketing-site .navbar-logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.marketing-site .navbar-logo {
+  font-size: 1.08rem;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+
+.marketing-site .navbar-center {
+  justify-content: center;
+  gap: clamp(14px, 2vw, 28px);
+}
+
+.marketing-site .nav-link {
+  color: #fff;
+  background: transparent;
+  border: 0;
+  padding: 8px 0;
+  font-size: .94rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.marketing-site .navbar.scrolled .nav-link {
+  color: var(--site-ink);
+}
+
+.marketing-site .nav-link::after {
+  bottom: 1px;
+  height: 2px;
+  background: var(--site-gold);
+}
+
+.marketing-site .nav-link:hover,
+.marketing-site .nav-link.active {
+  color: var(--site-gold);
+}
+
+.marketing-site .navbar.scrolled .nav-link:hover,
+.marketing-site .navbar.scrolled .nav-link.active {
+  color: var(--site-red);
+}
+
+.marketing-site .navbar.scrolled .nav-link::after {
+  background: var(--site-red);
+}
+
+.marketing-site .products-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.marketing-site .products-toggle svg {
+  transition: transform .2s ease;
+}
+
+.marketing-site .products-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.marketing-site .dropdown-menu {
+  top: calc(100% + 10px);
+  min-width: 218px;
+  padding: 8px;
+  border: 1px solid var(--site-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(15, 34, 48, .16);
+}
+
+.marketing-site .dropdown-menu a {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .94rem;
+}
+
+.marketing-site .navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.marketing-site .navbar-social {
+  padding: 0;
+  gap: 12px;
+}
+
+.marketing-site .navbar-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 34px;
+  color: #fff;
+  font-size: 1rem;
+  transition: color .2s ease;
+}
+
+.marketing-site .navbar.scrolled .navbar-social a {
+  color: var(--site-ink);
+}
+
+.marketing-site .navbar-social a:hover,
+.marketing-site .navbar.scrolled .navbar-social a:hover {
+  color: var(--site-red);
+}
+
+.marketing-site .navbar-cta,
+.marketing-site .marketing-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 21px;
+  border: 1px solid var(--site-red);
+  border-radius: 8px;
+  background: var(--site-red);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.marketing-site .navbar-cta {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-color: rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .12);
+  font-size: .9rem;
+  white-space: nowrap;
+}
+
+.marketing-site .navbar.scrolled .navbar-cta {
+  border-color: var(--site-red);
+  background: var(--site-red);
+  color: #fff;
+}
+
+.marketing-site .navbar-cta:hover,
+.marketing-site .marketing-button:hover {
+  background: var(--site-red-dark);
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(139, 0, 0, .2);
+  transform: translateY(-2px);
+}
+
+.marketing-site .hamburger-icon {
+  margin: 0;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  line-height: 1;
+}
+
+.marketing-site .navbar.scrolled .hamburger-icon {
+  color: var(--site-ink);
+}
+
+.marketing-site .sidebar-1 {
+  right: 0;
+  width: min(360px, 88vw);
+  padding: 24px;
+  background: #142532;
+  box-shadow: -16px 0 40px rgba(0, 0, 0, .2);
+  transform: translateX(102%);
+  visibility: hidden;
+  transition: transform .25s ease, visibility .25s ease;
+}
+
+.marketing-site .sidebar-1.open {
+  right: 0;
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.marketing-site .sidebar-header {
+  margin-bottom: 24px;
+}
+
+.marketing-site .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.marketing-site .sidebar-logo-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.marketing-site .sidebar-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.marketing-site .sidebar-1 .sidebar-link,
+.marketing-site .sidebar-dropdown > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 13px 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  background: transparent;
+  color: #f3f6f7;
+  text-align: left;
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.marketing-site .sidebar-1 .sidebar-link.active,
+.marketing-site .sidebar-1 .sidebar-link:hover,
+.marketing-site .sidebar-dropdown > button:hover {
+  color: var(--site-gold);
+}
+
+.marketing-site .sidebar-dropdown {
+  display: block;
+}
+
+.marketing-site .sidebar-dropdown > button {
+  padding: 13px 4px;
+}
+
+.marketing-site .chevron {
+  margin: 0;
+}
+
+.marketing-site .sidebar-dropdown-menu {
+  padding-left: 12px;
+  border: 0;
+}
+
+.marketing-site .sidebar-dropdown-menu a {
+  margin: 0;
+  padding: 9px 4px;
+  color: #d7dfe3;
+  font-size: .95rem;
+}
+
+.marketing-site .sidebar-social {
+  margin-top: auto;
+  padding-top: 20px;
+  gap: 16px;
+}
+
+.marketing-site .sidebar-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 50%;
+}
+
+.marketing-site .sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(5, 14, 20, .58);
+  cursor: pointer;
+}
+
+.marketing-site .hero {
+  min-height: min(800px, 100svh);
+  height: auto;
+  padding: 150px 24px 96px;
+  background-position: center 42%;
+  background-attachment: scroll;
+  box-shadow: none;
+}
+
+.marketing-site .hero::before {
+  background: linear-gradient(90deg, rgba(13, 23, 31, .82), rgba(13, 23, 31, .38) 70%, rgba(13, 23, 31, .24));
+}
+
+.marketing-site .hero-text {
+  max-width: 1020px;
+  padding: 20px;
+  text-align: center;
+}
+
+.marketing-site .hero-title {
+  max-width: 920px;
+  margin: 0 auto 22px;
+  font-size: clamp(2.5rem, 5.2vw, 4.65rem);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+
+.marketing-site .hero-subtitle {
+  max-width: 760px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, .88);
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.7;
+}
+
+.marketing-site .hero-cta {
+  min-height: 52px;
+  margin-top: 30px;
+  padding: 15px 24px;
+  border-radius: 8px;
+  background: var(--site-red);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.marketing-site .services-section,
+.marketing-site .categories-section,
+.marketing-site .raise-container,
+.marketing-site .process-section,
+.marketing-site .why-wrapper,
+.marketing-site .testimonial-wrapper {
+  padding: clamp(64px, 8vw, 110px) clamp(20px, 6vw, 88px);
+}
+
+.marketing-site .services-section,
+.marketing-site .categories-section {
+  background: #fff;
+}
+
+.marketing-site .services-heading,
+.marketing-site .section-title,
+.marketing-site .raise-title,
+.marketing-site .process-title,
+.marketing-site .why-heading,
+.marketing-site .testimonial-heading {
+  letter-spacing: -.035em;
+  line-height: 1.17;
+}
+
+.marketing-site .services-heading {
+  max-width: 860px;
+  margin: 0 auto 18px;
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  color: var(--site-ink);
+}
+
+.marketing-site .services-quote {
+  max-width: 760px;
+  margin: 0 auto 50px;
+  color: var(--site-muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.marketing-site .services-grid {
+  max-width: 1240px;
+  margin: 0 auto;
+  gap: 24px;
+}
+
+.marketing-site .service-card {
+  min-height: 0;
+  border: 1px solid var(--site-line);
+  border-radius: 14px;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(23, 38, 51, .06);
+}
+
+.marketing-site .service-card:hover,
+.marketing-site .category-card:hover,
+.marketing-site .process-card:hover,
+.marketing-site .why-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 38px rgba(23, 38, 51, .12);
+}
+
+.marketing-site .service-image {
+  height: 225px;
+  background: var(--site-paper);
+}
+
+.marketing-site .service-content {
+  padding: 25px;
+}
+
+.marketing-site .service-title {
+  color: var(--site-ink);
+  font-size: 1.35rem;
+  letter-spacing: -.02em;
+}
+
+.marketing-site .service-description {
+  color: var(--site-muted);
+}
+
+.marketing-site .service-tag,
+.marketing-site .raise-subtitle {
+  color: var(--site-red);
+  letter-spacing: .12em;
+}
+
+.marketing-site .explore-button,
+.marketing-site .catalog-btn {
+  border-radius: 8px;
+  background: var(--site-red);
+  text-decoration: none;
+}
+
+.marketing-site .categories-section {
+  background: var(--site-paper);
+}
+
+.marketing-site .categories-content {
+  max-width: 1240px;
+}
+
+.marketing-site .section-title {
+  max-width: 740px;
+  margin: 0 auto 44px;
+  color: var(--site-ink);
+  font-size: clamp(2rem, 3.4vw, 2.85rem);
+}
+
+.marketing-site .categories-grid {
+  gap: 20px;
+}
+
+.marketing-site .category-card {
+  align-items: flex-start;
+  padding: 28px;
+  border: 1px solid var(--site-line);
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+  box-shadow: 0 8px 25px rgba(23, 38, 51, .04);
+}
+
+.marketing-site .category-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background: #fbefec;
+  color: var(--site-red);
+}
+
+.marketing-site .category-title {
+  color: var(--site-ink);
+  font-size: 1.15rem;
+}
+
+.marketing-site .category-desc {
+  color: var(--site-muted);
+}
+
+.marketing-site .catalog-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  font-weight: 600;
+}
+
+.marketing-site .raise-container {
+  gap: clamp(32px, 6vw, 88px);
+  background: #fff;
+  color: var(--site-ink);
+}
+
+.marketing-site .raise-content {
+  width: auto;
+  padding: 0;
+}
+
+.marketing-site .raise-title {
+  margin-bottom: 24px;
+  font-size: clamp(2.1rem, 3.5vw, 3rem);
+  color: var(--site-ink);
+}
+
+.marketing-site .raise-title span {
+  color: var(--site-red);
+}
+
+.marketing-site .raise-description {
+  color: #52616d;
+  font-size: 1.03rem;
+  line-height: 1.8;
+}
+
+.marketing-site .raise-image-wrapper {
+  min-width: 0;
+}
+
+.marketing-site .raise-image-mask {
+  width: 100%;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(16, 31, 43, .16);
+}
+
+.marketing-site .raise-image-mask img {
+  aspect-ratio: 1.1;
+  object-fit: cover;
+}
+
+.marketing-site .testimonial-wrapper,
+.marketing-site .process-section,
+.marketing-site .why-wrapper {
+  background: #142532;
+}
+
+.marketing-site .testimonial-content,
+.marketing-site .process-container,
+.marketing-site .why-content {
+  max-width: 1240px;
+}
+
+.marketing-site .testimonial-heading,
+.marketing-site .process-title,
+.marketing-site .why-heading {
+  font-size: clamp(2rem, 3.4vw, 2.85rem);
+}
+
+.marketing-site .testimonial-subheading,
+.marketing-site .process-subtitle,
+.marketing-site .why-subheading {
+  max-width: 730px;
+  margin: 14px auto 42px;
+  color: #c9d2d8;
+  line-height: 1.7;
+}
+
+.marketing-site .testimonial-card,
+.marketing-site .process-card,
+.marketing-site .why-card {
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .055);
+  box-shadow: none;
+}
+
+.marketing-site .testimonial-quote,
+.marketing-site .process-desc,
+.marketing-site .why-description {
+  color: #e1e7eb;
+  line-height: 1.75;
+}
+
+.marketing-site .testimonial-author,
+.marketing-site .process-icon,
+.marketing-site .why-icon {
+  color: var(--site-gold);
+}
+
+.marketing-site .process-step-title,
+.marketing-site .why-title {
+  line-height: 1.35;
+}
+
+.marketing-site .footer {
+  padding: 66px clamp(20px, 6vw, 88px) 20px;
+  background-color: #101e28;
+  background-image: none;
+  font-family: inherit;
+}
+
+.marketing-site .footer::before {
+  display: none;
+}
+
+.marketing-site .footer-top {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.35fr) minmax(130px, .7fr) minmax(240px, 1fr) minmax(130px, .7fr);
+  gap: 36px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  border-color: rgba(255, 255, 255, .15);
+}
+
+.marketing-site .footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.marketing-site .footer-logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin: 0;
+}
+
+.marketing-site .footer-company-name {
+  font-size: 1.2rem;
+}
+
+.marketing-site .footer-services-line,
+.marketing-site .footer-tagline {
+  color: #ccd5da;
+  line-height: 1.7;
+}
+
+.marketing-site .footer-tagline {
+  max-width: 330px;
+}
+
+.marketing-site .footer-links,
+.marketing-site .footer-contact,
+.marketing-site .footer-social {
+  min-width: 0;
+}
+
+.marketing-site .footer-links h4,
+.marketing-site .footer-contact h4,
+.marketing-site .footer-social h4 {
+  margin: 4px 0 16px;
+  color: var(--site-gold);
+  font-size: 1rem;
+}
+
+.marketing-site .footer-links ul {
+  margin: 0;
+}
+
+.marketing-site .footer-links ul li {
+  margin: 0 0 9px;
+}
+
+.marketing-site .footer-links ul li a,
+.marketing-site .footer-contact p,
+.marketing-site .footer-contact a {
+  color: #e1e7eb;
+  font-size: .92rem;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.marketing-site .footer-links ul li a:hover,
+.marketing-site .footer-contact a:hover {
+  color: var(--site-gold);
+}
+
+.marketing-site .footer-contact p {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.marketing-site .footer-contact p svg {
+  flex: 0 0 18px;
+  margin-top: 4px;
+  color: var(--site-gold);
+}
+
+.marketing-site .social-icons-footer {
+  gap: 10px;
+}
+
+.marketing-site .social-icons-footer a {
+  border: 1px solid rgba(255, 255, 255, .22);
+}
+
+.marketing-site .footer-bottom {
+  max-width: 1240px;
+  margin: 20px auto 0;
+  padding: 12px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  color: #b9c4cb;
+  text-align: left;
+}
+
+.marketing-site .contactus-container {
+  align-items: stretch;
+  gap: 24px;
+  min-height: 760px;
+  padding: 145px clamp(20px, 7vw, 100px) 76px;
+  background-position: center;
+}
+
+.marketing-site .contactus-container::before {
+  background: linear-gradient(110deg, rgba(14, 27, 38, .82), rgba(14, 27, 38, .42));
+}
+
+.marketing-site .contactus-info-section,
+.marketing-site .contactus-form-section {
+  flex: 1 1 380px;
+  padding: clamp(24px, 3.5vw, 42px);
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .2);
+}
+
+.marketing-site .contactus-info-section {
+  background: linear-gradient(145deg, #162936, #701b1b);
+}
+
+.marketing-site .contactus-form-section {
+  background: #fff;
+}
+
+.marketing-site .contactus-heading,
+.marketing-site .contactus-heading-2 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  letter-spacing: -.03em;
+  line-height: 1.2;
+}
+
+.marketing-site .contactus-detail {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.marketing-site .contactus-tagline {
+  font-size: 1.05rem;
+}
+
+.marketing-site .contactus-form {
+  gap: 10px;
+}
+
+.marketing-site .contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--site-ink);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.marketing-site .contact-field > span {
+  color: var(--site-red);
+}
+
+.marketing-site .contactus-input,
+.marketing-site .contactus-textarea {
+  width: 100%;
+  margin: 0;
+  border: 1px solid #d5dce1;
+  border-radius: 8px;
+  background: #fbfcfd;
+  color: var(--site-ink);
+}
+
+.marketing-site .contactus-input:focus,
+.marketing-site .contactus-textarea:focus {
+  border-color: var(--site-red);
+  outline: 3px solid rgba(139, 0, 0, .13);
+}
+
+.marketing-site .contactus-button {
+  min-height: 50px;
+  margin-top: 6px;
+  border-radius: 8px;
+  background: var(--site-red);
+}
+
+.marketing-site .contactus-button:hover {
+  transform: translateY(-2px);
+}
+
+.marketing-site .blog-background-container {
+  min-height: 78vh;
+  padding-top: 65px;
+  background-attachment: scroll;
+}
+
+.marketing-site .blog-list-container {
+  max-width: 1280px;
+}
+
+.marketing-site .blog-list-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.marketing-site .blog-list-message {
+  position: relative;
+  z-index: 2;
+  padding: 18px 22px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 12px;
+  background: rgba(15, 29, 39, .78);
+  color: #fff;
+}
+
+.marketing-site .blog-create-button,
+.marketing-site .blog-readmore-link {
+  border-radius: 8px;
+  background: var(--site-red);
+  color: #fff;
+  text-decoration: none;
+}
+
+.marketing-site .blog-create-button {
+  padding: 12px 18px;
+}
+
+.marketing-site .blog-create-button:hover,
+.marketing-site .blog-readmore-link:hover {
+  background: var(--site-red-dark);
+  color: #fff;
+}
+
+.marketing-site .blog-list-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 22px;
+}
+
+.marketing-site .blog-card {
+  overflow: hidden;
+  border: 1px solid var(--site-line);
+  border-radius: 14px;
+}
+
+.marketing-site .blog-card-title {
+  color: var(--site-ink);
+}
+
+.marketing-site .blog-card-media {
+  max-height: 230px;
+  object-fit: cover;
+}
+
+.marketing-site .blog-card-content {
+  color: var(--site-muted);
+}
+
+.marketing-site .blog-readmore-link {
+  align-self: flex-start;
+  padding: 9px 14px;
+}
+
+.marketing-site .blog-background-container-2 {
+  padding-top: 125px;
+  background-attachment: scroll;
+}
+
+.marketing-site .blog-detail-container {
+  max-width: 980px;
+  width: min(92%, 980px);
+  padding: clamp(22px, 4vw, 48px);
+  border-radius: 16px;
+}
+
+.marketing-site .blog-detail-title {
+  color: var(--site-ink);
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  line-height: 1.2;
+}
+
+.marketing-site .blog-detail-media {
+  width: 100%;
+  height: auto;
+}
+
+.marketing-site .blog-detail-content {
+  color: #43515c;
+  overflow-wrap: anywhere;
+}
+
+.marketing-site .comment-section {
+  border-radius: 12px;
+  background: var(--site-paper);
+}
+
+.marketing-site .form-overlay {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 32px 16px;
+  background: linear-gradient(140deg, #e9eef1, #fff 60%);
+}
+
+.marketing-site .form-container {
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  border: 1px solid var(--site-line);
+  border-radius: 16px;
+}
+
+.marketing-site .form-input,
+.marketing-site .form-textarea,
+.marketing-site .comment-input,
+.marketing-site .comment-textarea {
+  border-radius: 8px;
+}
+
+.marketing-site .comment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--site-ink);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.marketing-site .comment-field .comment-input,
+.marketing-site .comment-field .comment-textarea {
+  width: 100%;
+  font-weight: 400;
+}
+
+.marketing-site .blog-form-field {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--site-ink);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.marketing-site .blog-form-field .form-input,
+.marketing-site .blog-form-field .form-textarea {
+  display: block;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.marketing-site .comment-status {
+  color: #286b43;
+  font-size: .9rem;
+}
+
+.marketing-site .comment-status.error {
+  color: #a41919;
+}
+
+.marketing-site .comment-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.marketing-site .submit-button,
+.marketing-site .comment-button {
+  border-radius: 8px;
+  background: var(--site-red);
+}
+
+.marketing-site .careers-hero {
+  position: relative;
+  display: flex;
+  min-height: 660px;
+  align-items: center;
+  padding: 150px clamp(24px, 9vw, 132px) 110px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #142532;
+  color: #fff;
+}
+
+.marketing-site .careers-hero-image {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-image: url("/assets/main/banner-img.webp");
+  background-position: center 42%;
+  background-size: cover;
+}
+
+.marketing-site .careers-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(12, 25, 35, .9) 4%, rgba(12, 25, 35, .75) 47%, rgba(12, 25, 35, .25));
+  content: "";
+}
+
+.marketing-site .careers-hero-content {
+  max-width: 650px;
+}
+
+.marketing-site .careers-illustration {
+  position: absolute;
+  top: 47%;
+  right: clamp(24px, 8vw, 112px);
+  display: flex;
+  width: min(340px, 30vw);
+  min-height: 260px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, .36);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .08));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .22);
+  transform: translateY(-45%);
+  backdrop-filter: blur(12px);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.marketing-site .careers-illustration:hover {
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .28);
+  transform: translateY(calc(-45% - 4px));
+}
+
+.marketing-site .illustration-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #f2cf8a;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+}
+
+.marketing-site .illustration-people {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 118px;
+}
+
+.marketing-site .illustration-person {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  margin-left: -9px;
+  border: 4px solid rgba(255, 255, 255, .86);
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, .18);
+}
+
+.marketing-site .illustration-person svg {
+  width: 32px;
+  height: 32px;
+}
+
+.marketing-site .person-one {
+  background: #934444;
+}
+
+.marketing-site .person-two {
+  background: #b88443;
+}
+
+.marketing-site .person-three {
+  background: #386e77;
+}
+
+.marketing-site .illustration-caption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  background: rgba(15, 33, 44, .54);
+}
+
+.marketing-site .illustration-caption-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(226, 182, 101, .19);
+  color: #f2cf8a;
+}
+
+.marketing-site .illustration-caption > span:last-child {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+}
+
+.marketing-site .illustration-caption strong {
+  color: #fff;
+  font-size: .88rem;
+}
+
+.marketing-site .illustration-caption small {
+  color: #d3dce0;
+  font-size: .76rem;
+}
+
+.marketing-site .marketing-eyebrow {
+  margin: 0 0 12px;
+  color: var(--site-red);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .17em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.marketing-site .careers-hero .marketing-eyebrow,
+.marketing-site .careers-deadline .marketing-eyebrow {
+  color: var(--site-gold);
+}
+
+.marketing-site .careers-hero h1 {
+  max-width: 720px;
+  margin: 0 0 22px;
+  font-size: clamp(2.6rem, 5.5vw, 4.8rem);
+  letter-spacing: -.045em;
+  line-height: 1.04;
+}
+
+.marketing-site .careers-hero-content > p:not(.marketing-eyebrow) {
+  max-width: 680px;
+  margin: 0;
+  color: rgba(255, 255, 255, .86);
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  line-height: 1.75;
+}
+
+.marketing-site .careers-hero .marketing-button {
+  margin-top: 30px;
+}
+
+.marketing-site .careers-hero-note {
+  position: absolute;
+  right: clamp(24px, 9vw, 132px);
+  bottom: 54px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 18px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 12px;
+  background: rgba(12, 25, 35, .55);
+  color: #e6edf1;
+  font-size: .9rem;
+  line-height: 1.4;
+  backdrop-filter: blur(8px);
+}
+
+.marketing-site .careers-hero-note svg {
+  color: var(--site-gold);
+}
+
+.marketing-site .careers-hero-note strong {
+  color: #fff;
+}
+
+.marketing-site .marketing-section {
+  padding: clamp(64px, 8vw, 104px) clamp(20px, 7vw, 100px);
+}
+
+.marketing-site .careers-benefits {
+  background: #fff;
+}
+
+.marketing-site .marketing-section-heading {
+  max-width: 760px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+
+.marketing-site .marketing-section-heading h2,
+.marketing-site .application-intro h2,
+.marketing-site .careers-deadline h2 {
+  margin: 0 0 14px;
+  color: var(--site-ink);
+  font-size: clamp(2rem, 3.7vw, 3rem);
+  letter-spacing: -.04em;
+  line-height: 1.15;
+}
+
+.marketing-site .marketing-section-heading > p:last-child {
+  margin: 0 auto;
+  color: var(--site-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.marketing-site .benefit-grid {
+  display: grid;
+  max-width: 1240px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.marketing-site .benefit-card {
+  padding: 25px 20px;
+  border: 1px solid var(--site-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(23, 38, 51, .05);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.marketing-site .benefit-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 17px 36px rgba(23, 38, 51, .1);
+}
+
+.marketing-site .benefit-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin-bottom: 19px;
+  border-radius: 12px;
+  background: #fbefec;
+  color: var(--site-red);
+}
+
+.marketing-site .benefit-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.marketing-site .benefit-card h3 {
+  margin: 0 0 8px;
+  color: var(--site-ink);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.marketing-site .benefit-card p {
+  margin: 0;
+  color: var(--site-muted);
+  font-size: .92rem;
+  line-height: 1.65;
+}
+
+.marketing-site .careers-openings {
+  background: var(--site-paper);
+}
+
+.marketing-site .job-grid {
+  display: grid;
+  max-width: 1240px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0 auto;
+}
+
+.marketing-site .job-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid var(--site-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(23, 38, 51, .06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.marketing-site .job-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 42px rgba(23, 38, 51, .12);
+}
+
+.marketing-site .job-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.marketing-site .job-badge,
+.marketing-site .job-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #eaf5ee;
+  color: #287044;
+  font-size: .77rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.marketing-site .job-badge > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #39a363;
+}
+
+.marketing-site .job-badge.opening-soon {
+  background: #fbf1dc;
+  color: #805610;
+}
+
+.marketing-site .job-badge.opening-soon > span {
+  background: #c69239;
+}
+
+.marketing-site .job-badge:not(.opening-soon):not(.closed) {
+  background: #eaf5ee;
+  color: #287044;
+}
+
+.marketing-site .job-badge.closed {
+  background: #eef0f2;
+  color: #58656f;
+}
+
+.marketing-site .job-badge.closed > span {
+  background: #78838b;
+}
+
+.marketing-site .job-type {
+  background: #f0f3f5;
+  color: #52616d;
+}
+
+.marketing-site .job-card h3 {
+  margin: 0 0 5px;
+  color: var(--site-ink);
+  font-size: 1.45rem;
+  letter-spacing: -.025em;
+  line-height: 1.25;
+}
+
+.marketing-site .job-department {
+  margin: 0 0 14px;
+  color: var(--site-red);
+  font-size: .91rem;
+  font-weight: 600;
+}
+
+.marketing-site .job-description,
+.marketing-site .job-responsibilities p {
+  color: var(--site-muted);
+  font-size: .94rem;
+  line-height: 1.65;
+}
+
+.marketing-site .job-description {
+  margin: 0 0 18px;
+}
+
+.marketing-site .job-responsibilities {
+  flex: 1;
+  padding-top: 15px;
+  border-top: 1px solid var(--site-line);
+}
+
+.marketing-site .job-responsibilities h4 {
+  margin: 0 0 7px;
+  color: var(--site-ink);
+  font-size: .91rem;
+}
+
+.marketing-site .job-responsibilities p {
+  margin: 0;
+}
+
+.marketing-site .job-date {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 20px 0 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--site-line);
+  color: var(--site-muted);
+  font-size: .8rem;
+}
+
+.marketing-site .job-date strong {
+  color: var(--site-ink);
+  text-align: right;
+}
+
+.marketing-site .job-apply-button {
+  width: 100%;
+}
+
+.marketing-site .careers-deadline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 54px clamp(20px, 8vw, 110px);
+  background: #142532;
+  color: #fff;
+}
+
+.marketing-site .careers-deadline > div {
+  max-width: 740px;
+}
+
+.marketing-site .careers-deadline h2 {
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+}
+
+.marketing-site .careers-deadline p:not(.marketing-eyebrow) {
+  margin: 5px 0;
+  color: #d1dce2;
+}
+
+.marketing-site .marketing-button-light {
+  flex-shrink: 0;
+  border-color: #fff;
+  background: #fff;
+  color: var(--site-ink);
+}
+
+.marketing-site .marketing-button-light:hover {
+  border-color: #f5e1bd;
+  background: #f5e1bd;
+  color: var(--site-ink);
+}
+
+.marketing-site .application-section {
+  display: grid;
+  max-width: 1280px;
+  grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr);
+  gap: clamp(32px, 7vw, 92px);
+  margin: 0 auto;
+  background: #fff;
+}
+
+.marketing-site .application-intro {
+  align-self: start;
+  position: sticky;
+  top: 120px;
+}
+
+.marketing-site .application-intro h2 {
+  font-size: clamp(2rem, 3.2vw, 2.7rem);
+}
+
+.marketing-site .application-intro > p:not(.marketing-eyebrow) {
+  color: var(--site-muted);
+  line-height: 1.7;
+}
+
+.marketing-site .application-window {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 24px;
+  color: #52616d;
+  font-size: .9rem;
+}
+
+.marketing-site .application-window svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: #368252;
+}
+
+.marketing-site .application-form {
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--site-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(23, 38, 51, .08);
+}
+
+.marketing-site .application-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+}
+
+.marketing-site .application-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: var(--site-ink);
+  font-size: .91rem;
+  font-weight: 600;
+}
+
+.marketing-site .application-fields label > span:first-child,
+.marketing-site .application-fields label > span[aria-hidden="true"] {
+  color: var(--site-red);
+}
+
+.marketing-site .application-fields input,
+.marketing-site .application-fields select,
+.marketing-site .application-fields textarea {
+  width: 100%;
+  min-height: 47px;
+  padding: 11px 12px;
+  border: 1px solid #d5dce1;
+  border-radius: 8px;
+  background: #fcfdfe;
+  color: var(--site-ink);
+  font-weight: 400;
+}
+
+.marketing-site .application-fields input[type="file"] {
+  min-height: 48px;
+  padding: 9px;
+  font-size: .84rem;
+}
+
+.marketing-site .application-fields input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: #f0f2f4;
+  color: var(--site-ink);
+  cursor: pointer;
+}
+
+.marketing-site .application-fields textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.marketing-site .application-fields input:focus,
+.marketing-site .application-fields select:focus,
+.marketing-site .application-fields textarea:focus {
+  border-color: var(--site-red);
+  outline: 3px solid rgba(139, 0, 0, .12);
+}
+
+.marketing-site .application-file-field,
+.marketing-site .application-cover-field {
+  grid-column: 1 / -1;
+}
+
+.marketing-site .field-hint,
+.marketing-site .field-error {
+  color: var(--site-muted);
+  font-size: .8rem;
+  font-weight: 400;
+}
+
+.marketing-site .field-error {
+  color: #ad2020;
+}
+
+.marketing-site .application-submit {
+  min-width: 200px;
+  margin-top: 24px;
+}
+
+.marketing-site .application-submit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.marketing-site .application-status {
+  min-height: 1.6em;
+  margin: 14px 0 0;
+  font-size: .9rem;
+}
+
+.marketing-site .application-status.success {
+  color: #216b3b;
+}
+
+.marketing-site .application-status.error {
+  color: #a41919;
+}
+
+@media (max-width: 1150px) {
+  .marketing-site .navbar {
+    padding-inline: 24px;
+  }
+
+  .marketing-site .navbar-center {
+    gap: 14px;
+  }
+
+  .marketing-site .navbar-social {
+    display: none;
+  }
+
+  .marketing-site .benefit-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .marketing-site .job-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketing-site .careers-illustration {
+    display: none;
+  }
+
+  .marketing-site .footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .marketing-site .desktop-menu {
+    display: none;
+  }
+
+  .marketing-site .hamburger-icon {
+    display: inline-flex;
+  }
+
+  .marketing-site .raise-container {
+    flex-direction: column;
+  }
+
+  .marketing-site .raise-content,
+  .marketing-site .raise-image-wrapper {
+    width: 100%;
+  }
+
+  .marketing-site .raise-image-mask {
+    max-width: 780px;
+  }
+
+  .marketing-site .application-section {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .marketing-site .application-intro {
+    position: static;
+  }
+
+  .marketing-site .contactus-container {
+    min-height: 0;
+    padding-top: 125px;
+  }
+}
+
+@media (max-width: 640px) {
+  .marketing-site {
+    font-size: 15px;
+  }
+
+  .marketing-site .navbar {
+    min-height: 70px;
+    padding: 8px 16px;
+  }
+
+  .marketing-site .navbar-logo {
+    font-size: .96rem;
+  }
+
+  .marketing-site .navbar-logo-img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .marketing-site .hero {
+    min-height: 650px;
+    min-height: 92svh;
+    padding: 125px 18px 75px;
+    background-position: 58% center;
+  }
+
+  .marketing-site .hero-text {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .marketing-site .hero-title {
+    font-size: clamp(2.25rem, 10vw, 3.2rem);
+  }
+
+  .marketing-site .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .marketing-site .services-section,
+  .marketing-site .categories-section,
+  .marketing-site .raise-container,
+  .marketing-site .process-section,
+  .marketing-site .why-wrapper,
+  .marketing-site .testimonial-wrapper {
+    padding: 62px 18px;
+  }
+
+  .marketing-site .services-grid,
+  .marketing-site .categories-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .marketing-site .service-card {
+    min-height: 0;
+  }
+
+  .marketing-site .service-image {
+    height: 210px;
+  }
+
+  .marketing-site .raise-content {
+    text-align: left;
+  }
+
+  .marketing-site .raise-image-mask {
+    max-width: 100%;
+  }
+
+  .marketing-site .process-section,
+  .marketing-site .why-wrapper {
+    padding-inline: 18px;
+  }
+
+  .marketing-site .testimonial-card {
+    min-height: 250px;
+    padding: 24px;
+  }
+
+  .marketing-site .footer {
+    padding: 48px 20px 16px;
+  }
+
+  .marketing-site .footer-top {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    text-align: left;
+  }
+
+  .marketing-site .footer-info,
+  .marketing-site .footer-links,
+  .marketing-site .footer-contact,
+  .marketing-site .footer-social {
+    max-width: 100%;
+  }
+
+  .marketing-site .footer-bottom {
+    text-align: center;
+  }
+
+  .marketing-site .contactus-container {
+    gap: 18px;
+    padding: 100px 16px 42px;
+  }
+
+  .marketing-site .contactus-info-section,
+  .marketing-site .contactus-form-section {
+    flex-basis: 100%;
+    padding: 24px 20px;
+  }
+
+  .marketing-site .contactus-heading,
+  .marketing-site .contactus-heading-2 {
+    text-align: left;
+  }
+
+  .marketing-site .contactus-detail,
+  .marketing-site .contactus-tagline {
+    text-align: left;
+  }
+
+  .marketing-site .blog-list-container {
+    padding: 110px 16px 48px;
+  }
+
+  .marketing-site .blog-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marketing-site .blog-background-container {
+    align-items: flex-start;
+    padding-top: 0;
+  }
+
+  .marketing-site .blog-background-container-2 {
+    padding: 98px 0 32px;
+  }
+
+  .marketing-site .blog-detail-container {
+    width: calc(100% - 28px);
+    padding: 22px 18px;
+  }
+
+  .marketing-site .careers-hero {
+    min-height: 690px;
+    min-height: 96svh;
+    padding: 125px 22px 150px;
+    align-items: flex-start;
+  }
+
+  .marketing-site .careers-hero-image {
+    background-position: 61% center;
+  }
+
+  .marketing-site .careers-hero::before {
+    background: linear-gradient(90deg, rgba(12, 25, 35, .9), rgba(12, 25, 35, .62));
+  }
+
+  .marketing-site .careers-hero h1 {
+    font-size: clamp(2.6rem, 12vw, 3.6rem);
+  }
+
+  .marketing-site .careers-hero-note {
+    right: 20px;
+    bottom: 28px;
+    left: 20px;
+    width: fit-content;
+  }
+
+  .marketing-site .marketing-section {
+    padding: 62px 18px;
+  }
+
+  .marketing-site .benefit-grid,
+  .marketing-site .job-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .marketing-site .benefit-card {
+    padding: 22px;
+  }
+
+  .marketing-site .job-card {
+    padding: 22px;
+  }
+
+  .marketing-site .careers-deadline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 22px;
+    padding: 42px 20px;
+  }
+
+  .marketing-site .application-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .marketing-site .application-file-field,
+  .marketing-site .application-cover-field {
+    grid-column: auto;
+  }
+
+  .marketing-site .application-form {
+    padding: 22px 18px;
+  }
+
+  .marketing-site .application-submit {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .marketing-site .desktop-menu {
+    display: none;
+  }
+
+  .marketing-site .hamburger-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .marketing-site .navbar {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 900px) {
+  .marketing-site .benefit-grid,
+  .marketing-site .job-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketing-site .services-grid,
+  .marketing-site .categories-grid,
+  .marketing-site .process-steps,
+  .marketing-site .why-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketing-site .service-card {
+    height: 100%;
+  }
+
+  .marketing-site .contactus-info-section,
+  .marketing-site .contactus-form-section {
+    flex-basis: 100%;
+  }
+
+  .marketing-site .footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .marketing-site {
+    overflow: hidden;
+    overflow: clip;
+  }
+
+  .marketing-site .services-grid,
+  .marketing-site .categories-grid,
+  .marketing-site .process-steps,
+  .marketing-site .why-grid,
+  .marketing-site .benefit-grid,
+  .marketing-site .job-grid,
+  .marketing-site .footer-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .marketing-site .service-card {
+    height: auto;
+  }
+
+  .marketing-site .testimonial-subheading,
+  .marketing-site .process-subtitle,
+  .marketing-site .why-subheading {
+    margin-bottom: 28px;
+  }
+
+  .marketing-site .marketing-button,
+  .marketing-site .navbar-cta,
+  .marketing-site .contactus-button,
+  .marketing-site .submit-button,
+  .marketing-site .comment-button {
+    min-height: 46px;
+  }
+
+  .marketing-site .application-fields input,
+  .marketing-site .application-fields select,
+  .marketing-site .application-fields textarea,
+  .marketing-site .contactus-input,
+  .marketing-site .contactus-textarea,
+  .marketing-site .form-input,
+  .marketing-site .form-textarea,
+  .marketing-site .comment-input,
+  .marketing-site .comment-textarea {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .marketing-site .application-fields textarea,
+  .marketing-site .contactus-textarea,
+  .marketing-site .form-textarea,
+  .marketing-site .comment-textarea {
+    min-height: 120px;
+  }
+
+  .marketing-site .job-date {
+    flex-wrap: wrap;
+  }
+
+  .marketing-site .job-date strong {
+    text-align: left;
+  }
+}
+
+@media (max-width: 380px) {
+  .marketing-site .navbar {
+    padding-inline: 12px;
+  }
+
+  .marketing-site .navbar-left-main {
+    gap: 8px;
+  }
+
+  .marketing-site .navbar-logo {
+    font-size: .88rem;
+  }
+
+  .marketing-site .navbar-logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .marketing-site .hero-title,
+  .marketing-site .careers-hero h1 {
+    font-size: clamp(2rem, 11vw, 2.6rem);
+  }
+
+  .marketing-site .service-content,
+  .marketing-site .category-card,
+  .marketing-site .process-card,
+  .marketing-site .why-card {
+    padding: 20px;
+  }
+
+  .marketing-site .application-form {
+    padding-inline: 15px;
+  }
+
+  .marketing-site .application-fields input[type="file"] {
+    padding: 7px;
+    font-size: .78rem;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .marketing-site .hero {
+    min-height: 560px;
+    padding-block: 105px 60px;
+  }
+
+  .marketing-site .careers-hero {
+    min-height: 560px;
+    padding-block: 105px 110px;
+  }
+
+  .marketing-site .careers-illustration {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketing-site *,
+  .marketing-site *::before,
+  .marketing-site *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -5,14 +5,21 @@ import "../../styles/main/Blog.css";
 import Navbar from "../../components/main/Navbar";
 import Footer from "../../components/main/Footer";
 import WhyChooseUs from "../../components/main/WhyChooseUs";
+import useMarketingMeta from "./useMarketingMeta";
+import "../../styles/main/MarketingSite.css";
 
 const BlogList = () => {
+  useMarketingMeta("Insights & Updates | MF Global Services", "Read the latest news and insights from MF Global Services.");
   const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/blogs`)
-      .then((res) => setBlogs(res.data));
+      .then((res) => setBlogs(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setLoadError("We couldn’t load the latest posts. Please try again later."))
+      .finally(() => setLoading(false));
   }, []);
 
   const formatDate = (date) => {
@@ -31,24 +38,28 @@ const BlogList = () => {
   };
 
   return (
-    <>
+    <div className="marketing-site">
       <Navbar />
 
-      <div className="blog-background-container">
+      <main className="blog-background-container">
         <div className="blog-background-overlay"></div>
 
         <div className="blog-list-container">
           <div className="blog-list-header">
-            <h2 className="blog-list-title">All Blogs</h2>
+            <h1 className="blog-list-title">Insights & Updates</h1>
             <Link to="/blogs/new" className="blog-create-button">
               + Create New Blog
             </Link>
           </div>
 
-          <div className="blog-list-grid">
-            {blogs.map((blog) => (
+          {loading && <p className="blog-list-message" role="status">Loading posts…</p>}
+          {!loading && loadError && <p className="blog-list-message" role="alert">{loadError}</p>}
+          {!loading && !loadError && blogs.length === 0 && <p className="blog-list-message">New posts will appear here soon.</p>}
+          {!loading && !loadError && blogs.length > 0 && (
+            <div className="blog-list-grid">
+              {blogs.map((blog) => (
               <div className="blog-card" key={blog._id}>
-                <h3 className="blog-card-title">{blog.title}</h3>
+                <h2 className="blog-card-title">{blog.title}</h2>
 
                 {/* Meta info */}
                 <div className="blog-card-meta">
@@ -68,7 +79,9 @@ const BlogList = () => {
                       className="blog-card-media"
                       width="100%"
                       controls
+                      preload="none"
                       src={blog.media}
+                      aria-label={blog.title}
                     />
                   ) : (
                     <img
@@ -76,11 +89,12 @@ const BlogList = () => {
                       src={blog.media}
                       alt={blog.title}
                       width="100%"
+                      loading="lazy"
                     />
                   ))}
 
                 <p className="blog-card-content">
-                  {blog.content.slice(0, 100)}...
+                  {String(blog.content || "").slice(0, 100)}{String(blog.content || "").length > 100 ? "…" : ""}
                 </p>
 
                 <Link
@@ -90,14 +104,15 @@ const BlogList = () => {
                   Read More
                 </Link>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      </main>
 
-      <WhyChooseUs />
+      <section><WhyChooseUs /></section>
       <Footer />
-    </>
+    </div>
   );
 };
 

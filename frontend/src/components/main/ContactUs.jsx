@@ -47,7 +47,7 @@ const ContactUs = () => {
     <div className="contactus-container">
       {/* Left Info Section */}
       <div className="contactus-info-section">
-        <h2 className="contactus-heading">Let’s Talk Business!</h2>
+        <h1 className="contactus-heading">Let’s Talk Business!</h1>
 
         <p className="contactus-detail">
           <strong>📞 Phone:</strong>{' '}
@@ -98,49 +98,63 @@ const ContactUs = () => {
       <div className="contactus-form-section">
         <h2 className="contactus-heading-2">Send Us a Message</h2>
         <form className="contactus-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name *"
-            className="contactus-input"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone Number *"
-            className="contactus-input"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Work Email Address (optional)"
-            className="contactus-input"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="companyname"
-            placeholder="Company / Organization"
-            className="contactus-input"
-            value={formData.companyname}
-            onChange={handleChange}
-          />
-          <textarea
-            name="message"
-            placeholder="Tell us how we can assist you..."
-            className="contactus-textarea"
-            rows="5"
-            value={formData.message}
-            onChange={handleChange}
-            required
-          ></textarea>
+          <label className="contact-field">
+            Full Name <span aria-hidden="true">*</span>
+            <input
+              type="text"
+              name="name"
+              autoComplete="name"
+              className="contactus-input"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <label className="contact-field">
+            Phone Number <span aria-hidden="true">*</span>
+            <input
+              type="tel"
+              name="phone"
+              autoComplete="tel"
+              className="contactus-input"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <label className="contact-field">
+            Work Email Address
+            <input
+              type="email"
+              name="email"
+              autoComplete="email"
+              className="contactus-input"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </label>
+          <label className="contact-field">
+            Company / Organization
+            <input
+              type="text"
+              name="companyname"
+              autoComplete="organization"
+              className="contactus-input"
+              value={formData.companyname}
+              onChange={handleChange}
+            />
+          </label>
+          <label className="contact-field">
+            How can we help? <span aria-hidden="true">*</span>
+            <textarea
+              name="message"
+              className="contactus-textarea"
+              rows="5"
+              value={formData.message}
+              onChange={handleChange}
+              required
+            />
+          </label>
           <button type="submit" className="contactus-button">
             Let’s Connect <span className="arrow">→</span>
           </button>

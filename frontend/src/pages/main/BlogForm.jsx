@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../../styles/main/Blog.css";
+import "../../styles/main/MarketingSite.css";
+import useMarketingMeta from "./useMarketingMeta";
 
 const BlogForm = () => {
+  useMarketingMeta("Create a Blog | MF Global Services", "Create a new post for MF Global Services.");
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -53,34 +56,40 @@ const BlogForm = () => {
   };
 
   return (
-    <div className="form-overlay">
+    <div className="marketing-site">
+    <main className="form-overlay">
       <div className="form-container">
-        <button className="close-button" onClick={() => navigate(-1)}>
+        <button type="button" className="close-button" aria-label="Close form" onClick={() => navigate(-1)}>
           ×
         </button>
 
-        <h2 className="head">Create New Blog</h2>
+        <h1 className="head">Create New Blog</h1>
         <p className="subtitle-form">
           Fill out the form below to post your blog.
         </p>
 
         <form onSubmit={handleSubmit}>
-          <input
-            className="form-input"
-            type="text"
-            name="title"
-            placeholder="Blog Title"
-            onChange={handleChange}
-            required
-          />
+          <label className="blog-form-field">
+            Blog Title
+            <input
+              className="form-input"
+              type="text"
+              name="title"
+              onChange={handleChange}
+              required
+            />
+          </label>
 
           {/* Image Upload */}
-          <input
-            className="form-input"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-          />
+          <label className="blog-form-field">
+            Image or video
+            <input
+              className="form-input"
+              type="file"
+              accept="image/*,video/mp4"
+              onChange={handleImageChange}
+            />
+          </label>
 
           {/* Image Preview */}
           {preview && (
@@ -95,28 +104,33 @@ const BlogForm = () => {
             />
           )}
 
-          <input
-            className="form-input"
-            type="text"
-            name="author"
-            placeholder="Author Name"
-            onChange={handleChange}
-          />
+          <label className="blog-form-field">
+            Author Name
+            <input
+              className="form-input"
+              type="text"
+              name="author"
+              onChange={handleChange}
+            />
+          </label>
 
-          <textarea
-            className="form-textarea"
-            name="content"
-            placeholder="Blog Content"
-            rows="6"
-            onChange={handleChange}
-            required
-          />
+          <label className="blog-form-field">
+            Blog Content
+            <textarea
+              className="form-textarea"
+              name="content"
+              rows="6"
+              onChange={handleChange}
+              required
+            />
+          </label>
 
           <button className="submit-button" type="submit">
             Post Blog
           </button>
         </form>
       </div>
+    </main>
     </div>
   );
 };

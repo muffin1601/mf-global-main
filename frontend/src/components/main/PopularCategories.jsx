@@ -1,6 +1,7 @@
 import React from "react";
 import "../../styles/main/PopularCategories.css";
 import { FaGift, FaLeaf, FaBriefcase, FaHatCowboy, FaHandsHelping, FaRegLaughWink } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const categories = [
   {
@@ -36,9 +37,9 @@ const categories = [
 ];
 
 const PopularCategories = () => (
-  <section className="categories-section">
+  <section className="categories-section" id="products" aria-labelledby="categories-title">
     <div className="categories-content">
-      <h2 className="section-title">Discover Our Best-Selling Gifting Collections</h2>
+      <h2 className="section-title" id="categories-title">Discover Our Best-Selling Gifting Collections</h2>
       <div className="categories-grid">
         {categories.map((item, idx) => (
           <div className="category-card" key={idx}>
@@ -48,7 +49,7 @@ const PopularCategories = () => (
           </div>
         ))}
       </div>
-      <button className="catalog-btn">View Full Catalog</button>
+      <Link className="catalog-btn" to="/contact">Explore gifting options <span aria-hidden="true">→</span></Link>
     </div>
   </section>
 );

@@ -6,7 +6,12 @@
 
 .careers-page .navbar{background:#142532}
 .careers-banner{padding-top:82px;background:#fff}
-.careers-banner img{display:block;width:100%;height:auto;max-height:560px;object-fit:contain}
+.careers-banner-slider{width:100%;aspect-ratio:8/3;max-height:600px;background:#fff}
+.careers-banner-slider .swiper-slide{height:100%}
+.careers-banner-slide{display:block;width:100%;height:100%}
+.careers-banner-slide img{display:block;width:100%;height:100%;object-fit:contain}
+.careers-banner-slider .swiper-pagination-bullet{width:9px;height:9px;background:#142532;opacity:.5}
+.careers-banner-slider .swiper-pagination-bullet-active{width:24px;border-radius:9px;background:#9b170e;opacity:1}
 .marketing-site .careers-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:clamp(30px,6vw,90px);align-items:center;background:#fff}
 .careers-intro-copy{max-width:780px}
 .careers-intro-copy .marketing-eyebrow{color:var(--site-red)}
@@ -18,6 +23,60 @@
 .careers-intro-aside strong{display:block;color:#142532;font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.2}
 .careers-intro-aside p{margin:14px 0 0;color:var(--site-muted,#536678);font-size:.93rem;line-height:1.65}
 @media(max-width:700px){.careers-banner{padding-top:72px}.marketing-site .careers-intro{grid-template-columns:1fr;gap:28px}.careers-intro-aside{padding:24px}}
+
+/* Careers page sections */
+.marketing-site.careers-page .careers-intro,.marketing-site.careers-page .careers-benefits,.marketing-site.careers-page .careers-openings{padding:clamp(76px,8vw,112px) max(24px,calc((100vw - 1240px)/2))}
+.marketing-site.careers-page .careers-intro{grid-template-columns:minmax(0,1.45fr) minmax(300px,.8fr);gap:clamp(48px,7vw,110px)}
+.careers-intro-copy h1{max-width:730px;margin:16px 0 24px;font-size:clamp(2.7rem,4.9vw,4.7rem);line-height:1.06}
+.careers-intro-copy>p.careers-intro-lead{color:#24394a;font-size:clamp(1.14rem,1.65vw,1.32rem);font-weight:600;line-height:1.55}
+.careers-intro-copy .marketing-button{margin-top:22px}
+.careers-intro-aside{position:relative;overflow:hidden;padding:36px;border:0;border-radius:20px;background:radial-gradient(circle at 100% 0%,#345261 0,#203846 33%,#142532 76%);box-shadow:0 24px 55px #14253224}
+.careers-intro-aside::before{position:absolute;top:-72px;right:-74px;width:190px;height:190px;border:1px solid #ffffff28;border-radius:50%;content:""}
+.careers-intro-aside>span{color:#e5bd79}
+.careers-intro-aside strong{max-width:290px;color:#fff;font-size:clamp(1.7rem,2.4vw,2.25rem)}
+.careers-intro-aside p{color:#d1dce2;font-size:.97rem}
+.careers-intro-areas{display:flex;flex-wrap:wrap;gap:9px;margin-top:25px}
+.careers-intro-areas span{padding:8px 11px;border:1px solid #ffffff35;border-radius:7px;color:#eef3f5;font-size:.78rem;font-weight:600}
+.marketing-site.careers-page .careers-benefits{background:#f6f8fa}
+.careers-section-heading{display:flex;justify-content:space-between;align-items:end;gap:30px;max-width:1240px;margin:0 auto 34px}
+.careers-section-heading .marketing-eyebrow{margin:0 0 13px;color:var(--site-red)}
+.careers-section-heading h2{max-width:600px;margin:0;color:#142532;font-size:clamp(2.1rem,3.6vw,3.35rem);line-height:1.12;letter-spacing:-.04em}
+.careers-section-heading>p{max-width:345px;margin:0 0 4px;color:var(--site-muted);font-size:1rem;line-height:1.7}
+.marketing-site.careers-page .benefit-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.marketing-site.careers-page .benefit-card{min-height:218px;padding:32px;border-color:#e2e8ed;border-radius:18px;box-shadow:0 10px 28px #14253209}
+.marketing-site.careers-page .benefit-icon{width:52px;height:52px;margin-bottom:25px;border-radius:12px;background:#f9ece9}
+.marketing-site.careers-page .benefit-card h3{font-size:1.24rem}
+.marketing-site.careers-page .benefit-card p{font-size:.96rem}
+.marketing-site.careers-page .careers-openings{scroll-margin-top:70px;background:#fff}
+.careers-openings-heading{align-items:end}
+.careers-openings-heading>div>p:last-child{margin:12px 0 0;color:var(--site-muted);font-size:1rem}
+.careers-openings-count{display:inline-flex;align-items:center;min-height:34px;padding:7px 13px;border-radius:999px;background:#f8eee9;color:#8b170e;font-size:.82rem;font-weight:800;white-space:nowrap}
+.marketing-site.careers-page .career-filters{grid-template-columns:minmax(240px,1.5fr) repeat(3,minmax(0,1fr));gap:12px;max-width:1240px;margin:0 auto 28px;padding:16px;border:1px solid #e1e7ec;border-radius:15px;background:#f8fafb}
+.career-search-field{display:flex;align-items:center;gap:9px;min-width:0;padding-left:14px;border:1px solid #d2dce4;border-radius:9px;background:#fff;color:#738492}
+.career-search-field:focus-within{border-color:#9b1b10;box-shadow:0 0 0 3px #9b1b1019}
+.career-filters .career-search-field input{min-width:0;padding-left:0;border:0;outline:0;background:transparent}
+.marketing-site.careers-page .career-filters select{min-width:0;border-color:#d2dce4;background:#fff;color:#344858;cursor:pointer}
+.marketing-site.careers-page .career-filters select:focus-visible{outline:2px solid #9b1b10;outline-offset:2px}
+.marketing-site.careers-page .job-grid{gap:22px}
+.marketing-site.careers-page .job-card{padding:28px;border-color:#e1e7ec;border-radius:17px;box-shadow:0 13px 38px #1425320b}
+.marketing-site.careers-page .job-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px #1425321c}
+.marketing-site.careers-page .job-card-topline{margin-bottom:24px}
+.career-role-icon{display:grid;width:44px;height:44px;place-items:center;border-radius:11px;background:#f9ece9;color:#9b1b10}
+.marketing-site.careers-page .job-department{margin:0 0 8px;font-size:.77rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.marketing-site.careers-page .job-card h3{min-height:2.5em;margin:0 0 16px;font-size:1.48rem}
+.career-role-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.career-role-meta span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:6px;background:#f3f6f8;color:#506374;font-size:.78rem;font-weight:600}
+.marketing-site.careers-page .job-description{flex:1;min-height:80px;margin:0 0 22px;color:#536678}
+.marketing-site.careers-page .job-date{align-items:center;justify-content:start;gap:8px;margin:0 0 20px;padding-top:18px}
+.marketing-site.careers-page .job-date svg{flex:none;color:#8b170e}
+.marketing-site.careers-page .job-date strong{margin-left:auto}
+.marketing-site.careers-page .job-card .career-actions{gap:13px}
+.marketing-site.careers-page .job-card .career-actions>button:first-child{align-self:center;font-size:.88rem}
+.marketing-site.careers-page .job-apply-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px}
+.careers-list-state{max-width:1240px;margin:0 auto;padding:48px 24px;border:1px dashed #cfd9e1;border-radius:14px;background:#f8fafb;color:#536678;text-align:center}
+@media(max-width:1050px){.marketing-site.careers-page .career-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.marketing-site.careers-page .job-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.marketing-site.careers-page .careers-intro{grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:34px}}
+@media(max-width:700px){.marketing-site.careers-page .careers-intro,.marketing-site.careers-page .careers-benefits,.marketing-site.careers-page .careers-openings{padding:64px 20px}.marketing-site.careers-page .careers-intro{grid-template-columns:1fr;gap:34px}.careers-intro-copy h1{font-size:clamp(2.5rem,10vw,3.4rem)}.careers-intro-aside{padding:29px}.careers-section-heading{display:block;margin-bottom:26px}.careers-section-heading>p{margin-top:14px}.careers-openings-count{margin-top:18px}.marketing-site.careers-page .benefit-grid,.marketing-site.careers-page .job-grid{grid-template-columns:1fr}.marketing-site.careers-page .benefit-card{min-height:0;padding:26px}.marketing-site.careers-page .career-filters{grid-template-columns:1fr;padding:12px}.marketing-site.careers-page .job-card h3{min-height:0}.marketing-site.careers-page .job-description{min-height:0}}
+@media(prefers-reduced-motion:reduce){.marketing-site.careers-page .job-card,.marketing-site.careers-page .benefit-card{transition:none}}
 
 .career-application-modal{max-width:920px;padding:0;overflow:auto;background:#f8fafc;box-shadow:0 28px 90px #0b1d2b4d}
 .career-application-header{position:relative;display:flex;justify-content:space-between;gap:24px;padding:30px 42px 32px;background:linear-gradient(120deg,#142532,#203d4d);color:#fff}

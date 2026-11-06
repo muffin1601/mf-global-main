@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, GraduationCap, Sparkles, UsersRound, Lightbulb, HeartHandshake } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, GraduationCap, MapPin, Search, UsersRound, Lightbulb } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 import Navbar from '../../components/main/Navbar';
 import Footer from '../../components/main/Footer';
 import useMarketingMeta from './useMarketingMeta';
@@ -10,6 +14,11 @@ import { RichTextDisplay } from './CareerRichText';
 const base = `${(import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')}/careers`;
 const jobDesignations = ['Telemarketing', 'Telesales', 'Digital Marketing Sr. Executive', 'Account Executive', 'Content Writer', 'Graphics Designing', 'E-Commerce Sales Executive', 'Sales Executive', 'Sales Sr Executive', 'Sales Manager', 'Sales Support Coordinator'];
 const qualifications = ['Diploma', '12th', 'Graduate', 'Post Graduate'];
+const careerBanners = [
+  { src: '/career-banner.jpeg', alt: 'We are hiring. Join our team.' },
+  { src: '/banner-2%20(1).jpeg', alt: 'Careers at MF Global Services. Be part of a growing team.' },
+  { src: '/banner-2%20(2).jpeg', alt: 'Build, learn, and grow with our team.' },
+];
 const normalizeDesignation = value => String(value || '').toLowerCase().replace(/[.]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const designationForJob = title => {
   const normalized = normalizeDesignation(title);
@@ -22,15 +31,14 @@ const openingSoon = job => job.opensAt && new Date(job.opensAt) > new Date();
 const shortDate = value => new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 const windowLabel = job => job.opensAt ? `${shortDate(job.opensAt)} \u2013 ${date(job.deadline)}` : `Until ${date(job.deadline)}`;
 const benefits = [
-  { icon: <GraduationCap />, title: 'Career growth', text: 'Take on meaningful responsibilities and build skills through hands-on experience.' },
-  { icon: <Sparkles />, title: 'Professional development', text: 'Grow your expertise while contributing to work that matters to our customers.' },
-  { icon: <UsersRound />, title: 'Collaborative environment', text: 'Work alongside teammates who value communication, respect, and shared goals.' },
-  { icon: <Lightbulb />, title: 'Learning opportunities', text: 'Stay curious, exchange ideas, and keep learning as our work evolves.' },
-  { icon: <HeartHandshake />, title: 'Innovation & excellence', text: 'Bring fresh thinking to the details that make great customer experiences.' },
+  { icon: <GraduationCap />, title: 'Grow through real work', text: 'Build your skills by taking ownership of work that contributes to customer and business outcomes.' },
+  { icon: <UsersRound />, title: 'Work together', text: 'Share ideas, communicate openly, and learn from teammates across our services and operations.' },
+  { icon: <Lightbulb />, title: 'Keep learning', text: 'Develop new capabilities as you solve practical challenges and explore better ways of working.' },
 ];
 
 export default function Careers() {
   useMarketingMeta('Careers | MF Global Services', 'Explore current opportunities and apply online.');
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -80,19 +88,19 @@ export default function Careers() {
     finally { setSubmitting(false); }
   };
   return <div className="marketing-site careers-page"><Navbar /><main>
-    <section className="careers-banner" aria-label="We are hiring"><img src="/assets/main/career-banner.jpeg" alt="We are hiring. Join our team." fetchPriority="high" /></section>
-    <section className="careers-intro marketing-section" aria-labelledby="careers-title"><div className="careers-intro-copy"><p className="marketing-eyebrow">Make your next move</p><h1 id="careers-title">Build your career with us</h1><p>At MF Global Services, every role helps us create better experiences for our customers. Whether you enjoy connecting with people, supporting online operations, or growing sales, there is room to make a meaningful contribution here.</p><p>Explore our current openings, find a role that fits your strengths, and tell us what you can bring to the team.</p><a className="marketing-button" href="#open-positions">Explore open positions <ArrowRight size={18} /></a></div><div className="careers-intro-aside"><span>YOUR NEXT CHAPTER</span><strong>Bring your ideas.<br />Grow with us.</strong><p>Good work starts with curious people who care about the details and support one another.</p></div></section>
-    <section className="careers-benefits marketing-section" aria-labelledby="benefits-title"><div className="marketing-section-heading"><p className="marketing-eyebrow">A place to grow</p><h2 id="benefits-title">Why work with us?</h2><p>Bring your perspective, build your capabilities, and do your best work with a team committed to moving forward together.</p></div><div className="benefit-grid">{benefits.map(benefit => <article className="benefit-card" key={benefit.title}><span className="benefit-icon">{benefit.icon}</span><h3>{benefit.title}</h3><p>{benefit.text}</p></article>)}</div></section>
-    <section className="careers-openings marketing-section" id="open-positions"><div className="marketing-section-heading"><p className="marketing-eyebrow">Join our team</p><h2>Current job openings</h2><p>Explore the available opportunities and apply during the application window.</p></div>
-      <div className="career-filters"><input aria-label="Search job title" placeholder="Search job title" value={search} onChange={e => setSearch(e.target.value)} /><select aria-label="Department" value={department} onChange={e => setDepartment(e.target.value)}><option value="">All departments</option>{[...new Set(jobs.map(j => j.department))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Location" value={location} onChange={e => setLocation(e.target.value)}><option value="">All locations</option>{[...new Set(jobs.map(j => j.location))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Employment type" value={employmentType} onChange={e => setEmploymentType(e.target.value)}><option value="">All types</option>{[...new Set(jobs.map(j => j.employmentType))].map(v => <option key={v}>{v}</option>)}</select></div>
-      {loading ? <p>Loading openings…</p> : error ? <p role="alert">{error}</p> : filtered.length ? <div className="job-grid">{filtered.map(job => <article className="job-card" key={job._id}>
-        <div className="job-card-topline"><span className={`job-badge${openingSoon(job) ? ' opening-soon' : ''}`}><span aria-hidden="true" /> {openingSoon(job) ? 'Opening soon' : 'Hiring'}</span><span className="job-type">{job.employmentType}</span></div>
-        <h3>{job.title}</h3><p className="job-department">{job.department}</p>
+    <section className="careers-banner" aria-label="Careers banners"><Swiper modules={[Autoplay, Pagination]} slidesPerView={1} loop speed={900} autoplay={reduceMotion ? false : { delay: 3000, reverseDirection: true, disableOnInteraction: false }} pagination={{ clickable: true }} className="careers-banner-slider">{careerBanners.map((banner, index) => <SwiperSlide key={banner.src}><a className="careers-banner-slide" href="#open-positions" aria-label={`Explore current openings: banner ${index + 1}`}><img src={banner.src} alt={banner.alt} fetchPriority={index === 0 ? 'high' : undefined} loading={index === 0 ? 'eager' : 'lazy'} /></a></SwiperSlide>)}</Swiper></section>
+    <section className="careers-intro marketing-section" aria-labelledby="careers-title"><div className="careers-intro-copy"><p className="marketing-eyebrow">Careers at MF Global Services</p><h1 id="careers-title">Your work can make a difference here.</h1><p className="careers-intro-lead">Join a team where customer relationships, thoughtful service, and practical ideas come together.</p><p>From connecting with customers to supporting e-commerce operations, our roles offer opportunities to contribute, collaborate, and grow. Find the position that fits your strengths and take the next step with us.</p><a className="marketing-button" href="#open-positions">See open roles <ArrowRight size={18} /></a></div><aside className="careers-intro-aside"><span>WORK WITH US</span><strong>Find your place on our team.</strong><p>Explore opportunities across the areas where we serve our customers every day.</p><div className="careers-intro-areas"><span>Sales &amp; marketing</span><span>E-commerce</span><span>Customer experience</span></div></aside></section>
+    <section className="careers-benefits marketing-section" aria-labelledby="benefits-title"><div className="careers-section-heading"><div><p className="marketing-eyebrow">Life at MF Global Services</p><h2 id="benefits-title">A place to do meaningful work</h2></div><p>We value people who care about their work, support their teammates, and want to keep improving.</p></div><div className="benefit-grid">{benefits.map(benefit => <article className="benefit-card" key={benefit.title}><span className="benefit-icon">{benefit.icon}</span><h3>{benefit.title}</h3><p>{benefit.text}</p></article>)}</div></section>
+    <section className="careers-openings marketing-section" id="open-positions" aria-labelledby="openings-title"><div className="careers-section-heading careers-openings-heading"><div><p className="marketing-eyebrow">Opportunities</p><h2 id="openings-title">Explore open roles</h2><p>Find a position that matches your skills and interests.</p></div><span className="careers-openings-count">{loading ? 'Loading roles' : `${filtered.length} ${filtered.length === 1 ? 'role' : 'roles'} available`}</span></div>
+      <div className="career-filters"><label className="career-search-field"><Search size={18} aria-hidden="true" /><input aria-label="Search job title" placeholder="Search by job title" value={search} onChange={e => setSearch(e.target.value)} /></label><select aria-label="Department" value={department} onChange={e => setDepartment(e.target.value)}><option value="">All departments</option>{[...new Set(jobs.map(j => j.department))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Location" value={location} onChange={e => setLocation(e.target.value)}><option value="">All locations</option>{[...new Set(jobs.map(j => j.location))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Employment type" value={employmentType} onChange={e => setEmploymentType(e.target.value)}><option value="">All types</option>{[...new Set(jobs.map(j => j.employmentType))].map(v => <option key={v}>{v}</option>)}</select></div>
+      {loading ? <p className="careers-list-state">Loading openings…</p> : error ? <p className="careers-list-state" role="alert">{error}</p> : filtered.length ? <div className="job-grid">{filtered.map(job => <article className="job-card" key={job._id}>
+        <div className="job-card-topline"><span className="career-role-icon"><BriefcaseBusiness size={21} aria-hidden="true" /></span><span className={`job-badge${openingSoon(job) ? ' opening-soon' : ''}`}><span aria-hidden="true" /> {openingSoon(job) ? 'Opening soon' : 'Hiring'}</span></div>
+        <p className="job-department">{job.department}</p><h3>{job.title}</h3>
+        <div className="career-role-meta"><span><MapPin size={15} aria-hidden="true" />{job.location}</span><span><BriefcaseBusiness size={15} aria-hidden="true" />{job.employmentType}</span></div>
         <div className="job-description"><RichTextDisplay value={job.description.slice(0, 220)} /></div>
-        <div className="job-responsibilities"><h4>What you?ll do</h4><RichTextDisplay value={job.responsibilities} /></div>
-        <div className="job-date"><span>Applications</span><strong>{windowLabel(job)}</strong></div>
+        <div className="job-date"><CalendarDays size={16} aria-hidden="true" /><span>Applications</span><strong>{windowLabel(job)}</strong></div>
         <div className="career-actions"><button type="button" onClick={() => setDetails(job)}>View Details</button><button className="marketing-button job-apply-button" type="button" onClick={() => openApplication(job)}>Apply Now <ArrowRight size={18} /></button></div>
-      </article>)}</div> : <p>No current openings. Please check back later for future opportunities.</p>}
+      </article>)}</div> : <p className="careers-list-state">No current openings. Please check back later for future opportunities.</p>}
     </section>
     {notice && <p className="career-notice" role="status">{notice}</p>}
     {details && <div className="career-modal-backdrop" onClick={() => setDetails(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Job details" onClick={e => e.stopPropagation()}><button className="career-close" onClick={() => setDetails(null)} aria-label="Close">×</button><h2>{details.title}</h2><p>{details.department} · {details.location} · {details.employmentType} · {details.workMode}</p>{['description','responsibilities','qualifications','skills','benefits'].map(key => details[key] && <section key={key}><h3>{key[0].toUpperCase() + key.slice(1)}</h3><RichTextDisplay value={details[key]} /></section>)}<p>Apply by {date(details.deadline)}</p><button className="marketing-button" onClick={() => openApplication(details)}>Apply Now</button></div></div>}

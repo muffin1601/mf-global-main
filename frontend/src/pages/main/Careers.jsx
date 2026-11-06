@@ -8,7 +8,15 @@ import './Careers.css';
 import { RichTextDisplay } from './CareerRichText';
 
 const base = `${(import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')}/careers`;
-const empty = { fullName: '', email: '', phone: '', location: '', experience: '', currentCompany: '', designation: '', expectedSalary: '', noticePeriod: '', coverLetter: '', comments: '', consent: false };
+const jobDesignations = ['Telemarketing', 'Telesales', 'Digital Marketing Sr. Executive', 'Account Executive', 'Content Writer', 'Graphics Designing', 'E-Commerce Sales Executive', 'Sales Executive', 'Sales Sr Executive', 'Sales Manager', 'Sales Support Coordinator'];
+const qualifications = ['Diploma', '12th', 'Graduate', 'Post Graduate'];
+const normalizeDesignation = value => String(value || '').toLowerCase().replace(/[.]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const designationForJob = title => {
+  const normalized = normalizeDesignation(title);
+  const aliases = { 'telemarketing executive': 'Telemarketing', 'telesales executive': 'Telesales' };
+  return aliases[normalized] || jobDesignations.find(value => normalizeDesignation(value) === normalized) || '';
+};
+const empty = { fullName: '', email: '', phone: '', location: '', jobDesignation: '', qualification: '', stream: '', experience: '', keyResponsibilities: '', currentCompany: '', designation: '', expectedSalary: '', noticePeriod: '', coverLetter: '', comments: '', consent: false };
 const date = value => value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '';
 const openingSoon = job => job.opensAt && new Date(job.opensAt) > new Date();
 const shortDate = value => new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
@@ -52,7 +60,7 @@ export default function Careers() {
     return () => { mounted = false; };
   }, []);
   const filtered = jobs.filter(job => (!search || job.title.toLowerCase().includes(search.toLowerCase())) && (!department || job.department === department) && (!location || job.location === location) && (!employmentType || job.employmentType === employmentType));
-  const openApplication = job => { setDetails(null); if (openingSoon(job)) { setNotice(`Applications for ${job.title} open on ${date(job.opensAt)}.`); document.getElementById('open-positions')?.scrollIntoView?.({ behavior: 'smooth' }); return; } setSelected(job); setNotice(''); setForm(empty); setResume(null); submissionKey.current = crypto.randomUUID(); };
+  const openApplication = job => { setDetails(null); if (openingSoon(job)) { setNotice(`Applications for ${job.title} open on ${date(job.opensAt)}.`); document.getElementById('open-positions')?.scrollIntoView?.({ behavior: 'smooth' }); return; } setSelected(job); setNotice(''); setForm({ ...empty, jobDesignation: designationForJob(job.title) }); setResume(null); submissionKey.current = crypto.randomUUID(); };
   const submit = async event => {
     event.preventDefault();
     if (submitting || !selected) return;
@@ -87,6 +95,35 @@ export default function Careers() {
     </section>
     {notice && <p className="career-notice" role="status">{notice}</p>}
     {details && <div className="career-modal-backdrop" onClick={() => setDetails(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Job details" onClick={e => e.stopPropagation()}><button className="career-close" onClick={() => setDetails(null)} aria-label="Close">×</button><h2>{details.title}</h2><p>{details.department} · {details.location} · {details.employmentType} · {details.workMode}</p>{['description','responsibilities','qualifications','skills','benefits'].map(key => details[key] && <section key={key}><h3>{key[0].toUpperCase() + key.slice(1)}</h3><RichTextDisplay value={details[key]} /></section>)}<p>Apply by {date(details.deadline)}</p><button className="marketing-button" onClick={() => openApplication(details)}>Apply Now</button></div></div>}
-    {selected && <div className="career-modal-backdrop" onClick={() => setSelected(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Apply for job" onClick={e => e.stopPropagation()}><button className="career-close" onClick={() => setSelected(null)} aria-label="Close">×</button><h2>Apply for {selected.title}</h2><form onSubmit={submit} className="career-apply-form">{[['fullName','Full name'],['email','Email address'],['phone','Phone number'],['location','Current location'],['experience','Total work experience'],['currentCompany','Current company'],['designation','Current designation'],['expectedSalary','Expected salary'],['noticePeriod','Notice period']].map(([key,label]) => <label key={key}>{label}{['fullName','email','phone','location','experience','noticePeriod'].includes(key) && ' *'}<input required={['fullName','email','phone','location','experience','noticePeriod'].includes(key)} type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text'} maxLength={key === 'email' ? 254 : 120} value={form[key]} onChange={e => setForm({...form,[key]:e.target.value})} /></label>)}<label>Cover letter<textarea maxLength={3000} value={form.coverLetter} onChange={e => setForm({...form,coverLetter:e.target.value})} /></label><label>Additional comments<textarea maxLength={3000} value={form.comments} onChange={e => setForm({...form,comments:e.target.value})} /></label><label>Resume (PDF, DOC, DOCX; up to 5 MB) *<input required type="file" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /></label><label className="career-consent"><input type="checkbox" required checked={form.consent} onChange={e => setForm({...form,consent:e.target.checked})} /> I consent to the processing of my personal information for recruitment. *</label>{notice && <p role="alert">{notice}</p>}<button className="marketing-button" disabled={submitting}>{submitting ? 'Submitting…' : 'Submit Application'}</button></form></div></div>}
+    {selected && <div className="career-modal-backdrop" onClick={() => setSelected(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Apply for job" onClick={e => e.stopPropagation()}>
+      <button className="career-close" onClick={() => setSelected(null)} aria-label="Close">&times;</button>
+      <h2>Apply for {selected.title}</h2>
+      <form onSubmit={submit} className="career-apply-form">
+        {[
+          ['fullName', 'Full Name', 'text', true],
+          ['email', 'Email Address', 'email', true],
+          ['phone', 'Phone Number', 'tel', true],
+          ['location', 'Current Location', 'text', true],
+        ].map(([key, label, type, required]) => <label key={key}>{label}{required && ' *'}<input type={type} required={required} maxLength={key === 'email' ? 254 : key === 'phone' ? 30 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
+        <label>Job Designation *<select required value={form.jobDesignation} onChange={e => setForm(current => ({ ...current, jobDesignation: e.target.value }))}><option value="">Select Job Designation</option>{jobDesignations.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label>Highest Qualification *<select required value={form.qualification} onChange={e => setForm(current => ({ ...current, qualification: e.target.value }))}><option value="">Select Qualification</option>{qualifications.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label>Stream / Subject<input type="text" maxLength={160} placeholder="e.g., 12th Commerce, B.A. English, BBA, B.Com, Diploma in IT" value={form.stream} onChange={e => setForm(current => ({ ...current, stream: e.target.value }))} /></label>
+        <label>Total Work Experience *<input type="text" required maxLength={80} value={form.experience} onChange={e => setForm(current => ({ ...current, experience: e.target.value }))} /></label>
+        <label>Key Responsibilities &ndash; Previous Company<textarea maxLength={2000} rows={5} placeholder="Describe your key responsibilities, daily tasks, and major duties in your previous company..." value={form.keyResponsibilities} onChange={e => setForm(current => ({ ...current, keyResponsibilities: e.target.value }))} /><span className="career-field-hint">Optional for freshers</span><span className="career-char-count" aria-live="polite">{form.keyResponsibilities.length}/2000 characters</span></label>
+        {[
+          ['currentCompany', 'Current Company'],
+          ['designation', 'Current Designation'],
+          ['expectedSalary', 'Expected Salary'],
+          ['noticePeriod', 'Notice Period'],
+        ].map(([key, label]) => <label key={key}>{label}{key === 'noticePeriod' && ' *'}<input type="text" required={key === 'noticePeriod'} maxLength={key === 'expectedSalary' || key === 'noticePeriod' ? 100 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
+        <label>Resume Upload (PDF, DOC, DOCX; up to 5 MB) *<input required type="file" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /></label>
+        <label>Cover Letter<textarea maxLength={3000} rows={4} value={form.coverLetter} onChange={e => setForm(current => ({ ...current, coverLetter: e.target.value }))} /></label>
+        <label>Additional Comments<textarea maxLength={3000} rows={4} value={form.comments} onChange={e => setForm(current => ({ ...current, comments: e.target.value }))} /></label>
+        <label className="career-consent"><input type="checkbox" required checked={form.consent} onChange={e => setForm(current => ({ ...current, consent: e.target.checked }))} /> I consent to the processing of my personal information for recruitment. *</label>
+        {notice && <p role="alert">{notice}</p>}
+        <button className="marketing-button" disabled={submitting}>{submitting ? 'Submitting\u2026' : 'Submit Application'}</button>
+      </form>
+    </div></div>}
+
   </main><Footer /></div>;
 }

@@ -103,3 +103,5 @@
 @media (max-width: 900px) { .career-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .career-admin aside { flex-basis: 215px; } }
 @media (max-width: 700px) { .career-admin { display: block; } .career-admin aside { min-height: auto; padding: 14px; } .career-admin-sidebar-brand { padding-bottom: 12px; } .career-admin-side-label { display: none; } .career-admin aside nav { display: flex; overflow-x: auto; padding: 12px 0; } .career-admin aside nav button { width: auto; white-space: nowrap; } .career-admin-side-bottom { display: flex; margin-top: 0; padding-top: 8px; } .career-admin-side-bottom a, .career-admin-side-bottom button { width: auto!important; } .career-admin main { padding: 20px 15px; } .career-panels { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .career-admin header { align-items: flex-start; flex-direction: column; } .career-stats, .career-admin-form-grid { grid-template-columns: 1fr; } .career-admin-modal label:has(.career-rich-editor) { grid-column: auto; } .career-admin-filters>* { flex: 1 1 100%!important; } }
+
+.career-admin-modal .career-candidate-long{white-space:pre-wrap}

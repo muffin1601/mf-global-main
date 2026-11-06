@@ -136,6 +136,22 @@
   color: #ffffff;
 }
 
+.footer-bottom .footer-admin-link {
+  display: inline-block;
+  margin-top: 5px;
+  color: #d5dbe0;
+  font-size: .76rem;
+  text-decoration: none;
+  opacity: .8;
+}
+
+.footer-bottom .footer-admin-link:hover,
+.footer-bottom .footer-admin-link:focus-visible {
+  color: #e2b665;
+  text-decoration: underline;
+  opacity: 1;
+}
+
 @media (max-width: 1024px) {
   .footer {
     padding: 60px 60px;

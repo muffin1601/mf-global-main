@@ -87,6 +87,7 @@ const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 
 console.log("🌐 CORS allowed origins:", allowedOrigins.join(", "));
 
 app.use(cors({
+  credentials: true,
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);

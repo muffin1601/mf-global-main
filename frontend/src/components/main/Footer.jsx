@@ -51,6 +51,7 @@ const Footer = () => (
 
     <div className="footer-bottom">
       <p>© {new Date().getFullYear()} MF Global Services. All rights reserved.</p>
+      <Link className="footer-admin-link" to="/careers/admin">Careers Admin</Link>
     </div>
   </footer>
 );

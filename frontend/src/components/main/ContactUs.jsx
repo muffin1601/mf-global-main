@@ -50,7 +50,13 @@ const ContactUs = () => {
         <h1 className="contactus-heading">Let’s Talk Business!</h1>
 
         <p className="contactus-detail">
-          <strong>📞 Phone:</strong>{' '}
+          <strong>Phone:</strong>{' '}
+          <a href="tel:+918826753837" style={{ color: 'inherit', textDecoration: 'none' }}>
+            +91 8826753837
+          </a>
+        </p>
+        <p className="contactus-detail">
+          <strong>📞 WhatsApp:</strong>{' '}
           <a
             href="https://wa.me/919266013059"
             target="_blank"
@@ -71,7 +77,13 @@ const ContactUs = () => {
         </p>
 
         <p className="contactus-detail">
-          <strong>✉️ Email:</strong>{' '}
+          <strong>Email:</strong>{' '}
+          <a href="mailto:Info@mfglobalservices.com" style={{ color: 'inherit', textDecoration: 'none' }}>
+            Info@mfglobalservices.com
+          </a>
+        </p>
+        <p className="contactus-detail">
+          <strong>✉️ Business Email:</strong>{' '}
           <a
             href="mailto:business@mfglobalservices.com"
             style={{ color: 'inherit', textDecoration: 'none' }}

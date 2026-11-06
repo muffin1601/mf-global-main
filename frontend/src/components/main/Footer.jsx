@@ -34,7 +34,9 @@ const Footer = () => (
 
       <div className="footer-contact">
         <h4>Reach us</h4>
+        <p><FiPhone aria-hidden="true" /><a href="tel:+918826753837">+91 8826753837</a></p>
         <p><FiPhone aria-hidden="true" /><a href="tel:+919266013059">+91 9266 013059</a></p>
+        <p><FiMail aria-hidden="true" /><a href="mailto:Info@mfglobalservices.com">Info@mfglobalservices.com</a></p>
         <p><FiMail aria-hidden="true" /><a href="mailto:sales@mfglobalservices.com">sales@mfglobalservices.com</a></p>
         <p className="footer-address"><FiMapPin aria-hidden="true" /><span>F90/1, Beside ESIC Hospital, Okhla Industrial Area Phase 1, New Delhi – 110020, India</span></p>
       </div>

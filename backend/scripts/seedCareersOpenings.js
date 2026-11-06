@@ -2,7 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Job = require('../models/CareerJob');
 
-const opensAt = new Date('2026-11-10T00:00:00+05:30');
+const opensAt = new Date('2026-11-06T00:00:00+05:30');
 const deadline = new Date('2026-11-30T23:59:59.999+05:30');
 const common = {
   location: 'New Delhi',

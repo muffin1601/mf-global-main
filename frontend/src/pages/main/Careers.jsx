@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, BriefcaseBusiness, GraduationCap, Sparkles, UsersRound, Lightbulb, HeartHandshake } from 'lucide-react';
+import { ArrowRight, GraduationCap, Sparkles, UsersRound, Lightbulb, HeartHandshake } from 'lucide-react';
 import Navbar from '../../components/main/Navbar';
 import Footer from '../../components/main/Footer';
 import useMarketingMeta from './useMarketingMeta';
@@ -80,7 +80,8 @@ export default function Careers() {
     finally { setSubmitting(false); }
   };
   return <div className="marketing-site careers-page"><Navbar /><main>
-    <section className="careers-hero" aria-labelledby="careers-title"><div className="careers-hero-image" role="img" aria-label="A welcoming workplace" /><div className="careers-hero-content"><p className="marketing-eyebrow">Make your next move</p><h1 id="careers-title">Build Your Career With Us</h1><p>Join our team and become part of an organization focused on innovation, growth, customer satisfaction, and excellence.</p><a className="marketing-button" href="#open-positions">Explore Open Positions <ArrowRight size={18} /></a></div><div className="careers-illustration" aria-hidden="true"><div className="illustration-topline"><span>GROW TOGETHER</span><Sparkles size={18} /></div><div className="illustration-people"><span className="illustration-person person-one"><UsersRound /></span><span className="illustration-person person-two"><Lightbulb /></span><span className="illustration-person person-three"><HeartHandshake /></span></div><div className="illustration-caption"><span className="illustration-caption-icon"><BriefcaseBusiness /></span><span><strong>Ideas become impact</strong><small>Bring your best to the team</small></span></div></div><div className="careers-hero-note"><BriefcaseBusiness /><span>New opportunities<br /><strong>Explore our openings</strong></span></div></section>
+    <section className="careers-banner" aria-label="We are hiring"><img src="/assets/main/career-banner.jpeg" alt="We are hiring. Join our team." fetchPriority="high" /></section>
+    <section className="careers-intro marketing-section" aria-labelledby="careers-title"><div className="careers-intro-copy"><p className="marketing-eyebrow">Make your next move</p><h1 id="careers-title">Build your career with us</h1><p>At MF Global Services, every role helps us create better experiences for our customers. Whether you enjoy connecting with people, supporting online operations, or growing sales, there is room to make a meaningful contribution here.</p><p>Explore our current openings, find a role that fits your strengths, and tell us what you can bring to the team.</p><a className="marketing-button" href="#open-positions">Explore open positions <ArrowRight size={18} /></a></div><div className="careers-intro-aside"><span>YOUR NEXT CHAPTER</span><strong>Bring your ideas.<br />Grow with us.</strong><p>Good work starts with curious people who care about the details and support one another.</p></div></section>
     <section className="careers-benefits marketing-section" aria-labelledby="benefits-title"><div className="marketing-section-heading"><p className="marketing-eyebrow">A place to grow</p><h2 id="benefits-title">Why work with us?</h2><p>Bring your perspective, build your capabilities, and do your best work with a team committed to moving forward together.</p></div><div className="benefit-grid">{benefits.map(benefit => <article className="benefit-card" key={benefit.title}><span className="benefit-icon">{benefit.icon}</span><h3>{benefit.title}</h3><p>{benefit.text}</p></article>)}</div></section>
     <section className="careers-openings marketing-section" id="open-positions"><div className="marketing-section-heading"><p className="marketing-eyebrow">Join our team</p><h2>Current job openings</h2><p>Explore the available opportunities and apply during the application window.</p></div>
       <div className="career-filters"><input aria-label="Search job title" placeholder="Search job title" value={search} onChange={e => setSearch(e.target.value)} /><select aria-label="Department" value={department} onChange={e => setDepartment(e.target.value)}><option value="">All departments</option>{[...new Set(jobs.map(j => j.department))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Location" value={location} onChange={e => setLocation(e.target.value)}><option value="">All locations</option>{[...new Set(jobs.map(j => j.location))].map(v => <option key={v}>{v}</option>)}</select><select aria-label="Employment type" value={employmentType} onChange={e => setEmploymentType(e.target.value)}><option value="">All types</option>{[...new Set(jobs.map(j => j.employmentType))].map(v => <option key={v}>{v}</option>)}</select></div>
@@ -95,33 +96,45 @@ export default function Careers() {
     </section>
     {notice && <p className="career-notice" role="status">{notice}</p>}
     {details && <div className="career-modal-backdrop" onClick={() => setDetails(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Job details" onClick={e => e.stopPropagation()}><button className="career-close" onClick={() => setDetails(null)} aria-label="Close">×</button><h2>{details.title}</h2><p>{details.department} · {details.location} · {details.employmentType} · {details.workMode}</p>{['description','responsibilities','qualifications','skills','benefits'].map(key => details[key] && <section key={key}><h3>{key[0].toUpperCase() + key.slice(1)}</h3><RichTextDisplay value={details[key]} /></section>)}<p>Apply by {date(details.deadline)}</p><button className="marketing-button" onClick={() => openApplication(details)}>Apply Now</button></div></div>}
-    {selected && <div className="career-modal-backdrop" onClick={() => setSelected(null)}><div className="career-modal" role="dialog" aria-modal="true" aria-label="Apply for job" onClick={e => e.stopPropagation()}>
-      <button className="career-close" onClick={() => setSelected(null)} aria-label="Close">&times;</button>
-      <h2>Apply for {selected.title}</h2>
+    {selected && <div className="career-modal-backdrop" onClick={() => setSelected(null)}><div className="career-modal career-application-modal" role="dialog" aria-modal="true" aria-label="Apply for job" onClick={e => e.stopPropagation()}>
+      <div className="career-application-header">
+        <div><p className="career-application-eyebrow">Join our team</p><h2>Apply for {selected.title}</h2><p className="career-application-meta">{selected.department} <span aria-hidden="true">&bull;</span> {selected.location} <span aria-hidden="true">&bull;</span> {selected.employmentType}</p></div>
+        <button type="button" className="career-application-close" onClick={() => setSelected(null)} aria-label="Close application form">&times;</button>
+      </div>
       <form onSubmit={submit} className="career-apply-form">
-        {[
-          ['fullName', 'Full Name', 'text', true],
-          ['email', 'Email Address', 'email', true],
-          ['phone', 'Phone Number', 'tel', true],
-          ['location', 'Current Location', 'text', true],
-        ].map(([key, label, type, required]) => <label key={key}>{label}{required && ' *'}<input type={type} required={required} maxLength={key === 'email' ? 254 : key === 'phone' ? 30 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
-        <label>Job Designation *<select required value={form.jobDesignation} onChange={e => setForm(current => ({ ...current, jobDesignation: e.target.value }))}><option value="">Select Job Designation</option>{jobDesignations.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label>Highest Qualification *<select required value={form.qualification} onChange={e => setForm(current => ({ ...current, qualification: e.target.value }))}><option value="">Select Qualification</option>{qualifications.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label>Stream / Subject<input type="text" maxLength={160} placeholder="e.g., 12th Commerce, B.A. English, BBA, B.Com, Diploma in IT" value={form.stream} onChange={e => setForm(current => ({ ...current, stream: e.target.value }))} /></label>
-        <label>Total Work Experience *<input type="text" required maxLength={80} value={form.experience} onChange={e => setForm(current => ({ ...current, experience: e.target.value }))} /></label>
-        <label>Key Responsibilities &ndash; Previous Company<textarea maxLength={2000} rows={5} placeholder="Describe your key responsibilities, daily tasks, and major duties in your previous company..." value={form.keyResponsibilities} onChange={e => setForm(current => ({ ...current, keyResponsibilities: e.target.value }))} /><span className="career-field-hint">Optional for freshers</span><span className="career-char-count" aria-live="polite">{form.keyResponsibilities.length}/2000 characters</span></label>
-        {[
-          ['currentCompany', 'Current Company'],
-          ['designation', 'Current Designation'],
-          ['expectedSalary', 'Expected Salary'],
-          ['noticePeriod', 'Notice Period'],
-        ].map(([key, label]) => <label key={key}>{label}{key === 'noticePeriod' && ' *'}<input type="text" required={key === 'noticePeriod'} maxLength={key === 'expectedSalary' || key === 'noticePeriod' ? 100 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
-        <label>Resume Upload (PDF, DOC, DOCX; up to 5 MB) *<input required type="file" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /></label>
-        <label>Cover Letter<textarea maxLength={3000} rows={4} value={form.coverLetter} onChange={e => setForm(current => ({ ...current, coverLetter: e.target.value }))} /></label>
-        <label>Additional Comments<textarea maxLength={3000} rows={4} value={form.comments} onChange={e => setForm(current => ({ ...current, comments: e.target.value }))} /></label>
-        <label className="career-consent"><input type="checkbox" required checked={form.consent} onChange={e => setForm(current => ({ ...current, consent: e.target.checked }))} /> I consent to the processing of my personal information for recruitment. *</label>
-        {notice && <p role="alert">{notice}</p>}
-        <button className="marketing-button" disabled={submitting}>{submitting ? 'Submitting\u2026' : 'Submit Application'}</button>
+        <div className="career-application-intro"><strong>Tell us about yourself</strong><span>Fields marked * are required.</span></div>
+        <section className="career-form-section"><div className="career-form-section-heading"><span>01</span><div><h3>Personal details</h3><p>How we can reach you</p></div></div><div className="career-form-grid">
+          {[
+            ['fullName', 'Full Name', 'text', true, 'Your full name'],
+            ['email', 'Email Address', 'email', true, 'you@example.com'],
+            ['phone', 'Phone Number', 'tel', true, 'Your contact number'],
+            ['location', 'Current Location', 'text', true, 'City, State'],
+          ].map(([key, label, type, required, placeholder]) => <label key={key}>{label}{required && ' *'}<input type={type} required={required} placeholder={placeholder} maxLength={key === 'email' ? 254 : key === 'phone' ? 30 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
+        </div></section>
+        <section className="career-form-section"><div className="career-form-section-heading"><span>02</span><div><h3>Education &amp; experience</h3><p>Your background and strengths</p></div></div><div className="career-form-grid">
+          <label>Job Designation *<select required value={form.jobDesignation} onChange={e => setForm(current => ({ ...current, jobDesignation: e.target.value }))}><option value="">Select Job Designation</option>{jobDesignations.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label>Highest Qualification *<select required value={form.qualification} onChange={e => setForm(current => ({ ...current, qualification: e.target.value }))}><option value="">Select Qualification</option>{qualifications.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label>Stream / Subject<input type="text" maxLength={160} placeholder="e.g., 12th Commerce, B.A. English, BBA, B.Com, Diploma in IT" value={form.stream} onChange={e => setForm(current => ({ ...current, stream: e.target.value }))} /></label>
+          <label>Total Work Experience *<input type="text" required maxLength={80} placeholder="e.g., Fresher or 2 years" value={form.experience} onChange={e => setForm(current => ({ ...current, experience: e.target.value }))} /></label>
+          <label className="career-wide-field">Key Responsibilities &ndash; Previous Company<textarea maxLength={2000} rows={4} placeholder="Describe your key responsibilities, daily tasks, and major duties in your previous company..." value={form.keyResponsibilities} onChange={e => setForm(current => ({ ...current, keyResponsibilities: e.target.value }))} /><span className="career-field-meta"><span>Optional for freshers</span><span aria-live="polite">{form.keyResponsibilities.length}/2000 characters</span></span></label>
+        </div></section>
+        <section className="career-form-section"><div className="career-form-section-heading"><span>03</span><div><h3>Current role &amp; availability</h3><p>A few details to plan the next step</p></div></div><div className="career-form-grid">
+          {[
+            ['currentCompany', 'Current Company', 'Company name'],
+            ['designation', 'Current Designation', 'Your current role'],
+            ['expectedSalary', 'Expected Salary', 'Your expected salary'],
+            ['noticePeriod', 'Notice Period', 'e.g., Immediate or 30 days'],
+          ].map(([key, label, placeholder]) => <label key={key}>{label}{key === 'noticePeriod' && ' *'}<input type="text" required={key === 'noticePeriod'} placeholder={placeholder} maxLength={key === 'expectedSalary' || key === 'noticePeriod' ? 100 : 120} value={form[key]} onChange={e => setForm(current => ({ ...current, [key]: e.target.value }))} /></label>)}
+        </div></section>
+        <section className="career-form-section"><div className="career-form-section-heading"><span>04</span><div><h3>Resume &amp; message</h3><p>Share your work and anything else we should know</p></div></div><div className="career-form-grid">
+          <label className="career-wide-field career-resume-field">Resume Upload *<span className="career-upload-box"><input required type="file" accept=".pdf,.doc,.docx" onChange={e => setResume(e.target.files?.[0] || null)} /><span>PDF, DOC, or DOCX &bull; up to 5 MB</span>{resume && <strong>{resume.name}</strong>}</span></label>
+          <label className="career-wide-field">Cover Letter<textarea maxLength={3000} rows={4} placeholder="Tell us why this role interests you" value={form.coverLetter} onChange={e => setForm(current => ({ ...current, coverLetter: e.target.value }))} /></label>
+          <label className="career-wide-field">Additional Comments<textarea maxLength={3000} rows={3} placeholder="Anything else you would like to share?" value={form.comments} onChange={e => setForm(current => ({ ...current, comments: e.target.value }))} /></label>
+        </div></section>
+        <div className="career-application-footer"><label className="career-consent"><input type="checkbox" required checked={form.consent} onChange={e => setForm(current => ({ ...current, consent: e.target.checked }))} /><span>I consent to the processing of my personal information for recruitment. *</span></label>
+          {notice && <p role="alert" className="career-form-error">{notice}</p>}
+          <button className="marketing-button" disabled={submitting}>{submitting ? 'Submitting\u2026' : <>Submit Application <ArrowRight size={18} /></>}</button>
+        </div>
       </form>
     </div></div>}
 

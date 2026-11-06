@@ -3,3 +3,54 @@
 
 .career-apply-form .career-char-count{justify-self:end;color:#63717d;font-size:.8rem}
 .career-apply-form .career-field-hint{color:#63717d;font-size:.8rem}
+
+.careers-page .navbar{background:#142532}
+.careers-banner{padding-top:82px;background:#fff}
+.careers-banner img{display:block;width:100%;height:auto;max-height:560px;object-fit:contain}
+.marketing-site .careers-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:clamp(30px,6vw,90px);align-items:center;background:#fff}
+.careers-intro-copy{max-width:780px}
+.careers-intro-copy .marketing-eyebrow{color:var(--site-red)}
+.careers-intro-copy h1{margin:12px 0 22px;color:var(--site-navy,#142532);font-size:clamp(2.3rem,4.4vw,4rem);line-height:1.1;letter-spacing:-.04em}
+.careers-intro-copy>p:not(.marketing-eyebrow){max-width:690px;margin:0 0 15px;color:var(--site-muted,#536678);font-size:1.03rem;line-height:1.75}
+.careers-intro-copy .marketing-button{display:inline-flex;align-items:center;gap:10px;margin-top:18px}
+.careers-intro-aside{padding:32px;border-left:4px solid var(--site-red);border-radius:0 16px 16px 0;background:#f7f8fa}
+.careers-intro-aside span{display:block;margin-bottom:14px;color:var(--site-red);font-size:.72rem;font-weight:800;letter-spacing:.15em}
+.careers-intro-aside strong{display:block;color:#142532;font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.2}
+.careers-intro-aside p{margin:14px 0 0;color:var(--site-muted,#536678);font-size:.93rem;line-height:1.65}
+@media(max-width:700px){.careers-banner{padding-top:72px}.marketing-site .careers-intro{grid-template-columns:1fr;gap:28px}.careers-intro-aside{padding:24px}}
+
+.career-application-modal{max-width:920px;padding:0;overflow:auto;background:#f8fafc;box-shadow:0 28px 90px #0b1d2b4d}
+.career-application-header{position:relative;display:flex;justify-content:space-between;gap:24px;padding:30px 42px 32px;background:linear-gradient(120deg,#142532,#203d4d);color:#fff}
+.career-application-eyebrow{margin:0 0 9px;color:#e4bd7a;font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.career-application-header h2{margin:0;font-size:clamp(1.6rem,3vw,2.25rem);line-height:1.2;color:#fff}
+.career-application-meta{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:13px 0 0;color:#d0dae0;font-size:.88rem}
+.career-application-meta span{color:#e4bd7a}
+.career-application-close{flex:none;display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff50;border-radius:50%;background:#ffffff16;color:#fff;font-size:1.7rem;line-height:1;cursor:pointer}
+.career-application-close:hover,.career-application-close:focus-visible{background:#ffffff30}
+.career-application-modal .career-apply-form{display:block;padding:0 42px 38px}
+.career-application-intro{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:25px 0 12px;color:#142532}
+.career-application-intro strong{font-size:1.05rem}
+.career-application-intro span{color:#647587;font-size:.8rem}
+.career-application-modal .career-form-section{margin:16px 0 0;padding:26px 28px 28px;border:1px solid #e0e6eb;border-radius:14px;background:#fff;box-shadow:0 8px 26px #14253208}
+.career-form-section-heading{display:flex;gap:13px;align-items:flex-start;margin-bottom:22px}
+.career-form-section-heading>span{display:grid;place-items:center;flex:none;width:33px;height:33px;border-radius:9px;background:#fff2e8;color:#8b170e;font-size:.79rem;font-weight:800}
+.career-form-section-heading h3{margin:0;color:#142532;font-size:1.1rem;line-height:1.3}
+.career-form-section-heading p{margin:3px 0 0;color:#647587;font-size:.83rem}
+.career-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 22px}
+.career-application-modal .career-form-grid label{display:grid;align-content:start;gap:8px;color:#24394a;font-size:.86rem;font-weight:700}
+.career-application-modal .career-form-grid input,.career-application-modal .career-form-grid select,.career-application-modal .career-form-grid textarea{min-height:45px;padding:11px 13px;border:1px solid #d5dfe7;border-radius:9px;background:#fbfcfe;color:#142532;font-size:.93rem;font-weight:400;transition:border-color .15s,box-shadow .15s}
+.career-application-modal .career-form-grid input::placeholder,.career-application-modal .career-form-grid textarea::placeholder{color:#8796a2}
+.career-application-modal .career-form-grid input:focus,.career-application-modal .career-form-grid select:focus,.career-application-modal .career-form-grid textarea:focus{outline:none;border-color:#9b1b10;box-shadow:0 0 0 3px #9b1b101b;background:#fff}
+.career-application-modal .career-form-grid textarea{resize:vertical;line-height:1.55}
+.career-application-modal .career-wide-field{grid-column:1/-1}
+.career-field-meta{display:flex;justify-content:space-between;gap:12px;color:#647587;font-size:.78rem;font-weight:400}
+.career-upload-box{display:grid;gap:8px;padding:16px 18px;border:1px dashed #b9cbd7;border-radius:10px;background:#f8fafc}
+.career-application-modal .career-upload-box input{padding:0;border:0;background:transparent;min-height:0}
+.career-upload-box>span{color:#647587;font-size:.78rem;font-weight:400}
+.career-upload-box>strong{overflow-wrap:anywhere;color:#8b170e;font-size:.82rem}
+.career-application-footer{display:grid;gap:16px;margin-top:24px;padding:24px 28px;border:1px solid #e0e6eb;border-radius:14px;background:#fff}
+.career-application-modal .career-consent{display:flex;align-items:flex-start;gap:10px;color:#3f5261;font-size:.83rem;line-height:1.5}
+.career-application-modal .career-consent input{flex:none;width:17px;height:17px;margin:2px 0 0;accent-color:#8b170e}
+.career-application-footer .marketing-button{display:inline-flex;justify-self:end;justify-content:center;align-items:center;gap:12px;min-width:230px}
+.career-form-error{margin:0;padding:10px 13px;border-radius:8px;background:#fff1ef;color:#9b1b10;font-size:.85rem}
+@media(max-width:700px){.career-modal-backdrop{padding:10px}.career-application-modal{max-height:calc(100dvh - 20px)}.career-application-header{padding:24px 22px}.career-application-modal .career-apply-form{padding:0 16px 20px}.career-application-intro{padding:20px 4px 8px;flex-wrap:wrap}.career-application-modal .career-form-section{padding:20px 18px}.career-form-grid{grid-template-columns:1fr;gap:16px}.career-application-footer{padding:20px 18px}.career-application-footer .marketing-button{justify-self:stretch;width:100%}}

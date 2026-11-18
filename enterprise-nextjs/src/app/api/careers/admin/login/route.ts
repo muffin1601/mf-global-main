@@ -1,12 +1,17 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-import { audit, configuredPinHash, randomToken, setSessionCookie, sha256, SESSION_MS } from "@/lib/careers/admin-session";
+import { audit, configuredPinHash, randomToken, requireCrmAdmin, setSessionCookie, sha256, SESSION_MS } from "@/lib/careers/admin-session";
 import { clientIp } from "@/lib/careers/shared";
+import { rateLimit } from "@/lib/rate-limit";
 
 const LOCKED = "PIN access is temporarily locked. Try again later.";
 
 export async function POST(request: Request) {
+  const denied = await requireCrmAdmin(request);
+  if (denied) return denied;
+  const global = await rateLimit("careers-pin:global", 40, 15 * 60_000);
+  if (!global.allowed) return NextResponse.json({ message: LOCKED }, { status: 429 });
   const ipHash = sha256(clientIp(request));
   const attempt = await prisma.careerLoginAttempt.findUnique({ where: { ipHash } });
   if (attempt?.lockedUntil && attempt.lockedUntil > new Date()) return NextResponse.json({ message: LOCKED }, { status: 429 });

@@ -1,4 +1,4 @@
-import { createHash, createHmac } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Resend } from "resend";
@@ -16,10 +16,11 @@ const schema = z.object({
   message: z.string().trim().max(5000).default(""),
 });
 
-const ipHashFor = (request: Request) => {
+// An unsalted IP hash can be reversed by enumerating IPv4 space, so production refuses to run without a salt.
+const ipHashFor = (request: Request): string | null => {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const salt = process.env.IP_HASH_SALT;
-  return salt ? createHmac("sha256", salt).update(ip).digest("hex") : createHash("sha256").update(ip).digest("hex");
+  const salt = process.env.IP_HASH_SALT || (process.env.NODE_ENV === "production" ? "" : "dev-only-salt");
+  return salt ? createHmac("sha256", salt).update(ip).digest("hex") : null;
 };
 
 export async function POST(request: Request) {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
 
   // Original emailLimiter: 5 requests per minute per IP.
   const ipHash = ipHashFor(request);
+  if (!ipHash) return NextResponse.json({ success: false, error: "Contact service is not configured" }, { status: 503 });
   const recent = await prisma.contactSubmission.count({ where: { ipHash, createdAt: { gte: new Date(Date.now() - 60 * 1000) } } });
   if (recent >= 5) return NextResponse.json({ success: false, message: "Too many requests. Please wait a moment and try again." }, { status: 429 });
 

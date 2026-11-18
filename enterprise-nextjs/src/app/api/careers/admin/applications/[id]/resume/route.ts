@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { BUCKETS, storage } from "@/lib/storage";
 import { withCareerAdmin } from "@/lib/careers/admin-session";
 import { isUuid } from "@/lib/careers/shared";
 
@@ -19,13 +19,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!isUuid(id)) return notFound();
     const item = await prisma.careerApplication.findUnique({ where: { id }, select: { resumePath: true, resumeFileName: true } });
     if (!item?.resumePath) return notFound();
-    const { data, error } = await createSupabaseAdminClient().storage.from("career-resumes").download(item.resumePath);
-    if (error || !data) return notFound();
+    const data = await storage.download(BUCKETS.resumes, item.resumePath);
+    if (!data) return notFound();
     const ext = (item.resumeFileName.split(".").pop() ?? "").toLowerCase();
-    const contentType = contentTypes[ext] ?? data.type ?? "application/octet-stream";
+    const contentType = contentTypes[ext] ?? "application/octet-stream";
     const filename = contentTypes[ext] ? `resume.${ext}` : "resume";
     const download = new URL(request.url).searchParams.get("download") === "1";
-    return new NextResponse(await data.arrayBuffer(), {
+    return new NextResponse(new Uint8Array(data), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${filename}"`,

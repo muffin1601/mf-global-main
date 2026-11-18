@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { BUCKETS, storage } from "@/lib/storage";
+import { limitRequest, rateLimit } from "@/lib/rate-limit";
 import { notifyCareerApplication } from "@/lib/careers/notify";
 import { publicJobFilter } from "@/lib/careers/public-jobs";
 import { isUuid, text } from "@/lib/careers/shared";
@@ -25,6 +26,9 @@ const signatureValid = (buffer: Buffer, ext: string) =>
 const bad = (message: string, status = 400) => NextResponse.json({ message }, { status });
 
 export async function POST(request: Request) {
+  // Original: limiter(5, 60 s) per IP. Persistent (holds across serverless instances) + a global hourly ceiling.
+  const [perIp, global] = await Promise.all([limitRequest(request, "careers-apply", 5, 60_000), rateLimit("careers-apply:global", 300, 3_600_000)]);
+  if (!perIp.allowed || !global.allowed) return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429, headers: { "Retry-After": String(perIp.retryAfterSec) } });
   let form: FormData;
   try {
     form = await request.formData();
@@ -58,10 +62,10 @@ export async function POST(request: Request) {
   if (existing) return NextResponse.json({ success: true, applicationId: existing.id, message: "Application already received." });
 
   const storagePath = `${job.id}/${randomUUID()}.${ext}`;
-  const supabase = createSupabaseAdminClient();
-  const { error: uploadError } = await supabase.storage.from("career-resumes").upload(storagePath, buffer, { contentType: mimeTypes[ext], upsert: false });
-  if (uploadError) {
-    console.error("careers: resume upload failed", { errorName: uploadError.name });
+  try {
+    await storage.upload(BUCKETS.resumes, storagePath, buffer, mimeTypes[ext]!);
+  } catch {
+    console.error("careers: resume upload failed");
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 
@@ -76,7 +80,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ success: true, applicationId: application.id, message: "Your application has been submitted." }, { status: 201 });
   } catch (error) {
-    await supabase.storage.from("career-resumes").remove([storagePath]);
+    await storage.remove(BUCKETS.resumes, [storagePath]);
     if (typeof error === "object" && error && "code" in error && error.code === "P2002") return bad("Application already received.", 409);
     throw error;
   }

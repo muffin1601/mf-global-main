@@ -1,0 +1,9 @@
+.drop { border: 2px dashed var(--border, #cbd5e1); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; }
+.dropActive { border-color: var(--primary, #2563eb); }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 12px 0; }
+.sum { border: 1px solid var(--border, #e2e8f0); border-radius: 10px; padding: 12px; }
+.sum strong { display: block; font-size: 24px; }
+.track { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.fill { height: 100%; background: var(--primary, #2563eb); transition: width 0.2s; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.stack { display: grid; gap: 16px; }

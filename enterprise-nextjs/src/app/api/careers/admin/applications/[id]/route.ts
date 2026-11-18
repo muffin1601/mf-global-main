@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { BUCKETS, storage } from "@/lib/storage";
 import { audit, withCareerAdmin } from "@/lib/careers/admin-session";
 import { applicationStatusFromLabel, isUuid, legacyApplication, text } from "@/lib/careers/shared";
 
@@ -50,7 +50,7 @@ export async function DELETE(request: Request, { params }: Context) {
     // the application also deleted the resume. Remove the stored file as well.
     if (item.resumePath) {
       try {
-        await createSupabaseAdminClient().storage.from("career-resumes").remove([item.resumePath]);
+        await storage.remove(BUCKETS.resumes, [item.resumePath]);
       } catch (error) {
         console.error("careers: resume cleanup failed", { applicationId: id, error: String(error) });
       }

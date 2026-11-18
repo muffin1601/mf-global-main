@@ -24,7 +24,7 @@ export async function startTestDatabase() {
   process.env.TEST_DB_PORT = String(port);
   const TEST_URL = `postgresql://postgres:test@127.0.0.1:${port}/crm_test`;
   const dir = mkdtempSync(join(tmpdir(), "crm-pgtest-"));
-  const server = new EmbeddedPostgres({ databaseDir: dir, user: "postgres", password: "test", port, persistent: false, onLog: () => {}, onError: () => {} });
+  const server = new EmbeddedPostgres({ databaseDir: dir, user: "postgres", password: "test", port, persistent: false, initdbFlags: ["--encoding=UTF8", "--locale=C"], onLog: () => {}, onError: () => {} });
   await server.initialise();
   await server.start();
   await server.createDatabase("crm_test");

@@ -3,7 +3,19 @@ import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { CareerAdminSession } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
+import { getCurrentUser } from "@/lib/auth/session";
 import { clientIp } from "./shared";
+
+// Careers admin is two-factor: (1) a signed-in, enabled CRM ADMIN (individual identity, server-side role
+// check) AND (2) the PIN session. The shared PIN alone is never sufficient.
+const actorByRequest = new WeakMap<Request, string>();
+export async function requireCrmAdmin(request?: Request): Promise<NextResponse | null> {
+  const user = await getCurrentUser();
+  if (!user || !user.enabled) return NextResponse.json({ message: "Sign in to the CRM as an administrator to use Careers Admin." }, { status: 401 });
+  if (user.role !== "ADMIN") return NextResponse.json({ message: "Administrator access required." }, { status: 403 });
+  if (request) actorByRequest.set(request, user.id);
+  return null;
+}
 
 // Port of the original Express careers-admin auth (backend/routes/main/careersRoutes.js):
 // httpOnly cookie `career_admin` scoped to /api/careers/admin, 30-minute sliding
@@ -15,7 +27,7 @@ export const sha256 = (value: string) => createHash("sha256").update(value).dige
 export const randomToken = () => randomBytes(32).toString("hex");
 
 export const audit = (request: Request, action: string, detail = "") =>
-  console.info(JSON.stringify({ event: "careers_admin", action, detail, ipHash: sha256(clientIp(request)), at: new Date().toISOString() }));
+  console.info(JSON.stringify({ event: "careers_admin", action, detail, actor: actorByRequest.get(request) ?? null, ipHash: sha256(clientIp(request)), at: new Date().toISOString() }));
 
 export function setSessionCookie(response: NextResponse, token: string) {
   response.cookies.set(COOKIE_NAME, token, {
@@ -45,6 +57,8 @@ const allowedOrigins = (request: Request) => {
 type Guard = { ok: true; session: CareerAdminSession; token: string } | { ok: false; response: NextResponse };
 
 export async function requireCareerAdmin(request: Request): Promise<Guard> {
+  const denied = await requireCrmAdmin(request);
+  if (denied) return { ok: false, response: denied };
   const token = readCookie(request);
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return { ok: false, response: NextResponse.json({ message: "Admin session required." }, { status: 401 }) };
   const session = await prisma.careerAdminSession.findFirst({ where: { tokenHash: sha256(token), expiresAt: { gt: new Date() } } });

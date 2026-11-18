@@ -1,4 +1,43 @@
-import { prisma } from "@/lib/prisma/client";
-import { requireAdmin } from "@/lib/auth/session";
-export const dynamic="force-dynamic";
-export default async function ProductsPage(){await requireAdmin();const products=await prisma.product.findMany({include:{category:true,price:true},orderBy:{updatedAt:"desc"},take:50});return <main className="page"><div className="page-head"><div><div className="eyebrow">Catalogue</div><h1>Products</h1></div></div><section className="table-card"><table><thead><tr><th>Code</th><th>Product</th><th>Category</th><th>Status</th><th>Purchase price</th></tr></thead><tbody>{products.map(p=><tr key={p.id}><td>{p.code}</td><td>{p.name||"—"}</td><td>{p.category?.name||"—"}</td><td>{p.status}</td><td>{p.price?.purchasePrice?.toString()||"—"}</td></tr>)}{products.length===0&&<tr><td colSpan={5}>No products found.</td></tr>}</tbody></table></section></main>}
+import type { Metadata } from "next";
+import { requireUser } from "@/lib/auth/session";
+import { listCategories } from "@/server/catalog/categories";
+import { listProducts } from "@/server/catalog/products";
+import { CatalogClient } from "./catalog-client";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Products" };
+
+type SP = Record<string, string | string[] | undefined>;
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+const PAGE_SIZES = [10, 20, 50, 100];
+
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<SP> }) {
+  const user = await requireUser();
+  const sp = await searchParams;
+  const actor = { id: user.id, role: user.role, name: user.name, userId: user.userId, email: user.email };
+  const limit = PAGE_SIZES.includes(Number(one(sp.limit))) ? Number(one(sp.limit)) : 20;
+  const filters = { query: one(sp.query), categoryId: one(sp.category), status: one(sp.status) || "active", sort: one(sp.sort) || "updated_desc", limit };
+  const [result, categories] = await Promise.all([
+    listProducts(actor, { ...filters, page: Number(one(sp.page)) || 1 }),
+    listCategories(actor),
+  ]);
+  return (
+    <main className="page">
+      <div className="page-head">
+        <div>
+          <div className="eyebrow">Catalogue</div>
+          <h1>Products</h1>
+        </div>
+      </div>
+      <CatalogClient
+        isAdmin={user.role === "ADMIN"}
+        products={result.products}
+        categories={categories}
+        total={result.total}
+        page={result.page}
+        pages={result.pages}
+        filters={filters}
+      />
+    </main>
+  );
+}

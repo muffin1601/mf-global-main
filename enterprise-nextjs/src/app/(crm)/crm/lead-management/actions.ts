@@ -1,18 +1,115 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { requireAdmin, requireUser } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma/client";
+import { requireUser } from "@/lib/auth/session";
+import { isDateString, istDayStart } from "@/lib/time/ist";
+import type { Actor } from "@/server/actor";
+import { HttpError } from "@/server/errors";
+import { isLeadPreset, parseLeadFilter, type LeadPreset } from "@/server/leads/filter-schema";
+import {
+  addAdditionalContact, assignLeads, bulkUpdateLeads, createManualLead, deleteAdditionalContact, deleteAllFiltered, deleteLeads,
+  removeAssignments, transferAssignments, updateLead, type AssignLevel,
+} from "@/server/leads/mutations";
+import { checkDuplicate, getLeadDetail } from "@/server/leads/queries";
+import type { DuplicateCheck, LeadDetail } from "@/server/leads/types";
 
-const optionalText=z.preprocess(value=>value===""?undefined:value,z.string().trim().max(5000).optional());
-const leadSchema=z.object({name:optionalText,company:optionalText,email:z.preprocess(value=>value===""?undefined:value,z.email().optional()),phone:optionalText,contact:optionalText,location:optionalText,state:optionalText,category:optionalText,dataType:optionalText,requirements:optionalText,quantity:z.preprocess(value=>value===""?undefined:value,z.coerce.number().nonnegative().optional()),assignedUserId:z.preprocess(value=>value===""?undefined:value,z.uuid().optional())});
+export type ActionResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
-export async function createLeadAction(formData:FormData){const user=await requireUser();const input=leadSchema.parse(Object.fromEntries(formData));if(!input.phone&&!input.contact)throw new Error("A phone or contact number is required.");const duplicate=await prisma.lead.findFirst({where:{OR:[...(input.phone?[{phone:input.phone}]:[]),...(input.contact?[{contact:input.contact}]:[])]},select:{id:true}});if(duplicate)throw new Error("A lead with that phone or contact already exists.");const assigneeId=user.role==="ADMIN"?input.assignedUserId:user.id;await prisma.$transaction(async tx=>{const lead=await tx.lead.create({data:{createdById:user.id,name:input.name,company:input.company,email:input.email,phone:input.phone,contact:input.contact,location:input.location,state:input.state,category:input.category,dataType:input.dataType,requirements:input.requirements,quantity:input.quantity,status:"New Lead",callStatus:"Not Called"}});if(assigneeId)await tx.leadAssignment.create({data:{leadId:lead.id,userId:assigneeId,canView:true,canUpdate:user.role!=="ADMIN",canDelete:false,assignedBy:user.id}});await tx.activityLog.create({data:{userId:user.id,action:"lead.created",details:{leadId:lead.id}}})});revalidatePath("/crm/lead-management");revalidatePath("/crm/entrydashboard")}
+/** The editable lead form as the browser holds it: every value is a string ("" = blank). */
+export type LeadFormValues = {
+  name: string; company: string; email: string; countryCode: string; phone: string; contact: string; location: string; state: string;
+  category: string; dataType: string; quantity: string; requirements: string; remarks: string; address: string;
+  status: string; callStatus: string;
+  /** Omitted when unchanged so re-saving a form never consumes a follow-up slot or clears the calling date. */
+  followUpDate?: string; callingDate?: string;
+  billing: AddressValues; shipping: AddressValues;
+  assignedUserId?: string;
+};
+export type AddressValues = { street: string; city: string; state: string; postalCode: string; country: string };
 
-const updateSchema=z.object({id:z.uuid(),name:optionalText,remarks:optionalText,callStatus:z.enum(["Not Called","Ring","Not Interested","Available After One Month","Follow-up Required","Wrong Number","Converted"]),requirements:optionalText,location:optionalText,category:optionalText,status:z.enum(["New Lead","In Progress","Followed Up","Won Lead","Lost Lead"]),followUpDate:z.preprocess(value=>value===""?undefined:value,z.coerce.date().optional())});
-export async function updateLeadAction(formData:FormData){const user=await requireUser();const input=updateSchema.parse(Object.fromEntries(formData));const lead=await prisma.lead.findUniqueOrThrow({where:{id:input.id},include:{assignments:{where:{userId:user.id},select:{canUpdate:true}}}});if(user.role!=="ADMIN"&&!lead.assignments.some(a=>a.canUpdate))throw new Error("You do not have update permission for this lead.");const followup:Record<string,Date|undefined>={};if(input.followUpDate){const slots=[["followUpDateOne",lead.followUpDateOne],["followUpDateTwo",lead.followUpDateTwo],["followUpDateThree",lead.followUpDateThree]] as const;const empty=slots.find(([,value])=>!value);const target=empty?.[0]??slots.reduce((oldest,current)=>(oldest[1]?.getTime()??Infinity)<=(current[1]?.getTime()??Infinity)?oldest:current)[0];followup[target]=input.followUpDate;followup.followUpDate=input.followUpDate}await prisma.$transaction([prisma.lead.update({where:{id:input.id},data:{name:input.name,remarks:input.remarks,callStatus:input.callStatus,requirements:input.requirements,location:input.location,category:input.category,status:input.status,...followup,...(input.callStatus==="Ring"?{inquiryDate:new Date().toISOString().slice(0,10)}:{})}}),prisma.activityLog.create({data:{userId:user.id,action:"lead.updated",details:{leadId:input.id}}})]);revalidatePath("/crm/lead-management");revalidatePath("/crm/entrydashboard")}
+async function actor(): Promise<Actor> {
+  const u = await requireUser();
+  return { id: u.id, role: u.role, name: u.name, userId: u.userId, email: u.email };
+}
 
-export async function assignLeadAction(formData:FormData){const admin=await requireAdmin();const input=z.object({leadId:z.uuid(),userId:z.preprocess(value=>value===""?undefined:value,z.uuid().optional()),canUpdate:z.preprocess(value=>value==="on",z.boolean()),canDelete:z.preprocess(value=>value==="on",z.boolean())}).parse(Object.fromEntries(formData));await prisma.$transaction(async tx=>{await tx.leadAssignment.deleteMany({where:{leadId:input.leadId}});if(input.userId)await tx.leadAssignment.create({data:{leadId:input.leadId,userId:input.userId,canView:true,canUpdate:input.canUpdate,canDelete:input.canDelete,assignedBy:admin.id}});await tx.activityLog.create({data:{userId:admin.id,action:input.userId?"lead.assigned":"lead.unassigned",details:{leadId:input.leadId,targetUserId:input.userId??null}}})});revalidatePath("/crm/lead-management");revalidatePath("/crm/entrydashboard")}
+async function run<T extends object>(fn: (a: Actor) => Promise<T>): Promise<ActionResult<T>> {
+  const a = await actor(); // redirects when signed out
+  try {
+    const result = await fn(a);
+    revalidatePath("/crm", "layout");
+    return { ok: true, ...result };
+  } catch (error) {
+    if (error instanceof HttpError) return { ok: false, error: error.message };
+    console.error("lead action failed", error instanceof Error ? error.message : String(error));
+    return { ok: false, error: "Something went wrong. Please try again." };
+  }
+}
 
-export async function deleteLeadAction(formData:FormData){const admin=await requireAdmin();const id=z.uuid().parse(formData.get("id"));await prisma.$transaction([prisma.lead.delete({where:{id}}),prisma.activityLog.create({data:{userId:admin.id,action:"lead.deleted",details:{leadId:id}}})]);revalidatePath("/crm/lead-management");revalidatePath("/crm/entrydashboard")}
+const istDate = (v: string) => (isDateString(v) ? istDayStart(v) : null);
+const blankAddress = (a: AddressValues) => Object.values(a).every((x) => !x.trim());
+
+function toInput(v: LeadFormValues, a: Actor, mode: "create" | "update") {
+  const admin = a.role === "ADMIN";
+  const quantity = v.quantity.trim() === "" ? null : Number(v.quantity);
+  const out = {
+    name: v.name, email: v.email, countryCode: v.countryCode, location: v.location, state: v.state, category: v.category,
+    dataType: v.dataType, requirements: v.requirements, remarks: v.remarks, address: v.address,
+    quantity: Number.isFinite(quantity) ? quantity : null,
+    ...(v.status ? { status: v.status as never } : {}), ...(v.callStatus ? { callStatus: v.callStatus as never } : {}),
+    followUpDate: v.followUpDate ? istDate(v.followUpDate) : undefined,
+    callingDate: v.callingDate === undefined ? undefined : istDate(v.callingDate),
+    // Identity fields are administrator-only on edit (non-admins never send them).
+    ...(mode === "create" || admin ? { phone: v.phone, company: v.company, contact: v.contact } : {}),
+  };
+  return out;
+}
+
+export async function createLeadAction(values: LeadFormValues): Promise<ActionResult<{ id: string }>> {
+  return run(async (a) => createManualLead(a, { ...toInput(values, a, "create"), assignedUserId: values.assignedUserId || null }));
+}
+
+export async function updateLeadAction(id: string, values: LeadFormValues): Promise<ActionResult<{ id: string }>> {
+  return run(async (a) =>
+    updateLead(a, id, {
+      ...toInput(values, a, "update"),
+      billingAddress: blankAddress(values.billing) ? null : values.billing,
+      shippingAddress: blankAddress(values.shipping) ? null : values.shipping,
+    }),
+  );
+}
+
+export async function checkDuplicateAction(input: { phone?: string; contact?: string; excludeId?: string }): Promise<ActionResult<{ result: DuplicateCheck }>> {
+  return run(async (a) => ({ result: await checkDuplicate(a, input) }));
+}
+
+export async function getLeadDetailAction(id: string): Promise<ActionResult<{ lead: LeadDetail }>> {
+  return run(async (a) => ({ lead: await getLeadDetail(a, id) }));
+}
+
+export async function addContactAction(id: string, contact: { name: string; contact: string; details: string }): Promise<ActionResult> {
+  return run(async (a) => { await addAdditionalContact(a, id, contact); return {}; });
+}
+export async function deleteContactAction(id: string, index: number): Promise<ActionResult> {
+  return run(async (a) => { await deleteAdditionalContact(a, id, index); return {}; });
+}
+
+export async function deleteLeadsAction(ids: string[]): Promise<ActionResult<{ deleted: number }>> {
+  return run((a) => deleteLeads(a, ids));
+}
+/** `query` is the URL query string of the current view (the filter is rebuilt and re-authorised on the server). */
+export async function deleteAllFilteredAction(query: string, preset: string): Promise<ActionResult<{ deleted: number }>> {
+  const p: LeadPreset = isLeadPreset(preset) ? preset : "all";
+  return run((a) => deleteAllFiltered(a, { filter: parseLeadFilter(new URLSearchParams(query)), preset: p }));
+}
+export async function bulkUpdateAction(ids: string[], category: string, location: string): Promise<ActionResult<{ updated: number }>> {
+  return run((a) => bulkUpdateLeads(a, { ids, category, location }));
+}
+export async function assignLeadsAction(leadIds: string[], userIds: string[], level: AssignLevel): Promise<ActionResult<{ leads: number; users: number }>> {
+  return run((a) => assignLeads(a, { leadIds, userIds, level }));
+}
+export async function removeAssignmentsAction(leadIds: string[]): Promise<ActionResult<{ leads: number }>> {
+  return run((a) => removeAssignments(a, leadIds));
+}
+export async function transferAssignmentsAction(leadIds: string[], targetUserId: string): Promise<ActionResult<{ leads: number }>> {
+  return run((a) => transferAssignments(a, { leadIds, targetUserId }));
+}

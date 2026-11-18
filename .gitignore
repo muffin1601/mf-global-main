@@ -32,3 +32,7 @@ uploads
 # outside backend/uploads so they are never served statically.
 private-uploads
 backend/private-uploads
+
+# Local tooling caches (never commit)
+.npm-cache/
+.playwright-mcp/

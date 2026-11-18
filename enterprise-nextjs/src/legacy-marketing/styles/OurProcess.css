@@ -1,0 +1,147 @@
+/* Main Section */
+.process-section {
+  background: linear-gradient(135deg, #1a1a1a, #8B0000); /* red + black */
+  padding: 100px 60px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Title and Subtitle */
+.process-title {
+  font-size: 2.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.process-subtitle {
+  font-size: 1.2rem;
+  color: #cccccc;
+  margin-bottom: 50px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Process Steps Grid */
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  justify-items: center;
+}
+
+/* Individual Step Card */
+.process-card {
+  background: transparent;
+  border-radius: 16px;
+  padding: 30px 25px;
+  height: 100%;
+  box-shadow: 0 8px 24px rgba(255, 0, 0, 0.15);
+  border: 2px solid #ffcaca;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.process-card:hover {
+  transform: translateY(-8px);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Icon Styling */
+.process-icon {
+  font-size: 2.5rem;
+  color: #e72424;
+  margin-bottom: 20px;
+}
+
+/* Step Title */
+.process-step-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+/* Step Description */
+.process-desc {
+  font-size: 1rem;
+  color: #dddddd;
+  line-height: 1.6;
+}
+
+/* CTA Button */
+.process-cta {
+  background: #c52d12;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(197, 45, 18, 0.4);
+}
+
+.process-cta:hover {
+  background: #a82510;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(197, 45, 18, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .process-section {
+    padding: 80px 40px;
+  }
+
+  .process-steps {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .process-section {
+    padding: 60px 30px;
+  }
+
+  .process-card {
+    width: 100%;
+  }
+
+  .process-title {
+    font-size: 2.2rem;
+  }
+
+  .process-subtitle {
+    font-size: 1rem;
+  }
+
+  .process-icon {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .process-title {
+    font-size: 1.8rem;
+  }
+
+  .process-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .process-cta {
+    font-size: 0.95rem;
+    padding: 12px 24px;
+  }
+}

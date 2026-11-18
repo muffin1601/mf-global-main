@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { ForgotPasswordForm } from "./reset-request-form";
+export default function ForgotPasswordPage(){return <main className="auth-wrap"><section className="auth-card"><Link className="brand" href="/"><span className="brand-mark">MF</span><span>MF Global Services</span></Link><h1 style={{fontSize:"2rem",marginTop:"2rem"}}>Reset your password</h1><p className="lead" style={{fontSize:"1rem"}}>We will send a secure recovery link to your work email.</p><ForgotPasswordForm/><Link href="/crm/login" style={{display:"block",marginTop:18,fontSize:14,color:"var(--brand)"}}>Return to sign in</Link></section></main>}

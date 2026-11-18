@@ -1,0 +1,4 @@
+import { prisma } from "@/lib/prisma/client";
+import { requireAdmin } from "@/lib/auth/session";
+export const dynamic="force-dynamic";
+export default async function ProductsPage(){await requireAdmin();const products=await prisma.product.findMany({include:{category:true,price:true},orderBy:{updatedAt:"desc"},take:50});return <main className="page"><div className="page-head"><div><div className="eyebrow">Catalogue</div><h1>Products</h1></div></div><section className="table-card"><table><thead><tr><th>Code</th><th>Product</th><th>Category</th><th>Status</th><th>Purchase price</th></tr></thead><tbody>{products.map(p=><tr key={p.id}><td>{p.code}</td><td>{p.name||"—"}</td><td>{p.category?.name||"—"}</td><td>{p.status}</td><td>{p.price?.purchasePrice?.toString()||"—"}</td></tr>)}{products.length===0&&<tr><td colSpan={5}>No products found.</td></tr>}</tbody></table></section></main>}

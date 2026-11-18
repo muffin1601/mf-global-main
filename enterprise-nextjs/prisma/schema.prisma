@@ -1,0 +1,817 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum LeadStatus {
+  NEW_LEAD
+  ACTIVE
+  TRENDING
+  CONVERTED
+  LOST
+}
+
+enum ImportStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum VendorStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+  BLOCKED
+  ARCHIVED
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  NEW
+  UNDER_REVIEW
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  SELECTED
+  REJECTED
+  HIRED
+}
+
+enum DocumentStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model User {
+  id                String             @id @default(uuid()) @db.Uuid
+  authUserId        String?            @unique @map("auth_user_id") @db.Uuid
+  legacyId          String?            @unique @map("legacy_id")
+  userId            String             @unique @map("user_id")
+  name              String
+  username          String?            @unique
+  email             String?            @unique
+  location          String?
+  role              UserRole           @default(USER)
+  enabled           Boolean            @default(true)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  createdLeads      Lead[]             @relation("LeadCreator")
+  assignments       LeadAssignment[]
+  activities        ActivityLog[]
+  quotations        Quotation[]
+  importJobs        LeadImportJob[]
+  vendorImportJobs  VendorImportJob[]
+  ownedVendors      Vendor[]           @relation("VendorOwner")
+  createdVendors    Vendor[]           @relation("VendorCreator")
+  vendorActivities  VendorActivity[]
+  vendorDocuments   VendorDocument[]
+  vendorEvaluations VendorEvaluation[]
+  leadPermissions   LeadPermission[]
+
+  @@index([role, enabled])
+  @@map("users")
+}
+
+model UserSequence {
+  role      String   @id
+  seq       Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_sequences")
+}
+
+model Lead {
+  id                 String           @id @default(uuid()) @db.Uuid
+  legacyId           String?          @unique @map("legacy_id")
+  createdById        String?          @map("created_by_id") @db.Uuid
+  name               String?
+  company            String?
+  email              String?
+  countryCode        String?          @map("country_code")
+  phone              String?
+  contact            String?
+  location           String?
+  state              String?
+  category           String?
+  quantity           Decimal?         @db.Decimal(14, 3)
+  requirements       String?
+  remarks            String?
+  dataType           String?          @map("data_type")
+  callStatus         String           @default("Not Called") @map("call_status")
+  status             String           @default("New Lead")
+  followUpDate       DateTime?        @map("follow_up_date")
+  followUpDateOne    DateTime?        @map("follow_up_date_one")
+  followUpDateTwo    DateTime?        @map("follow_up_date_two")
+  followUpDateThree  DateTime?        @map("follow_up_date_three")
+  callingDate        DateTime?        @map("calling_date")
+  inquiryDate        String?          @map("inquiry_date")
+  address            String?
+  fileName           String?          @map("file_name")
+  billingAddress     Json?            @map("billing_address")
+  shippingAddress    Json?            @map("shipping_address")
+  additionalContacts Json?            @map("additional_contacts")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  createdBy          User?            @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  assignments        LeadAssignment[]
+  permissions        LeadPermission[]
+  importRows         LeadImportRow[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([followUpDate])
+  @@index([phone])
+  @@index([contact])
+  @@index([category])
+  @@index([location])
+  @@index([state])
+  @@index([dataType])
+  @@map("leads")
+}
+
+model LeadAssignment {
+  id         String   @id @default(uuid()) @db.Uuid
+  leadId     String   @map("lead_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  canView    Boolean  @default(true) @map("can_view")
+  canUpdate  Boolean  @default(false) @map("can_update")
+  canDelete  Boolean  @default(false) @map("can_delete")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  assignedBy String?  @map("assigned_by") @db.Uuid
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, userId])
+  @@index([userId, assignedAt(sort: Desc)])
+  @@map("lead_assignments")
+}
+
+model LeadPermission {
+  id               String  @id @default(uuid()) @db.Uuid
+  legacyId         String? @unique @map("legacy_id")
+  leadId           String  @map("lead_id") @db.Uuid
+  userId           String  @map("user_id") @db.Uuid
+  legacyPermission String? @map("legacy_permission")
+  canView          Boolean @default(false) @map("can_view")
+  canUpdate        Boolean @default(false) @map("can_update")
+  canDelete        Boolean @default(false) @map("can_delete")
+  lead             Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, userId])
+  @@index([userId])
+  @@map("lead_permissions")
+}
+
+model LeadImportJob {
+  id              String          @id @default(uuid()) @db.Uuid
+  legacyId        String?         @unique @map("legacy_id")
+  userId          String?         @map("user_id") @db.Uuid
+  userName        String?         @map("user_name")
+  role            String?
+  fileName        String?         @map("file_name")
+  totalRows       Int             @default(0) @map("total_rows")
+  imported        Int             @default(0)
+  skipped         Int             @default(0)
+  duplicates      Int             @default(0)
+  errors          Int             @default(0)
+  status          ImportStatus    @default(IN_PROGRESS)
+  assignedToName  String?         @map("assigned_to_name")
+  reportTruncated Boolean         @default(false) @map("report_truncated")
+  retryKey        String          @unique @map("retry_key")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rows            LeadImportRow[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("lead_import_jobs")
+}
+
+model LeadImportRow {
+  id        String        @id @default(uuid()) @db.Uuid
+  jobId     String        @map("job_id") @db.Uuid
+  rowNumber Int           @map("row_number")
+  company   String?
+  status    String
+  reason    String        @default("")
+  leadId    String?       @map("lead_id") @db.Uuid
+  job       LeadImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  lead      Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, rowNumber])
+  @@map("lead_import_rows")
+}
+
+model Category {
+  id       String    @id @default(uuid()) @db.Uuid
+  legacyId String?   @unique @map("legacy_id")
+  code     String    @unique @map("cat_id")
+  name     String    @unique
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                 String          @id @default(uuid()) @db.Uuid
+  legacyId           String?         @unique @map("legacy_id")
+  code               String?         @unique @map("p_code")
+  secondaryCode      String?         @map("s_code")
+  name               String?         @map("p_name")
+  categoryId         String?         @map("category_id") @db.Uuid
+  legacyCategoryCode String?         @map("legacy_category_code")
+  imagePath          String?         @map("p_image")
+  description        String?         @map("p_description")
+  type               String?         @map("p_type")
+  color              String?         @map("p_color")
+  hsnCode            String?         @map("hsn_code")
+  gstRate            Decimal?        @map("gst_rate") @db.Decimal(6, 3)
+  dimension          String          @default("")
+  status             ProductStatus   @default(ACTIVE)
+  legacyData         Json?           @map("legacy_data")
+  archivedAt         DateTime?       @map("archived_at")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  category           Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  price              ProductPrice?
+  vendorProducts     VendorProduct[]
+
+  @@index([categoryId, updatedAt(sort: Desc)])
+  @@index([status, updatedAt(sort: Desc)])
+  @@index([name])
+  @@map("products")
+}
+
+model ProductPrice {
+  id            String   @id @default(uuid()) @db.Uuid
+  productId     String   @unique @map("product_id") @db.Uuid
+  priceCode     String?  @unique @map("price_code")
+  purchasePrice Decimal? @map("purchase_price") @db.Decimal(14, 2)
+  sales5To50    Decimal? @map("sales_5_50") @db.Decimal(14, 2)
+  sales50To100  Decimal? @map("sales_50_100") @db.Decimal(14, 2)
+  sales100Above Decimal? @map("sales_100_above") @db.Decimal(14, 2)
+  gstRate       Decimal? @map("gst_rate") @db.Decimal(6, 3)
+  basicAmount   Decimal? @map("basic_amount") @db.Decimal(14, 2)
+  netAmount     Decimal? @map("net_amount") @db.Decimal(14, 2)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_prices")
+}
+
+model Quotation {
+  id              String          @id @default(uuid()) @db.Uuid
+  legacyId        String?         @unique @map("legacy_id")
+  userId          String          @map("user_id") @db.Uuid
+  party           Json
+  bankDetails     Json?           @map("bank_details")
+  invoiceDetails  Json            @map("invoice_details")
+  summarySnapshot Json?           @map("summary_snapshot")
+  legacyData      Json?           @map("legacy_data")
+  notes           String?
+  terms           String?
+  subtotal        Decimal         @default(0) @db.Decimal(16, 2)
+  discount        Decimal         @default(0) @db.Decimal(16, 2)
+  tax             Decimal         @default(0) @db.Decimal(16, 2)
+  roundOff        Decimal         @default(0) @map("round_off") @db.Decimal(16, 2)
+  grandTotal      Decimal         @default(0) @map("grand_total") @db.Decimal(16, 2)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items           QuotationItem[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid()) @db.Uuid
+  quotationId String    @map("quotation_id") @db.Uuid
+  name        String
+  description String?
+  hsn         String?
+  image       String?
+  quantity    Decimal   @map("qty") @db.Decimal(14, 3)
+  price       Decimal   @db.Decimal(14, 2)
+  discount    Decimal   @default(0) @db.Decimal(8, 3)
+  tax         Decimal   @default(0) @db.Decimal(8, 3)
+  sortOrder   Int       @default(0) @map("sort_order")
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@index([quotationId, sortOrder])
+  @@map("quotation_items")
+}
+
+model VendorCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  legacyId    String?  @unique @map("legacy_id")
+  name        String   @unique
+  description String   @default("")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  vendors     Vendor[]
+
+  @@map("vendor_categories")
+}
+
+model Vendor {
+  id           String             @id @default(uuid()) @db.Uuid
+  legacyId     String?            @unique @map("legacy_id")
+  vendorCode   String             @unique @map("vendor_code")
+  name         String
+  legalName    String?            @map("legal_name")
+  email        String?
+  phone        String?
+  website      String?
+  gstin        String?
+  pan          String?
+  taxId        String?            @map("tax_id")
+  status       VendorStatus       @default(PENDING)
+  categoryId   String?            @map("category_id") @db.Uuid
+  ownerId      String?            @map("owner_id") @db.Uuid
+  createdById  String?            @map("created_by_id") @db.Uuid
+  paymentTerms String?            @map("payment_terms")
+  currency     String             @default("INR")
+  notes        String             @default("")
+  bankDetails  Json?              @map("bank_details")
+  customFields Json?              @map("custom_fields")
+  legacyData   Json?              @map("legacy_data")
+  archivedAt   DateTime?          @map("archived_at")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  category     VendorCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  owner        User?              @relation("VendorOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy    User?              @relation("VendorCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contacts     VendorContact[]
+  addresses    VendorAddress[]
+  products     VendorProduct[]
+  activities   VendorActivity[]
+  documents    VendorDocument[]
+  evaluations  VendorEvaluation[]
+
+  @@index([status, updatedAt(sort: Desc)])
+  @@index([categoryId, status])
+  @@index([ownerId])
+  @@index([name])
+  @@map("vendors")
+}
+
+model VendorContact {
+  id          String  @id @default(uuid()) @db.Uuid
+  legacyId    String? @map("legacy_id")
+  vendorId    String  @map("vendor_id") @db.Uuid
+  name        String
+  designation String?
+  email       String?
+  phone       String?
+  isPrimary   Boolean @default(false) @map("is_primary")
+  vendor      Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId, isPrimary])
+  @@map("vendor_contacts")
+}
+
+model VendorAddress {
+  id         String  @id @default(uuid()) @db.Uuid
+  legacyId   String? @map("legacy_id")
+  vendorId   String  @map("vendor_id") @db.Uuid
+  type       String  @default("Office")
+  line1      String?
+  line2      String?
+  city       String?
+  state      String?
+  postalCode String? @map("postal_code")
+  country    String?
+  isPrimary  Boolean @default(false) @map("is_primary")
+  vendor     Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId, isPrimary])
+  @@map("vendor_addresses")
+}
+
+model VendorProduct {
+  id              String            @id @default(uuid()) @db.Uuid
+  legacyId        String?           @unique @map("legacy_id")
+  vendorId        String            @map("vendor_id") @db.Uuid
+  productId       String            @map("product_id") @db.Uuid
+  vendorItemCode  String            @default("") @map("vendor_item_code")
+  purchasePrice   Decimal           @map("purchase_price") @db.Decimal(14, 2)
+  currency        String            @default("INR")
+  moq             Decimal           @default(1) @db.Decimal(14, 3)
+  leadTimeDays    Int               @default(0) @map("lead_time_days")
+  taxRate         Decimal           @default(0) @map("tax_rate") @db.Decimal(6, 3)
+  discountPercent Decimal           @default(0) @map("discount_percent") @db.Decimal(6, 3)
+  effectiveFrom   DateTime          @default(now()) @map("effective_from")
+  effectiveTo     DateTime?         @map("effective_to")
+  notes           String            @default("")
+  isActive        Boolean           @default(true) @map("is_active")
+  isPreferred     Boolean           @default(false) @map("is_preferred")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  vendor          Vendor            @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  priceTiers      VendorPriceTier[]
+
+  @@index([vendorId, isActive, effectiveFrom(sort: Desc)])
+  @@index([productId, isActive])
+  @@index([vendorId, productId, effectiveFrom])
+  @@map("vendor_products")
+}
+
+model VendorPriceTier {
+  id              String        @id @default(uuid()) @db.Uuid
+  vendorProductId String        @map("vendor_product_id") @db.Uuid
+  minQty          Decimal       @map("min_qty") @db.Decimal(14, 3)
+  maxQty          Decimal?      @map("max_qty") @db.Decimal(14, 3)
+  unitPrice       Decimal       @map("unit_price") @db.Decimal(14, 2)
+  discountPercent Decimal       @default(0) @map("discount_percent") @db.Decimal(6, 3)
+  vendorProduct   VendorProduct @relation(fields: [vendorProductId], references: [id], onDelete: Cascade)
+
+  @@index([vendorProductId, minQty])
+  @@map("vendor_price_tiers")
+}
+
+model VendorActivity {
+  id          String   @id @default(uuid()) @db.Uuid
+  legacyId    String?  @unique @map("legacy_id")
+  vendorId    String   @map("vendor_id") @db.Uuid
+  type        String
+  subject     String?
+  description String?
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([vendorId, occurredAt(sort: Desc)])
+  @@map("vendor_activities")
+}
+
+model VendorDocument {
+  id             String         @id @default(uuid()) @db.Uuid
+  legacyId       String?        @unique @map("legacy_id")
+  vendorId       String         @map("vendor_id") @db.Uuid
+  name           String
+  documentType   String         @default("Other") @map("document_type")
+  description    String         @default("")
+  storagePath    String         @map("storage_path")
+  originalName   String         @map("original_name")
+  mimeType       String         @default("") @map("mime_type")
+  sizeBytes      Int            @default(0) @map("size_bytes")
+  issueDate      DateTime?      @map("issue_date")
+  expiryDate     DateTime?      @map("expiry_date")
+  status         DocumentStatus @default(ACTIVE)
+  uploadedById   String?        @map("uploaded_by_id") @db.Uuid
+  uploadedByName String         @default("") @map("uploaded_by_name")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  vendor         Vendor         @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  uploadedBy     User?          @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([vendorId, status, createdAt(sort: Desc)])
+  @@index([expiryDate, status])
+  @@map("vendor_documents")
+}
+
+model VendorEvaluation {
+  id              String   @id @default(uuid()) @db.Uuid
+  legacyId        String?  @unique @map("legacy_id")
+  vendorId        String   @map("vendor_id") @db.Uuid
+  quality         Int
+  delivery        Int
+  leadTime        Int      @map("lead_time")
+  pricing         Int
+  responsiveness  Int
+  compliance      Int
+  overallScore    Decimal  @map("overall_score") @db.Decimal(3, 2)
+  evaluationDate  DateTime @default(now()) @map("evaluation_date")
+  periodLabel     String   @default("") @map("period_label")
+  comments        String   @default("")
+  evaluatedById   String?  @map("evaluated_by_id") @db.Uuid
+  evaluatedByName String   @default("") @map("evaluated_by_name")
+  createdAt       DateTime @default(now()) @map("created_at")
+  vendor          Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  evaluatedBy     User?    @relation(fields: [evaluatedById], references: [id], onDelete: SetNull)
+
+  @@index([vendorId, evaluationDate(sort: Desc)])
+  @@map("vendor_evaluations")
+}
+
+model VendorImportJob {
+  id              String            @id @default(uuid()) @db.Uuid
+  legacyId        String?           @unique @map("legacy_id")
+  userId          String?           @map("user_id") @db.Uuid
+  userName        String            @default("") @map("user_name")
+  fileName        String            @default("") @map("file_name")
+  storagePath     String            @default("") @map("storage_path")
+  headers         String[]
+  mapping         Json
+  totalRows       Int               @default(0) @map("total_rows")
+  imported        Int               @default(0)
+  duplicates      Int               @default(0)
+  errorCount      Int               @default(0) @map("error_count")
+  status          String            @default("uploaded")
+  reportTruncated Boolean           @default(false) @map("report_truncated")
+  retryKey        String            @unique @map("retry_key")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rows            VendorImportRow[]
+
+  @@index([createdAt(sort: Desc)])
+  @@map("vendor_import_jobs")
+}
+
+model VendorImportRow {
+  id         String          @id @default(uuid()) @db.Uuid
+  jobId      String          @map("job_id") @db.Uuid
+  rowNumber  Int             @map("row_number")
+  vendorName String          @default("") @map("vendor_name")
+  status     String
+  reason     String          @default("")
+  vendorId   String?         @map("vendor_id") @db.Uuid
+  job        VendorImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, rowNumber])
+  @@map("vendor_import_rows")
+}
+
+model BlogPost {
+  id        String        @id @default(uuid()) @db.Uuid
+  legacyId  String?       @unique @map("legacy_id")
+  title     String
+  slug      String        @unique
+  content   String
+  mediaPath String?       @map("media_path")
+  author    String        @default("Anonymous")
+  published Boolean       @default(true)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  comments  BlogComment[]
+
+  @@index([published, createdAt(sort: Desc)])
+  @@map("blog_posts")
+}
+
+model BlogComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  legacyId  String?  @unique @map("legacy_id")
+  blogId    String   @map("blog_id") @db.Uuid
+  userName  String   @default("Guest") @map("user_name")
+  text      String
+  approved  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  blog      BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId, createdAt])
+  @@map("blog_comments")
+}
+
+model CareerJob {
+  id               String              @id @default(uuid()) @db.Uuid
+  legacyId         String?             @unique @map("legacy_id")
+  title            String
+  department       String
+  location         String
+  employmentType   String              @map("employment_type")
+  workMode         String              @map("work_mode")
+  experience       String
+  salaryRange      String              @default("") @map("salary_range")
+  vacancies        Int
+  displayOrder     Int                 @default(1000) @map("display_order")
+  description      String
+  responsibilities String
+  qualifications   String
+  skills           String
+  benefits         String              @default("")
+  opensAt          DateTime?           @map("opens_at")
+  deadline         DateTime
+  status           JobStatus           @default(DRAFT)
+  isPublished      Boolean             @default(false) @map("is_published")
+  publishedAt      DateTime?           @map("published_at")
+  archivedAt       DateTime?           @map("archived_at")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  applications     CareerApplication[]
+
+  @@index([status, isPublished, deadline])
+  @@index([createdAt(sort: Desc)])
+  @@map("career_jobs")
+}
+
+model CareerApplication {
+  id                  String            @id @default(uuid()) @db.Uuid
+  legacyId            String?           @unique @map("legacy_id")
+  jobId               String            @map("job_id") @db.Uuid
+  jobTitle            String            @map("job_title")
+  department          String
+  fullName            String            @map("full_name")
+  email               String
+  phone               String
+  location            String
+  jobDesignation      String            @map("job_designation")
+  qualification       String
+  stream              String            @default("")
+  experience          String
+  keyResponsibilities String            @default("") @map("key_responsibilities")
+  currentCompany      String            @default("") @map("current_company")
+  designation         String            @default("")
+  expectedSalary      String            @default("") @map("expected_salary")
+  noticePeriod        String            @map("notice_period")
+  resumePath          String            @map("resume_path")
+  resumeFileName      String            @map("resume_file_name")
+  coverLetter         String            @default("") @map("cover_letter")
+  comments            String            @default("")
+  consent             Boolean
+  status              ApplicationStatus @default(NEW)
+  adminNotes          String            @default("") @map("admin_notes")
+  submissionKey       String?           @unique @map("submission_key")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+  job                 CareerJob         @relation(fields: [jobId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("career_applications")
+}
+
+// Careers admin workspace (/careers/admin). Mirrors the original Mongo models
+// CareerSettings, CareerSession and CareerLoginAttempt: a 6-digit PIN (bcrypt),
+// 30-minute sliding cookie sessions with CSRF tokens, and per-IP lockout.
+model CareerAdminSetting {
+  key       String   @id @default("admin")
+  pinHash   String   @map("pin_hash")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("career_admin_settings")
+}
+
+model CareerAdminSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  csrfHash  String   @map("csrf_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([expiresAt])
+  @@map("career_admin_sessions")
+}
+
+model CareerLoginAttempt {
+  ipHash      String    @id @map("ip_hash")
+  failures    Int       @default(0)
+  lockedUntil DateTime? @map("locked_until")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("career_login_attempts")
+}
+
+model ContactSubmission {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  ipHash    String?  @map("ip_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("contact_submissions")
+}
+
+model VisitorDay {
+  id       String         @id @default(uuid()) @db.Uuid
+  legacyId String?        @unique @map("legacy_id")
+  date     DateTime       @unique @db.Date
+  count    Int            @default(0)
+  visitors VisitorEvent[]
+
+  @@map("visitor_days")
+}
+
+model VisitorEvent {
+  id        String     @id @default(uuid()) @db.Uuid
+  legacyId  String?    @unique @map("legacy_id")
+  dayId     String     @map("day_id") @db.Uuid
+  ipHash    String     @map("ip_hash")
+  city      String?
+  region    String?
+  device    String?
+  createdAt DateTime   @default(now()) @map("created_at")
+  day       VisitorDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@index([dayId, ipHash])
+  @@map("visitor_events")
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  legacyId      String?  @unique @map("legacy_id")
+  userId        String?  @map("user_id") @db.Uuid
+  actorUserCode String?  @map("actor_user_code")
+  actorName     String?  @map("actor_name")
+  actorRole     String?  @map("actor_role")
+  action        String
+  details       Json?
+  occurredAt    DateTime @default(now()) @map("occurred_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("activity_logs")
+}
+
+model CompanySettings {
+  id              String   @id @default(uuid()) @db.Uuid
+  legacyId        String?  @unique @map("legacy_id")
+  key             String   @unique
+  companyName     String   @map("company_name")
+  address         String
+  gst             String
+  pan             String
+  bankDetails     Json     @map("bank_details")
+  invoicePrefix   String   @map("invoice_prefix")
+  invoiceStart    Int      @map("invoice_start")
+  quotationPrefix String   @map("quotation_prefix")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("company_settings")
+}
+
+model LegacyCounter {
+  id       String  @id @default(uuid()) @db.Uuid
+  legacyId String? @unique @map("legacy_id")
+  role     String  @unique
+  seq      Int
+
+  @@map("legacy_counters")
+}
+
+model MigrationCheckpoint {
+  id         String   @id @default(uuid()) @db.Uuid
+  collection String
+  legacyId   String   @map("legacy_id")
+  targetId   String?  @map("target_id")
+  sourceHash String   @map("source_hash")
+  status     String
+  error      String?
+  migratedAt DateTime @default(now()) @map("migrated_at")
+
+  @@unique([collection, legacyId])
+  @@index([collection, status])
+  @@map("migration_checkpoints")
+}
+
+model LegacyClientPermission {
+  id             String   @id @default(uuid()) @db.Uuid
+  legacyId       String   @unique @map("legacy_id")
+  legacyUserId   String   @map("legacy_user_id")
+  legacyClientId String   @map("legacy_client_id")
+  permission     String?
+  duplicatePair  Boolean  @default(false) @map("duplicate_pair")
+  userResolved   Boolean  @default(false) @map("user_resolved")
+  clientResolved Boolean  @default(false) @map("client_resolved")
+  sourceData     Json     @map("source_data")
+  migratedAt     DateTime @default(now()) @map("migrated_at")
+
+  @@index([legacyUserId, legacyClientId])
+  @@index([userResolved, clientResolved])
+  @@map("legacy_client_permissions")
+}
+
+model LegacyOrphanRecord {
+  id         String   @id @default(uuid()) @db.Uuid
+  collection String
+  legacyId   String   @map("legacy_id")
+  reason     String
+  sourceData Json     @map("source_data")
+  sourceHash String   @map("source_hash")
+  migratedAt DateTime @default(now()) @map("migrated_at")
+
+  @@unique([collection, legacyId])
+  @@index([collection, reason])
+  @@map("legacy_orphan_records")
+}

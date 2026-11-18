@@ -34,7 +34,7 @@ export type ProvisionReport = {
 };
 
 const randomPassword = () => `${randomBytes(24).toString("base64url")}aA1!`;
-const safeReason = (e: unknown) => String((e as { message?: string })?.message ?? e).replace(/\S+@\S+/g, "<email>").slice(0, 160);
+const safeReason = (e: unknown) => String((e as { message?: string })?.message ?? e).replace(/\S+@\S+/g, "<email>").replace(/\s+/g, " ").slice(-400);
 
 export async function provisionAuthUsers(
   db: Pick<PrismaClient, "user">,

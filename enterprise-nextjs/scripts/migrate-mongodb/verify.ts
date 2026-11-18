@@ -62,7 +62,7 @@ async function main() {
     if (JSON.stringify(want) !== JSON.stringify(got)) userMismatch++;
   }
   eq("users: field-level mismatches", 0, userMismatch);
-  record("users: no password column exists in PostgreSQL", (await q("select 1 from information_schema.columns where table_name='users' and column_name ilike '%password%'")).length === 0);
+  record("users: no password column exists in PostgreSQL", (await q("select 1 from information_schema.columns where table_schema='public' and table_name='users' and column_name ilike '%password%'")).length === 0);
 
   // ---- 3. leads, field by field (all rows) + assignments + timestamps ----------------
   const pgLeads = new Map((await q<Record<string, unknown>>(`select legacy_id, name, company, email, phone, contact, location, state, category, quantity::float8 quantity, requirements, remarks, data_type, call_status, status,

@@ -20,6 +20,17 @@ enum LeadStatus {
   LOST
 }
 
+enum LeadSource {
+  MANUAL
+  IMPORT
+  INDIAMART
+  TRADEINDIA
+  COACHINGPROMO
+  PRINTKEE
+  WEBHOOK
+  LEGACY
+}
+
 enum ImportStatus {
   IN_PROGRESS
   COMPLETED
@@ -100,42 +111,53 @@ model UserSequence {
 }
 
 model Lead {
-  id                 String           @id @default(uuid()) @db.Uuid
-  legacyId           String?          @unique @map("legacy_id")
-  createdById        String?          @map("created_by_id") @db.Uuid
+  id                 String              @id @default(uuid()) @db.Uuid
+  legacyId           String?             @unique @map("legacy_id")
+  createdById        String?             @map("created_by_id") @db.Uuid
   name               String?
   company            String?
   email              String?
-  countryCode        String?          @map("country_code")
+  countryCode        String?             @map("country_code")
   phone              String?
   contact            String?
   location           String?
   state              String?
   category           String?
-  quantity           Decimal?         @db.Decimal(14, 3)
+  quantity           Decimal?            @db.Decimal(14, 3)
   requirements       String?
   remarks            String?
-  dataType           String?          @map("data_type")
-  callStatus         String           @default("Not Called") @map("call_status")
-  status             String           @default("New Lead")
-  followUpDate       DateTime?        @map("follow_up_date")
-  followUpDateOne    DateTime?        @map("follow_up_date_one")
-  followUpDateTwo    DateTime?        @map("follow_up_date_two")
-  followUpDateThree  DateTime?        @map("follow_up_date_three")
-  callingDate        DateTime?        @map("calling_date")
-  inquiryDate        String?          @map("inquiry_date")
+  dataType           String?             @map("data_type")
+  callStatus         String              @default("Not Called") @map("call_status")
+  status             String              @default("New Lead")
+  followUpDate       DateTime?           @map("follow_up_date")
+  followUpDateOne    DateTime?           @map("follow_up_date_one")
+  followUpDateTwo    DateTime?           @map("follow_up_date_two")
+  followUpDateThree  DateTime?           @map("follow_up_date_three")
+  callingDate        DateTime?           @map("calling_date")
+  inquiryDate        String?             @map("inquiry_date")
   address            String?
-  fileName           String?          @map("file_name")
-  billingAddress     Json?            @map("billing_address")
-  shippingAddress    Json?            @map("shipping_address")
-  additionalContacts Json?            @map("additional_contacts")
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime         @updatedAt @map("updated_at")
-  createdBy          User?            @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  fileName           String?             @map("file_name")
+  source             LeadSource          @default(MANUAL)
+  sourceInferred     Boolean             @default(false) @map("source_inferred")
+  importJobId        String?             @map("import_job_id") @db.Uuid
+  externalKey        String?             @unique @map("external_key")
+  initialStatus      String?             @map("initial_status")
+  billingAddress     Json?               @map("billing_address")
+  shippingAddress    Json?               @map("shipping_address")
+  additionalContacts Json?               @map("additional_contacts")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  createdBy          User?               @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
   assignments        LeadAssignment[]
   permissions        LeadPermission[]
   importRows         LeadImportRow[]
+  importJob          LeadImportJob?      @relation("ImportedLeads", fields: [importJobId], references: [id], onDelete: SetNull)
+  statusHistory      LeadStatusHistory[]
 
+  @@index([createdAt(sort: Desc)])
+  @@index([source, createdAt(sort: Desc)])
+  @@index([importJobId])
+  @@index([fileName])
   @@index([status, createdAt(sort: Desc)])
   @@index([followUpDate])
   @@index([phone])
@@ -201,6 +223,7 @@ model LeadImportJob {
   updatedAt       DateTime        @updatedAt @map("updated_at")
   user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   rows            LeadImportRow[]
+  leads           Lead[]          @relation("ImportedLeads")
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("lead_import_jobs")
@@ -334,39 +357,51 @@ model VendorCategory {
 }
 
 model Vendor {
-  id           String             @id @default(uuid()) @db.Uuid
-  legacyId     String?            @unique @map("legacy_id")
-  vendorCode   String             @unique @map("vendor_code")
-  name         String
-  legalName    String?            @map("legal_name")
-  email        String?
-  phone        String?
-  website      String?
-  gstin        String?
-  pan          String?
-  taxId        String?            @map("tax_id")
-  status       VendorStatus       @default(PENDING)
-  categoryId   String?            @map("category_id") @db.Uuid
-  ownerId      String?            @map("owner_id") @db.Uuid
-  createdById  String?            @map("created_by_id") @db.Uuid
-  paymentTerms String?            @map("payment_terms")
-  currency     String             @default("INR")
-  notes        String             @default("")
-  bankDetails  Json?              @map("bank_details")
-  customFields Json?              @map("custom_fields")
-  legacyData   Json?              @map("legacy_data")
-  archivedAt   DateTime?          @map("archived_at")
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
-  category     VendorCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  owner        User?              @relation("VendorOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  createdBy    User?              @relation("VendorCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  contacts     VendorContact[]
-  addresses    VendorAddress[]
-  products     VendorProduct[]
-  activities   VendorActivity[]
-  documents    VendorDocument[]
-  evaluations  VendorEvaluation[]
+  id               String             @id @default(uuid()) @db.Uuid
+  legacyId         String?            @unique @map("legacy_id")
+  vendorCode       String             @unique @map("vendor_code")
+  name             String
+  legalName        String?            @map("legal_name")
+  email            String?
+  phone            String?
+  website          String?
+  gstin            String?
+  pan              String?
+  taxId            String?            @map("tax_id")
+  status           VendorStatus       @default(PENDING)
+  categoryId       String?            @map("category_id") @db.Uuid
+  ownerId          String?            @map("owner_id") @db.Uuid
+  createdById      String?            @map("created_by_id") @db.Uuid
+  paymentTerms     String?            @map("payment_terms")
+  currency         String             @default("INR")
+  notes            String             @default("")
+  bankDetails      Json?              @map("bank_details")
+  customFields     Json?              @map("custom_fields")
+  legacyData       Json?              @map("legacy_data")
+  archivedAt       DateTime?          @map("archived_at")
+  priority         String             @default("Medium")
+  vendorType       String?            @map("vendor_type")
+  industry         String?
+  description      String             @default("")
+  tags             String[]
+  cin              String?
+  taxRegistration  String?            @map("tax_registration")
+  logo             String?
+  lastActivityAt   DateTime?          @map("last_activity_at")
+  evaluationCount  Int                @default(0) @map("evaluation_count")
+  performanceScore Decimal?           @map("performance_score") @db.Decimal(3, 2)
+  lastEvaluatedAt  DateTime?          @map("last_evaluated_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  category         VendorCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  owner            User?              @relation("VendorOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy        User?              @relation("VendorCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  contacts         VendorContact[]
+  addresses        VendorAddress[]
+  products         VendorProduct[]
+  activities       VendorActivity[]
+  documents        VendorDocument[]
+  evaluations      VendorEvaluation[]
 
   @@index([status, updatedAt(sort: Desc)])
   @@index([categoryId, status])
@@ -814,4 +849,54 @@ model LegacyOrphanRecord {
   @@unique([collection, legacyId])
   @@index([collection, reason])
   @@map("legacy_orphan_records")
+}
+
+model LeadStatusHistory {
+  id             String   @id @default(uuid()) @db.Uuid
+  leadId         String   @map("lead_id") @db.Uuid
+  fromStatus     String?  @map("from_status")
+  toStatus       String   @map("to_status")
+  fromCallStatus String?  @map("from_call_status")
+  toCallStatus   String?  @map("to_call_status")
+  changedById    String?  @map("changed_by_id") @db.Uuid
+  changedAt      DateTime @default(now()) @map("changed_at")
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, changedAt(sort: Desc)])
+  @@map("lead_status_history")
+}
+
+model IntegrationRun {
+  id           String    @id @default(uuid()) @db.Uuid
+  provider     String
+  trigger      String    @default("cron")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  status       String    @default("RUNNING")
+  fetched      Int       @default(0)
+  created      Int       @default(0)
+  duplicates   Int       @default(0)
+  failed       Int       @default(0)
+  errorMessage String?   @map("error_message")
+  meta         Json?
+
+  @@index([provider, startedAt(sort: Desc)])
+  @@map("integration_runs")
+}
+
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @map("window_start")
+
+  @@index([windowStart])
+  @@map("rate_limit_buckets")
+}
+
+model InvoiceCounter {
+  prefix    String   @id
+  seq       Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("invoice_counters")
 }

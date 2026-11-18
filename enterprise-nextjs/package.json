@@ -21,7 +21,10 @@
     "migrate:mongo:docs": "tsx scripts/migrate-mongodb/report-docs.ts",
     "migrate:mongo:apply": "tsx scripts/migrate-mongodb/index.ts --apply",
     "migrate:mongo:marketing-files": "tsx scripts/migrate-mongodb/marketing-files.ts",
-    "sync:legacy-marketing": "node scripts/sync-legacy-marketing.mjs"
+    "sync:legacy-marketing": "node scripts/sync-legacy-marketing.mjs",
+    "test": "vitest run",
+    "test:db": "node scripts/test-db.mjs up",
+    "verify:schema": "node scripts/verify-schema.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -34,9 +37,12 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^7.0.3",
+    "exceljs": "^4.4.0",
     "lucide-react": "1.74.0",
     "lucide-react-legacy": "npm:lucide-react@0.525.0",
     "next": "16.4.6",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -52,15 +58,21 @@
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "^24.10.1",
+    "@types/pdfkit": "^0.17.7",
     "@types/pg": "^8.15.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "embedded-postgres": "^17.11.0-beta.19",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.4.6",
     "mongodb": "^7.0.0",
     "prisma": "7.10.1",
     "tailwindcss": "4.3.5",
     "tsx": "^4.20.6",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^4.0.15"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

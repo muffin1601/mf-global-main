@@ -52,28 +52,14 @@ const ContactUs = () => {
 
         <p className="contactus-detail">
           <strong>Phone:</strong>{' '}
-          <a href="tel:+918826753837" style={{ color: 'inherit', textDecoration: 'none' }}>
-            +91 8826753837
+          <a href="tel:+919599774728" style={{ color: 'inherit', textDecoration: 'none' }}>
+            +91 95997 74728
           </a>
         </p>
         <p className="contactus-detail">
-          <strong>📞 WhatsApp:</strong>{' '}
-          <a
-            href="https://wa.me/919266013059"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
-            +91 9266 013059
-          </a>
-        </p>
-        <p className="contactus-detail">
-          <strong>☎️ Landline:</strong>{' '}
-          <a
-            href="tel:011-47563596"
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
-            011-47563596
+          <strong>Phone:</strong>{' '}
+          <a href="tel:+918750708222" style={{ color: 'inherit', textDecoration: 'none' }}>
+            +91 87507 08222
           </a>
         </p>
 

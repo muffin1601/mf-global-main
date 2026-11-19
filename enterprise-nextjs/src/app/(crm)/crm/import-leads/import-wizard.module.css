@@ -1,9 +1,24 @@
-.drop { border: 2px dashed var(--border, #cbd5e1); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; }
-.dropActive { border-color: var(--primary, #2563eb); }
-.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 12px 0; }
-.sum { border: 1px solid var(--border, #e2e8f0); border-radius: 10px; padding: 12px; }
-.sum strong { display: block; font-size: 24px; }
-.track { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
-.fill { height: 100%; background: var(--primary, #2563eb); transition: width 0.2s; }
-.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+/* Lead import wizard. Token-only colours. */
 .stack { display: grid; gap: 16px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+
+.stepper { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; }
+.step { display: flex; align-items: center; gap: 8px; font-size: .8125rem; font-weight: 550; color: var(--text-3); }
+.stepNum { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--border-strong); border-radius: 50%; background: var(--surface); font-size: .75rem; font-weight: 650; }
+.step[data-state="current"] { color: var(--text); }
+.step[data-state="current"] .stepNum { border-color: var(--primary); background: var(--primary); color: var(--primary-contrast); }
+.step[data-state="done"] .stepNum { border-color: transparent; background: var(--success-soft); color: var(--success); }
+
+.drop { display: grid; justify-items: center; gap: 6px; padding: 40px 24px; border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); background: var(--surface-2); text-align: center; cursor: pointer; transition: border-color .12s ease, background-color .12s ease; }
+.drop:hover, .drop:focus-visible { border-color: var(--primary); background: var(--primary-soft); outline: none; }
+.dropActive { border-color: var(--primary); background: var(--primary-soft); }
+.dropIcon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 4px; border-radius: 12px; background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.sum { padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text-3); font-size: .8125rem; }
+.sum strong { display: block; margin-top: 2px; color: var(--text); font-size: 1.375rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.sum[data-tone="success"] { border-left-color: var(--success); }
+.sum[data-tone="danger"] { border-left-color: var(--danger); }
+.sum[data-tone="warning"] { border-left-color: var(--warning); }
+.track { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
+.fill { height: 100%; background: var(--primary); transition: width .2s; }

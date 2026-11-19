@@ -5,6 +5,7 @@ import type { Actor } from "@/server/actor";
 import { parseLeadFilter, type LeadPreset } from "@/server/leads/filter-schema";
 import { PRESET_META } from "@/server/leads/presets";
 import { getFilterMeta, listLeads, type MetaScope } from "@/server/leads/queries";
+import { todayIst } from "@/lib/time/ist";
 import { LeadsClient } from "./leads-client";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -33,14 +34,10 @@ export async function LeadListView({ preset, searchParams }: { preset: LeadPrese
 
   return (
     <main className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">{meta.eyebrow}</div>
-          <h1>{meta.title}</h1>
-          <p style={{ color: "var(--muted)" }}>{result.total} records</p>
-        </div>
-      </div>
-      <LeadsClient preset={preset} isAdmin={isAdmin} result={result} filter={filter} meta={filterMeta} users={users} />
+      <LeadsClient
+        preset={preset} title={meta.title} isAdmin={isAdmin} result={result} filter={filter} meta={filterMeta} users={users}
+        today={todayIst()} openCreate={first(sp.create) === "lead"}
+      />
     </main>
   );
 }

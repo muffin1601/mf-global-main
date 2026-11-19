@@ -17,6 +17,7 @@ import { dateInput, fmtDate, fmtDateTime, type Perms } from "../_lib";
 import { ActionButton } from "./confirm-button";
 import { ModalForm, type Field } from "./modal-form";
 import s from "./vendors.module.css";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type Vendor = Awaited<ReturnType<typeof getVendor>>;
 const dash = (v: unknown) => (v === null || v === undefined || v === "" ? "-" : String(v));
@@ -97,7 +98,7 @@ export function ContactsTab({ vid, items, perms }: { vid: string; items: Awaited
         <tbody>
           {items.map((c) => (
             <tr key={c.id}>
-              <td><strong>{c.name}</strong> {c.isPrimary ? <span className="badge">Primary</span> : null}</td><td>{dash(c.designation)}</td><td>{dash(c.email)}</td><td>{dash(c.phone)}</td>
+              <td><strong>{c.name}</strong> {c.isPrimary ? <StatusBadge value="Primary" tone="primary" dot={false} /> : null}</td><td>{dash(c.designation)}</td><td>{dash(c.email)}</td><td>{dash(c.phone)}</td>
               <td>{perms.edit ? <div className={s.rowActions}>
                 {!c.isPrimary ? <ActionButton label="Make primary" action={primaryContactAction.bind(null, vid, c.id)} /> : null}
                 <ModalForm trigger="Edit" triggerClass={s.linkBtn} title={`Edit ${c.name}`} fields={contactFields(c)} action={updateContactAction.bind(null, vid, c.id)} />
@@ -127,7 +128,7 @@ export function AddressesTab({ vid, items, perms }: { vid: string; items: Awaite
       <div className={s.cardsGrid}>
         {items.map((a) => (
           <div key={a.id} className={s.itemCard}>
-            <h4>{a.type} {a.isPrimary ? <span className="badge">Primary</span> : null}</h4>
+            <h4>{a.type} {a.isPrimary ? <StatusBadge value="Primary" tone="primary" dot={false} /> : null}</h4>
             <p style={{ margin: ".25rem 0" }}>{[a.line1, a.line2].filter(Boolean).join(", ")}<br />{[a.city, a.state, a.postalCode].filter(Boolean).join(", ")}<br />{dash(a.country)}</p>
             {perms.edit ? <div className={s.rowActions} style={{ justifyContent: "flex-start" }}>
               {!a.isPrimary ? <ActionButton label="Make primary" action={primaryAddressAction.bind(null, vid, a.id)} /> : null}
@@ -177,7 +178,7 @@ export function ProductsTab({ vid, items, products, perms }: { vid: string; item
         <tbody>
           {items.map((p) => (
             <tr key={p.id}>
-              <td><strong>{p.product.name ?? p.product.code}</strong><div className={s.muted}>{p.product.code}</div>{p.isPreferred ? <span className="badge">Preferred</span> : null} {!p.isActive ? <span className={`badge ${s.badgeNeutral}`}>Inactive</span> : null}</td>
+              <td><strong>{p.product.name ?? p.product.code}</strong><div className={s.muted}>{p.product.code}</div>{p.isPreferred ? <StatusBadge value="Preferred" tone="primary" dot={false} /> : null} {!p.isActive ? <StatusBadge value="Inactive" /> : null}</td>
               <td>{dash(p.vendorItemCode)}</td><td>{p.currency} {p.purchasePrice.toFixed(2)}{p.discountPercent ? <div className={s.muted}>-{p.discountPercent}%</div> : null}</td><td>{p.moq}</td><td>{p.leadTimeDays} d</td><td>{p.taxRate}%</td>
               <td>{fmtDate(p.effectiveFrom)} to {p.effectiveTo ? fmtDate(p.effectiveTo) : "open"}</td>
               <td>{p.priceTiers.length ? p.priceTiers.map((t) => <div key={t.id}>{t.minQty}-{t.maxQty ?? "+"}: {t.unitPrice.toFixed(2)}</div>) : "-"}</td>
@@ -201,7 +202,7 @@ const docFields = (d?: Doc): Field[] => [
   { name: "issueDate", kind: "date", label: "Issue date", defaultValue: dateInput(d?.issueDate) }, { name: "expiryDate", kind: "date", label: "Expiry date", defaultValue: dateInput(d?.expiryDate) },
   { name: "description", kind: "textarea", label: "Description", defaultValue: d?.description },
 ];
-const expiryBadge = (d: Doc) => d.expiryState === "expired" ? <span className={`badge ${s.badgeBad}`}>Expired</span> : d.expiryState === "expiring" ? <span className={`badge ${s.badgeWarn}`}>Expires in {d.daysToExpiry} d</span> : d.expiryState === "valid" ? <span className="badge">Valid</span> : <span className={`badge ${s.badgeNeutral}`}>No expiry</span>;
+const expiryBadge = (d: Doc) => d.expiryState === "expired" ? <StatusBadge value="Expired" /> : d.expiryState === "expiring" ? <StatusBadge value="Expiring" tone="warning">Expires in {d.daysToExpiry} d</StatusBadge> : d.expiryState === "valid" ? <StatusBadge value="Valid" /> : <StatusBadge value="No expiry" tone="neutral" />;
 const size = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 export function DocumentsTab({ vid, docs, archived, perms }: { vid: string; docs: Doc[]; archived: boolean; perms: Perms }) {
@@ -253,7 +254,7 @@ export function ActivitiesTab({ vid, items, perms, actorId, isAdmin }: { vid: st
       <ul className={s.timeline}>
         {items.map((a) => (
           <li key={a.id}>
-            <div className={s.timelineHead}><span><span className="badge">{a.type}</span> {a.subject ? <strong>{a.subject}</strong> : null}</span><span>{fmtDate(a.occurredAt)} · {a.createdBy?.name ?? "Unknown"}</span></div>
+            <div className={s.timelineHead}><span><StatusBadge value={a.type} tone="info" dot={false} /> {a.subject ? <strong>{a.subject}</strong> : null}</span><span>{fmtDate(a.occurredAt)} · {a.createdBy?.name ?? "Unknown"}</span></div>
             <p style={{ margin: ".5rem 0 0", whiteSpace: "pre-wrap" }}>{a.description}</p>
             {perms.edit && (isAdmin || a.createdById === actorId) ? <div className={s.rowActions} style={{ justifyContent: "flex-start", marginTop: ".5rem" }}>
               <ModalForm trigger="Edit" triggerClass={s.linkBtn} title="Edit activity" fields={activityFields(a)} action={updateActivityAction.bind(null, vid, a.id)} />

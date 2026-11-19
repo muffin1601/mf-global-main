@@ -1,3 +1,17 @@
 import Link from "next/link";
 import { ForgotPasswordForm } from "./reset-request-form";
-export default function ForgotPasswordPage(){return <main className="auth-wrap"><section className="auth-card"><Link className="brand" href="/"><span className="brand-mark">MF</span><span>MF Global Services</span></Link><h1 style={{fontSize:"2rem",marginTop:"2rem"}}>Reset your password</h1><p className="lead" style={{fontSize:"1rem"}}>We will send a secure recovery link to your work email.</p><ForgotPasswordForm/><Link href="/crm/login" style={{display:"block",marginTop:18,fontSize:14,color:"var(--brand)"}}>Return to sign in</Link></section></main>}
+import { BrandLogo } from "@/components/ui/brand-logo";
+
+export default function ForgotPasswordPage() {
+  return (
+    <main className="auth-wrap">
+      <section className="auth-card">
+        <Link className="brand" href="/"><BrandLogo size={36} /><span className="brand-text"><strong>MF Global Services</strong><span>Enterprise CRM</span></span></Link>
+        <h1>Reset your password</h1>
+        <p className="lead">We will email a secure recovery link to your work address.</p>
+        <ForgotPasswordForm />
+        <p className="auth-foot"><Link href="/crm/login">Return to sign in</Link></p>
+      </section>
+    </main>
+  );
+}

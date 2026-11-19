@@ -6,6 +6,7 @@ import { createCategoryAction, deleteCategoryAction, updateCategoryAction } from
 import { ModalForm, type Field } from "../_components/modal-form";
 import s from "../_components/vendors.module.css";
 import { getActor, permsOf } from "../_lib";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Vendor categories" };
@@ -33,7 +34,7 @@ export default async function VendorCategoriesPage() {
                   <td><strong>{c.name}</strong></td>
                   <td>{c.description || "-"}</td>
                   <td><Link href={`/crm/vendors?category=${c.id}` as Route} className={s.linkBtn}>{c.vendorCount}</Link></td>
-                  <td><span className={`badge ${c.isActive ? "" : s.badgeNeutral}`}>{c.isActive ? "Active" : "Inactive"}</span></td>
+                  <td><StatusBadge value={c.isActive ? "Active" : "Inactive"} /></td>
                   <td>
                     {perms.categories ? (
                       <div className={s.rowActions}>

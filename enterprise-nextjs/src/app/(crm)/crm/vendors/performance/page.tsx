@@ -6,6 +6,7 @@ import { leaderboard } from "@/server/vendors/performance";
 import { STATUS_LABEL } from "@/server/vendors/fields";
 import s from "../_components/vendors.module.css";
 import { fmtDate, getActor, one, type SP } from "../_lib";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Vendor performance" };
@@ -37,7 +38,7 @@ export default async function VendorPerformancePage({ searchParams }: { searchPa
                   <td><Link className={s.linkBtn} href={`/crm/vendors/${v.id}?tab=performance` as Route}>{v.name}</Link></td>
                   <td className={s.mono}>{v.vendorCode}</td>
                   <td>{v.category?.name ?? "-"}</td>
-                  <td><span className="badge">{STATUS_LABEL[v.status] ?? v.status}</span></td>
+                  <td><StatusBadge value={v.status}>{STATUS_LABEL[v.status] ?? v.status}</StatusBadge></td>
                   <td><strong>{v.performanceScore?.toFixed(2)}</strong></td>
                   <td>{v.performanceBand}</td>
                   <td>{v.evaluationCount}</td>

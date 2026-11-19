@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { RECOVERY_COOKIE } from "@/lib/security/redirect";
 import { ResetPasswordForm } from "./reset-password-form";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export default async function ResetPasswordPage() {
   const supabase = await createSupabaseServerClient();
@@ -14,8 +15,9 @@ export default async function ResetPasswordPage() {
   return (
     <main className="auth-wrap">
       <section className="auth-card">
-        <Link className="brand" href="/"><span className="brand-mark">MF</span><span>MF Global Services</span></Link>
-        <h1 style={{ fontSize: "2rem", marginTop: "2rem" }}>Choose a new password</h1>
+        <Link className="brand" href="/"><BrandLogo size={36} /><span className="brand-text"><strong>MF Global Services</strong><span>Enterprise CRM</span></span></Link>
+        <h1>Choose a new password</h1>
+        <p className="lead">Use at least 12 characters.</p>
         <ResetPasswordForm />
       </section>
     </main>

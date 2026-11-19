@@ -7,6 +7,7 @@ import { MAX_DOCUMENT_BYTES } from "@/server/vendors/documents";
 import { MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, TEMPLATE_HEADERS } from "@/server/vendors/import-export";
 import s from "../_components/vendors.module.css";
 import { getActor, permsOf } from "../_lib";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Vendor settings" };
@@ -45,7 +46,7 @@ export default async function VendorSettingsPage() {
                 <tr key={p}>
                   <td className={s.mono}>{p}</td><td>{DESCRIPTIONS[p]}</td>
                   <td>{hasVendorPermission("ADMIN", p) ? "Yes" : "No"}</td><td>{hasVendorPermission("USER", p) ? "Yes" : "No"}</td>
-                  <td><span className={`badge ${hasVendorPermission(actor.role, p) ? "" : s.badgeNeutral}`}>{hasVendorPermission(actor.role, p) ? "Allowed" : "Not allowed"}</span></td>
+                  <td><StatusBadge value={hasVendorPermission(actor.role, p) ? "Allowed" : "Not allowed"} tone={hasVendorPermission(actor.role, p) ? "success" : "neutral"} /></td>
                 </tr>
               ))}
             </tbody>

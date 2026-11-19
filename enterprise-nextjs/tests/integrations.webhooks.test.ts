@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { POST as coachinpromo } from "@/app/api/coachinpromo/capture-lead/route";
 import { POST as printkee } from "@/app/api/printkee/capture-lead/route";
+import { POST as giftaguru } from "@/app/api/giftaguru/capture-lead/route";
 import { prisma, resetDb } from "./helpers/db";
 
 const KEY = "test-webhook-key-123456";
@@ -47,6 +48,21 @@ describe("webhooks: coachinpromo / printkee", () => {
     expect(res.status).toBe(201);
     const lead = await prisma.lead.findFirstOrThrow({ where: { source: "PRINTKEE" } });
     expect(lead).toMatchObject({ company: "Beta", requirements: "PK-9", dataType: "WebPortals" });
+  });
+
+  it("giftaguru: same payload as printkee, recorded as its own GIFTAGURU source", async () => {
+    const res = await call(giftaguru, { name: "C", company: "Gamma", productCode: "GG-1", requirements: "Hampers", phone: "9876543212" });
+    expect(res.status).toBe(201);
+    const { data } = await res.json();
+    const lead = await prisma.lead.findUniqueOrThrow({ where: { id: data.id } });
+    expect(lead).toMatchObject({ company: "Gamma", requirements: "Hampers", source: "GIFTAGURU", dataType: "WebPortals", status: "New Lead" });
+    expect(await prisma.lead.count({ where: { source: "PRINTKEE" } })).toBe(0);
+  });
+
+  it("giftaguru: requires the same API key", async () => {
+    expect((await call(giftaguru, { phone: "9876543213" }, null)).status).toBe(403);
+    expect((await call(giftaguru, { phone: "9876543213" }, "wrong")).status).toBe(403);
+    expect(await prisma.lead.count()).toBe(0);
   });
 
   it("validates the body", async () => {

@@ -23,12 +23,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   ]);
   return (
     <main className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">Catalogue</div>
-          <h1>Products</h1>
-        </div>
-      </div>
       <CatalogClient
         isAdmin={user.role === "ADMIN"}
         products={result.products}
@@ -37,6 +31,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         page={result.page}
         pages={result.pages}
         filters={filters}
+        openCreate={one(sp.create) === "product"}
       />
     </main>
   );

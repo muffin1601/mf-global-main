@@ -15,6 +15,7 @@ import { ActivitiesTab, AddressesTab, AuditTab, ContactsTab, DocumentsTab, Overv
 import { vendorFields } from "../_components/vendor-fields";
 import s from "../_components/vendors.module.css";
 import { getActor, one, orNotFound, permsOf, type SP } from "../_lib";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Vendor profile" };
@@ -74,9 +75,9 @@ export default async function VendorProfilePage({ params, searchParams }: { para
           <div className="eyebrow"><Link href={"/crm/vendors" as Route}>Vendors</Link> / <span className={s.mono}>{vendor.vendorCode}</span></div>
           <h1>{vendor.name}</h1>
           <div className={s.toolbarGroup} style={{ marginTop: ".5rem" }}>
-            <span className="badge">{archived ? "Archived" : STATUS_LABEL[vendor.status] ?? vendor.status}</span>
-            <span className={`badge ${s.badgeInfo}`}>{vendor.priority} priority</span>
-            {vendor.category ? <span className={`badge ${s.badgeNeutral}`}>{vendor.category.name}</span> : null}
+            <StatusBadge value={archived ? "Archived" : vendor.status}>{archived ? "Archived" : STATUS_LABEL[vendor.status] ?? vendor.status}</StatusBadge>
+            <StatusBadge value={vendor.priority} dot={false}>{vendor.priority} priority</StatusBadge>
+            {vendor.category ? <StatusBadge value={vendor.category.name} tone="neutral" dot={false} /> : null}
           </div>
         </div>
         <div className={s.toolbarGroup}>

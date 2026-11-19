@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { commitImportAction, validateImportAction } from "../actions";
 import s from "./vendors.module.css";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type Upload = { jobId: string; fileName: string; headers: string[]; mapping: Record<string, string>; mappableFields: string[]; totalRows: number; sampleRows: Record<string, string>[] };
 type Report = { rowNumber: number; vendorName: string; status: string; reason: string };
@@ -111,7 +112,7 @@ export function ImportWizard() {
           </section>
           <section className="table-card"><div className={s.scroll}><table>
             <thead><tr><th>Row</th><th>Vendor</th><th>Result</th><th>Reason</th></tr></thead>
-            <tbody>{validation.preview.map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.vendorName || "-"}</td><td><span className={`badge ${r.status === "Ready" ? "" : r.status === "Error" ? s.badgeBad : s.badgeWarn}`}>{r.status}</span></td><td>{r.reason}</td></tr>)}</tbody>
+            <tbody>{validation.preview.map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.vendorName || "-"}</td><td><StatusBadge value={r.status} tone={r.status === "Ready" ? "success" : r.status === "Error" ? "danger" : "warning"} /></td><td>{r.reason}</td></tr>)}</tbody>
           </table></div></section>
           {validation.previewTruncated ? <p className={s.help}>Showing the first 50 rows. The full per-row report is available after the import.</p> : null}
           <p>

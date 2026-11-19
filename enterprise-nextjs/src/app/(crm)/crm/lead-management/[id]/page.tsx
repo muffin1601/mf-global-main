@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { LeadDetailBody } from "@/components/leads/lead-detail-body";
+import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { HttpError } from "@/server/errors";
 import { getLeadDetail } from "@/server/leads/queries";
@@ -18,16 +20,16 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
     if (error instanceof HttpError && error.status === 404) notFound();
     throw error;
   }
+  const back = user.role === "ADMIN" ? "/crm/lead-management" : "/crm/my-leads";
   return (
     <main className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">Pipeline</div>
-          <h1>{lead.name || "Lead"}</h1>
-        </div>
-        <Link className="button secondary" href="/crm/lead-management">Back to leads</Link>
-      </div>
-      <section className="card"><LeadDetailBody lead={lead} /></section>
+      <PageHeader
+        eyebrow="Lead"
+        title={lead.name || "Unnamed lead"}
+        description={[lead.company, lead.location, lead.state].filter(Boolean).join(" · ") || undefined}
+        actions={<Link className="button secondary" href={back}><ArrowLeft size={15} aria-hidden="true" />Back to leads</Link>}
+      />
+      <section className="card" style={{ maxWidth: 1100 }}><LeadDetailBody lead={lead} /></section>
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import {
   addContactAction, checkDuplicateAction, createLeadAction, deleteContactAction, updateLeadAction,
   type AddressValues, type LeadFormValues,
@@ -13,6 +14,7 @@ import { fmtDate } from "./format";
 import styles from "./leads.module.css";
 import { Modal } from "./modal";
 import { useLeadDetail } from "./use-lead-detail";
+import { LeadDetailSkeleton } from "./lead-detail-body";
 
 export type UserOption = { id: string; name: string };
 
@@ -45,7 +47,7 @@ export function EditLeadModal({ id, ...props }: Props & { id: string }) {
   if (loading || error || !lead) {
     return (
       <Modal title="Edit lead" onClose={props.onClose}>
-        {error ? <p className="error">{error}</p> : <p>Loading…</p>}
+        {error ? <p className="error" role="alert">{error}</p> : <LeadDetailSkeleton />}
       </Modal>
     );
   }
@@ -92,25 +94,32 @@ function LeadFormInner({ mode, initial, lead, reload, isAdmin, users, onClose, o
 
   return (
     <Modal
-      title={editing ? "Edit lead" : "Add lead"} onClose={onClose} wide
+      title={editing ? "Edit lead" : "Add lead"}
+      description={editing ? [lead?.name, lead?.company].filter(Boolean).join(" · ") || undefined : "A phone or contact number is required; every other field is optional."}
+      onClose={onClose} wide busy={pending}
       footer={
         <>
-          <button type="button" className="button secondary" onClick={onClose}>Cancel</button>
+          <button type="button" className="button secondary" onClick={onClose} disabled={pending}>Cancel</button>
           <button type="submit" form="lead-form" className="button" disabled={pending}>{pending ? "Saving…" : editing ? "Save changes" : "Create lead"}</button>
         </>
       }
     >
-      <form id="lead-form" onSubmit={submit} className="form-grid">
-        {dup ? <div className={styles.warn} role="alert">{dup}</div> : null}
+      <form id="lead-form" onSubmit={submit}>
+        {dup ? <div className={styles.warn} role="alert" style={{ marginBottom: 14 }}><AlertTriangle size={15} aria-hidden="true" />{dup}</div> : null}
+        <h3 className={styles.section}>Contact details</h3>
         <div className={styles.grid2}>
-          <div className="field"><label htmlFor="lf-name">Name</label><input id="lf-name" {...text("name")} /></div>
-          <div className="field"><label htmlFor="lf-company">Company</label><input id="lf-company" {...text("company")} disabled={identityLocked} /></div>
-          <div className="field"><label htmlFor="lf-email">Email</label><input id="lf-email" type="email" {...text("email")} /></div>
-          <div className="field"><label htmlFor="lf-cc">Country code</label><input id="lf-cc" {...text("countryCode")} placeholder="+91" /></div>
-          <div className="field"><label htmlFor="lf-phone">Phone</label><input id="lf-phone" {...text("phone")} disabled={identityLocked} onBlur={() => checkDup("phone")} /></div>
-          <div className="field"><label htmlFor="lf-contact">Contact</label><input id="lf-contact" {...text("contact")} disabled={identityLocked} onBlur={() => checkDup("contact")} /></div>
-          <div className="field"><label htmlFor="lf-location">Location</label><input id="lf-location" {...text("location")} /></div>
-          <div className="field"><label htmlFor="lf-state">State</label><input id="lf-state" {...text("state")} /></div>
+          <div className="field"><label htmlFor="lf-name">Name</label><input id="lf-name" autoComplete="off" {...text("name")} /></div>
+          <div className="field"><label htmlFor="lf-company">Company</label><input id="lf-company" autoComplete="off" {...text("company")} disabled={identityLocked} /></div>
+          <div className="field"><label htmlFor="lf-email">Email</label><input id="lf-email" type="email" autoComplete="off" {...text("email")} /></div>
+          <div className="field"><label htmlFor="lf-cc">Country code</label><input id="lf-cc" {...text("countryCode")} placeholder="+91" inputMode="tel" /></div>
+          <div className="field"><label htmlFor="lf-phone">Phone<span className="req" aria-hidden="true">*</span></label><input id="lf-phone" inputMode="tel" autoComplete="off" {...text("phone")} disabled={identityLocked} onBlur={() => checkDup("phone")} aria-describedby="lf-phone-hint" /><span id="lf-phone-hint" className="hint">Phone or contact is required.</span></div>
+          <div className="field"><label htmlFor="lf-contact">Contact</label><input id="lf-contact" inputMode="tel" autoComplete="off" {...text("contact")} disabled={identityLocked} onBlur={() => checkDup("contact")} /></div>
+          <div className={`field ${styles.span}`}><label htmlFor="lf-addr">Address</label><input id="lf-addr" {...text("address")} /></div>
+        </div>
+        {identityLocked ? <p className="hint" style={{ marginTop: 8 }}>Phone, company and contact can only be changed by an administrator.</p> : null}
+
+        <h3 className={styles.section}>Classification</h3>
+        <div className={styles.grid2}>
           <div className="field"><label htmlFor="lf-category">Category</label><input id="lf-category" {...text("category")} /></div>
           <div className="field">
             <label htmlFor="lf-dt">Data type</label>
@@ -119,7 +128,23 @@ function LeadFormInner({ mode, initial, lead, reload, isAdmin, users, onClose, o
               {[...DATA_TYPES, ...(v.dataType && !(DATA_TYPES as readonly string[]).includes(v.dataType) ? [v.dataType] : [])].map((d) => <option key={d}>{d}</option>)}
             </select>
           </div>
-          <div className="field"><label htmlFor="lf-qty">Quantity</label><input id="lf-qty" type="number" min="0" step="any" {...text("quantity")} /></div>
+          <div className="field"><label htmlFor="lf-location">Location</label><input id="lf-location" {...text("location")} /></div>
+          <div className="field"><label htmlFor="lf-state">State</label><input id="lf-state" {...text("state")} /></div>
+          <div className="field"><label htmlFor="lf-qty">Quantity</label><input id="lf-qty" type="number" min="0" step="any" inputMode="decimal" {...text("quantity")} /></div>
+          {!editing && isAdmin ? (
+            <div className="field">
+              <label htmlFor="lf-assign">Assign to</label>
+              <select id="lf-assign" value={v.assignedUserId} onChange={(e) => set("assignedUserId", e.target.value)}>
+                <option value="">Unassigned</option>
+                {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+          ) : null}
+        </div>
+        {!editing && !isAdmin ? <p className="hint" style={{ marginTop: 8 }}>This lead will be assigned to you.</p> : null}
+
+        <h3 className={styles.section}>Status and follow-up</h3>
+        <div className={styles.grid2}>
           <div className="field">
             <label htmlFor="lf-status">Status</label>
             <select id="lf-status" value={v.status} onChange={(e) => set("status", e.target.value)}>{LEAD_STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
@@ -130,28 +155,21 @@ function LeadFormInner({ mode, initial, lead, reload, isAdmin, users, onClose, o
           </div>
           <div className="field"><label htmlFor="lf-fu">Follow-up date</label><input id="lf-fu" type="date" value={v.followUpDate ?? ""} onChange={(e) => set("followUpDate", e.target.value)} /></div>
           <div className="field"><label htmlFor="lf-cd">Calling date</label><input id="lf-cd" type="date" value={v.callingDate ?? ""} onChange={(e) => set("callingDate", e.target.value)} /></div>
-          {!editing && isAdmin ? (
-            <div className="field">
-              <label htmlFor="lf-assign">Assign to</label>
-              <select id="lf-assign" value={v.assignedUserId} onChange={(e) => set("assignedUserId", e.target.value)}>
-                <option value="">Unassigned</option>
-                {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-            </div>
-          ) : null}
-          <div className={`field ${styles.span}`}><label htmlFor="lf-addr">Address</label><input id="lf-addr" {...text("address")} /></div>
+        </div>
+        {editing ? (
+          <p className="hint" style={{ marginTop: 8 }}>
+            Saving a new follow-up date fills slot 1, 2 and 3 in turn, then replaces the oldest. Current slots: {fmtDate(lead?.followUps.one)} · {fmtDate(lead?.followUps.two)} · {fmtDate(lead?.followUps.three)}
+          </p>
+        ) : null}
+
+        <h3 className={styles.section}>Notes</h3>
+        <div className={styles.grid2}>
           <div className={`field ${styles.span}`}><label htmlFor="lf-req">Requirements</label><textarea id="lf-req" rows={2} value={v.requirements} onChange={(e) => set("requirements", e.target.value)} /></div>
           <div className={`field ${styles.span}`}><label htmlFor="lf-rem">Remarks</label><textarea id="lf-rem" rows={2} value={v.remarks} onChange={(e) => set("remarks", e.target.value)} /></div>
         </div>
-        {identityLocked ? <p className={styles.muted}>Phone, company and contact can only be changed by an administrator.</p> : null}
-        {!editing && !isAdmin ? <p className={styles.muted}>This lead will be assigned to you.</p> : null}
 
         {editing ? (
           <>
-            <h3 className={styles.section}>Follow-up history</h3>
-            <p className={styles.muted}>
-              Saving a new follow-up date fills slot 1, 2 and 3 in turn, then replaces the oldest. Slots: {fmtDate(lead?.followUps.one)} · {fmtDate(lead?.followUps.two)} · {fmtDate(lead?.followUps.three)}
-            </p>
             <h3 className={styles.section}>Billing address</h3>
             <AddressFields value={v.billing} onChange={(k, val) => setAddr("billing", k, val)} idp="bill" />
             <h3 className={styles.section}>Shipping address</h3>
@@ -196,11 +214,12 @@ function ContactsEditor({ lead, reload }: { lead: LeadDetail; reload: () => void
       <h3 className={styles.section}>Additional contacts</h3>
       {lead.additionalContacts.length ? (
         <table className={styles.miniTable}>
+          <thead><tr><th>Name</th><th>Contact</th><th>Details</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {lead.additionalContacts.map((c, i) => (
               <tr key={i}>
                 <td>{c.name || "—"}</td><td>{c.contact}</td><td>{c.details || "—"}</td>
-                <td><button type="button" className={`button secondary ${styles.small} ${styles.danger}`} disabled={pending} onClick={() => remove(i)}>Delete</button></td>
+                <td style={{ width: 1 }}><button type="button" className={`icon-btn ${styles.dangerIcon}`} disabled={pending} onClick={() => remove(i)} aria-label={`Delete contact ${c.name || c.contact}`} title="Delete contact"><Trash2 size={15} /></button></td>
               </tr>
             ))}
           </tbody>
@@ -208,10 +227,10 @@ function ContactsEditor({ lead, reload }: { lead: LeadDetail; reload: () => void
       ) : <p className={styles.muted}>No additional contacts.</p>}
       <div className={styles.grid2} style={{ marginTop: ".75rem" }}>
         <div className="field"><label htmlFor="ac-name">Name</label><input id="ac-name" value={name} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="field"><label htmlFor="ac-contact">Contact</label><input id="ac-contact" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
+        <div className="field"><label htmlFor="ac-contact">Contact<span className="req" aria-hidden="true">*</span></label><input id="ac-contact" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
         <div className="field"><label htmlFor="ac-details">Details</label><input id="ac-details" value={details} onChange={(e) => setDetails(e.target.value)} /></div>
       </div>
-      <button type="button" className={`button secondary ${styles.small}`} style={{ marginTop: ".6rem" }} disabled={pending || !contact.trim()} onClick={add}>Add contact</button>
+      <button type="button" className="button secondary small" style={{ marginTop: 10 }} disabled={pending || !contact.trim()} onClick={add}><Plus size={14} aria-hidden="true" />Add contact</button>
     </>
   );
 }

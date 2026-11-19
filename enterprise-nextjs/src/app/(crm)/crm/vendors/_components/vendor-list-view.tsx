@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import type { Route } from "next";
 import { getActor, one, permsOf, type SP } from "../_lib";
 import { STATUS_LABEL, VENDOR_PRIORITIES, VENDOR_TYPES } from "@/server/vendors/fields";
@@ -55,25 +57,26 @@ export async function VendorListView({ preset, searchParams }: { preset: "all" |
 
   return (
     <main className="page">
-      <div className="page-head">
-        <div><div className="eyebrow">Supply network</div><h1>Vendors{preset !== "all" ? ` - ${PRESETS.find((p) => p[0] === preset)?.[1]}` : ""}</h1></div>
-        <div className={s.toolbarGroup}>
-          {perms.import ? <Link href={"/crm/vendors/import" as Route} className="button secondary small">Import CSV</Link> : null}
-          {perms.export ? <a href={`/api/vendors/export?${exportQuery.toString()}`} className="button secondary small">Export CSV</a> : null}
-          {perms.create ? <ModalForm trigger="Add vendor" title="Add vendor" wide fields={fields} action={createVendorAction} duplicateCheck={checkDuplicatesAction} submitLabel="Create vendor" /> : null}
-        </div>
-      </div>
+      <PageHeader
+        title={preset === "all" ? "Vendors" : `${PRESETS.find((p) => p[0] === preset)?.[1]} vendors`}
+        description="Your supply network: contacts, pricing, documents and performance in one place."
+        actions={<>
+          {perms.import ? <Link href={"/crm/vendors/import" as Route} className="button secondary"><Upload size={15} aria-hidden="true" />Import CSV</Link> : null}
+          {perms.export ? <a href={`/api/vendors/export?${exportQuery.toString()}`} className="button secondary"><Download size={15} aria-hidden="true" />Export CSV</a> : null}
+          {perms.create ? <ModalForm trigger="Add vendor" triggerClass="button" title="Add vendor" wide fields={fields} action={createVendorAction} duplicateCheck={checkDuplicatesAction} submitLabel="Create vendor" /> : null}
+        </>}
+      />
 
       <section className="kpis" aria-label="Summary">
-        {cards.map(([label, value]) => <div className="kpi" key={label}><span>{label}</span><strong>{value}</strong></div>)}
+        {cards.map(([label, value]) => <div className="kpi" key={label}><span>{label}</span><strong>{typeof value === "number" ? value.toLocaleString("en-IN") : value}</strong></div>)}
       </section>
 
       <nav className={s.presets} aria-label="Status presets">
-        {PRESETS.map(([key, label, href]) => <Link key={key} href={href as Route} className={`${s.preset} ${preset === key ? s.presetActive : ""}`}>{label}</Link>)}
+        {PRESETS.map(([key, label, href]) => <Link key={key} href={href as Route} className={`${s.preset} ${preset === key ? s.presetActive : ""}`} aria-current={preset === key ? "page" : undefined}>{label}</Link>)}
       </nav>
 
       <form className={s.filters} method="get" action={base}>
-        <label className={s.wide}>Search<input name="search" defaultValue={query.search ?? ""} placeholder="Name, code, GSTIN, PAN, email, phone" /></label>
+        <label className={s.wide}>Search<input type="search" name="search" defaultValue={query.search ?? ""} placeholder="Name, code, GSTIN, PAN, email, phone" /></label>
         {preset === "all" ? (
           <label>Status<select name="status" defaultValue={query.status ?? ""}><option value="">Any</option>{["ACTIVE", "PENDING", "INACTIVE", "BLOCKED"].map((v) => <option key={v} value={v}>{STATUS_LABEL[v]}</option>)}</select></label>
         ) : null}
@@ -87,16 +90,16 @@ export async function VendorListView({ preset, searchParams }: { preset: "all" |
         <label>Sort by<select name="sortBy" defaultValue={query.sortBy ?? "createdAt"}>{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
         <label>Order<select name="sortDir" defaultValue={query.sortDir ?? "desc"}><option value="desc">Descending</option><option value="asc">Ascending</option></select></label>
         <label>Show<select name="archived" defaultValue={showArchived ? "true" : ""}><option value="">Live vendors</option><option value="true">Archived only</option></select></label>
-        <div className={s.filterActions}><button className="button small" type="submit">Apply</button><Link className="button secondary small" href={base as Route}>Reset</Link></div>
+        <div className={s.filterActions}><button className="button" type="submit">Apply filters</button><Link className="button ghost" href={base as Route}>Reset</Link></div>
       </form>
 
       <VendorTable rows={rows} canEdit={perms.edit} canArchive={perms.archive} showArchived={showArchived} />
 
       <div className={s.pager}>
-        <span>{result.total} vendor{result.total === 1 ? "" : "s"} · page {result.page} of {result.pages}</span>
+        <span>{result.total.toLocaleString("en-IN")} vendor{result.total === 1 ? "" : "s"} · page {result.page} of {Math.max(1, result.pages)}</span>
         <span className={s.pagerLinks}>
-          {result.page > 1 ? <Link className="button secondary small" href={`${base}${qs({ page: result.page - 1 })}` as Route}>Previous</Link> : null}
-          {result.page < result.pages ? <Link className="button secondary small" href={`${base}${qs({ page: result.page + 1 })}` as Route}>Next</Link> : null}
+          {result.page > 1 ? <Link className="button secondary small" href={`${base}${qs({ page: result.page - 1 })}` as Route}><ChevronLeft size={14} aria-hidden="true" />Previous</Link> : null}
+          {result.page < result.pages ? <Link className="button secondary small" href={`${base}${qs({ page: result.page + 1 })}` as Route}>Next<ChevronRight size={14} aria-hidden="true" /></Link> : null}
         </span>
       </div>
     </main>

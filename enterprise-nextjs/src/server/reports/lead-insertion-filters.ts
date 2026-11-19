@@ -2,11 +2,18 @@ import { z } from "zod";
 import { addDaysIst, isDateString, istMonthStart, istWeekStart, todayIst } from "@/lib/time/ist";
 import { badRequest } from "@/server/errors";
 
-export const SOURCES = ["MANUAL", "IMPORT", "INDIAMART", "TRADEINDIA", "COACHINGPROMO", "PRINTKEE", "WEBHOOK", "LEGACY"] as const;
+// Website (portal) leads are split per site. WEBHOOK holds portal leads migrated from the old system, which never
+// recorded which website sent them, so they cannot be attributed to PrintKee / GiftaGuru / CoachingPromo.
+export const SOURCES = ["MANUAL", "IMPORT", "INDIAMART", "TRADEINDIA", "PRINTKEE", "GIFTAGURU", "COACHINGPROMO", "WEBHOOK", "LEGACY"] as const;
 export type SourceKey = (typeof SOURCES)[number];
 export const SOURCE_LABELS: Record<SourceKey, string> = {
   MANUAL: "Manual", IMPORT: "Import (file)", INDIAMART: "IndiaMART", TRADEINDIA: "TradeIndia",
-  COACHINGPROMO: "Coachingpromo", PRINTKEE: "Printkee", WEBHOOK: "Webhook", LEGACY: "Legacy",
+  PRINTKEE: "PrintKee", GIFTAGURU: "GiftaGuru", COACHINGPROMO: "CoachingPromo", WEBHOOK: "Web portals (old, site unknown)", LEGACY: "Legacy",
+};
+/** Short labels for narrow PDF table headers (wrap on spaces, never mid-word). */
+export const SOURCE_SHORT_LABELS: Record<SourceKey, string> = {
+  MANUAL: "Manual", IMPORT: "Import file", INDIAMART: "IndiaMART", TRADEINDIA: "TradeIndia",
+  PRINTKEE: "PrintKee", GIFTAGURU: "GiftaGuru", COACHINGPROMO: "Coaching Promo", WEBHOOK: "Old portals (unknown)", LEGACY: "Legacy",
 };
 /** Pseudo source filter: every lead that is not entered manually. */
 export const ANY_IMPORTED = "IMPORTED";

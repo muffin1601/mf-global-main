@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Download } from "lucide-react";
 import type { LeadDateType, LeadFilter, LeadPreset } from "@/server/leads/filter-schema";
 import { filterToParams } from "@/server/leads/filter-schema";
 import styles from "./leads.module.css";
@@ -34,11 +35,11 @@ export function DownloadModal({ filter, preset, total, onClose }: { filter: Lead
 
   return (
     <Modal
-      title="Download leads" onClose={onClose}
+      title="Export leads" description="Exports respect the current view, filters and your access." onClose={onClose}
       footer={
         <>
           <button type="button" className="button secondary" onClick={onClose}>Cancel</button>
-          <button type="button" className="button" onClick={download}>Download</button>
+          <button type="button" className="button" onClick={download}><Download size={15} aria-hidden="true" />Download</button>
         </>
       }
     >
@@ -53,14 +54,17 @@ export function DownloadModal({ filter, preset, total, onClose }: { filter: Lead
             <option value="followUpDate">Follow-up date</option>
           </select>
         </div>
-        <div className={styles.grid2}>
+        <div className="form-grid cols-2">
           <div className="field"><label htmlFor="dl-from">From (optional)</label><input id="dl-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
           <div className="field"><label htmlFor="dl-to">To (optional)</label><input id="dl-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
         </div>
-        <div className={styles.radioRow}>
-          <label><input type="radio" name="fmt" checked={format === "csv"} onChange={() => setFormat("csv")} />CSV</label>
-          <label><input type="radio" name="fmt" checked={format === "xlsx"} onChange={() => setFormat("xlsx")} />Excel (XLSX)</label>
-        </div>
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend style={{ fontSize: ".8125rem", fontWeight: 500, color: "var(--text-2)", marginBottom: 6 }}>Format</legend>
+          <div className={styles.choiceGrid}>
+            <label className={styles.choice}><input type="radio" name="fmt" checked={format === "csv"} onChange={() => setFormat("csv")} /><span><strong>CSV</strong><span>Plain text, any spreadsheet app</span></span></label>
+            <label className={styles.choice}><input type="radio" name="fmt" checked={format === "xlsx"} onChange={() => setFormat("xlsx")} /><span><strong>Excel (XLSX)</strong><span>Formatted workbook</span></span></label>
+          </div>
+        </fieldset>
       </div>
     </Modal>
   );

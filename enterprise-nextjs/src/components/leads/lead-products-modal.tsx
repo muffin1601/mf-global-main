@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Search } from "lucide-react";
 import styles from "./leads.module.css";
 import { Modal } from "./modal";
 
@@ -34,16 +35,16 @@ export function ProductsModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Modal title="Search products" onClose={onClose} wide footer={<button type="button" className="button secondary" onClick={onClose}>Close</button>}>
-      <form onSubmit={search} className={styles.search} style={{ marginBottom: "1rem" }}>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Product name, code, colour…" aria-label="Product search" autoFocus />
+    <Modal title="Search products" description="Look up catalogue items, prices and GST while talking to a lead." onClose={onClose} wide footer={<button type="button" className="button secondary" onClick={onClose}>Close</button>}>
+      <form onSubmit={search} className="toolbar" style={{ marginBottom: 14 }} role="search">
+        <div className="search-input"><Search size={15} aria-hidden="true" /><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Product name, code, colour…" aria-label="Product search" /></div>
         <button className="button" type="submit" disabled={busy || !query.trim()}>{busy ? "Searching…" : "Search"}</button>
       </form>
       {error ? <p className="error">{error}</p> : null}
       {products && products.length === 0 ? <p className={styles.muted}>No products found.</p> : null}
       {products && products.length > 0 ? (
         <div className={styles.tableScroll}>
-          <table className={styles.miniTable}>
+          <table className={styles.miniTable} style={{ minWidth: 760 }}>
             <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Colour</th><th>Dimension</th><th>GST %</th><th>Category</th><th>Net price</th></tr></thead>
             <tbody>
               {products.map((p) => (

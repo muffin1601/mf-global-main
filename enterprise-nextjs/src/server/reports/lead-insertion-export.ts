@@ -3,7 +3,7 @@ import { toCsv, toXlsx, type Column } from "@/lib/export/tabular";
 import type { Actor } from "@/server/actor";
 import { badRequest } from "@/server/errors";
 import { getLeadInsertionExportRows, getLeadInsertionReport, type LeadRow, type ReportResult } from "./lead-insertion";
-import { SOURCES, SOURCE_LABELS, parseFilters, type ReportFilters } from "./lead-insertion-filters";
+import { SOURCES, SOURCE_LABELS, SOURCE_SHORT_LABELS, parseFilters, type ReportFilters } from "./lead-insertion-filters";
 
 export const EXPORT_FORMATS = ["csv", "xlsx", "pdf"] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
@@ -50,18 +50,26 @@ export function buildPdf(report: ReportResult, filters: string[], generatedAt: D
     doc.text(SOURCES.map((k) => `${SOURCE_LABELS[k]}: ${s.bySource[k]}`).join("   "));
     doc.moveDown(0.5).fontSize(11).text("Per-period insertion");
 
-    const cols = ["Period", "Total", "Manual", "Imported", ...SOURCES.map((k) => SOURCE_LABELS[k]), "Assigned", "Unassigned"];
-    const widths = [90, 45, 50, 55, ...SOURCES.map(() => 60), 55, 60];
-    const row = (cells: (string | number)[], bold = false) => {
+    const cols = ["Period", "Total", "Manual", "Imported", ...SOURCES.map((k) => SOURCE_SHORT_LABELS[k]), "Assigned", "Unassigned"];
+    // Source columns share whatever width the fixed columns leave, so the table always fits the page.
+    const usable = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const fixed = [90, 45, 50, 55, 55, 60];
+    const srcWidth = Math.max(34, Math.floor((usable - fixed.reduce((a, b) => a + b, 0)) / SOURCES.length));
+    const widths = [90, 45, 50, 55, ...SOURCES.map(() => srcWidth), 55, 60];
+    const row = (cells: (string | number)[], bold = false, height = 13) => {
       if (doc.y > doc.page.height - 60) doc.addPage();
       let x = doc.page.margins.left;
       const y = doc.y;
       doc.font(bold ? "Helvetica-Bold" : "Helvetica").fontSize(8);
-      cells.forEach((c, i) => { doc.text(String(c), x, y, { width: (widths[i] ?? 50) - 4, lineBreak: false }); x += widths[i] ?? 50; });
-      doc.y = y + 13;
+      cells.forEach((c, i) => {
+        const w = (widths[i] ?? 50) - 4;
+        doc.text(String(c), x, y, height > 13 ? { width: w, height, lineBreak: true, ellipsis: true } : { width: w, lineBreak: false, ellipsis: true });
+        x += widths[i] ?? 50;
+      });
+      doc.y = y + height;
     };
     doc.moveDown(0.3);
-    row(cols, true);
+    row(cols, true, 30);
     if (report.periods.length === 0) doc.font("Helvetica").text("No leads were inserted in this selection.");
     for (const p of report.periods) {
       row([p.label, p.total, p.manual, p.imported, ...SOURCES.map((k) => p.bySource[k]), p.assigned, p.unassigned]);

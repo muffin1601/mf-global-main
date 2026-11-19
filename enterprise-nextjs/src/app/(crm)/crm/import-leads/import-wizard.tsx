@@ -7,7 +7,9 @@ import {
   BATCH_SIZE, MAX_FILE_BYTES, MAX_IMPORT_ROWS, PREVIEW_CAP, analyzeRows, parseLeadCsv, validateRow,
   type AnalyzedRow, type Analysis,
 } from "@/lib/imports/lead-csv";
+import { Check, CircleCheck, Download, FileSpreadsheet, RefreshCw, RotateCcw, Upload, UploadCloud } from "lucide-react";
 import styles from "./import-wizard.module.css";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type Step = "upload" | "preview" | "importing" | "result";
 type Progress = { processed: number; total: number; imported: number };
@@ -126,30 +128,38 @@ export function ImportWizard({ isAdmin, users }: { isAdmin: boolean; users: { id
 
   return (
     <div className={styles.stack}>
-      <section className="card">
-        <div className={styles.row} style={{ marginTop: 0 }}>
-          <a className="button secondary" href="/api/lead-import/sample">Download sample CSV</a>
-          {step !== "upload" && step !== "importing" && <button type="button" className="button secondary" onClick={reset}>Start over</button>}
+      <section className="card" style={{ padding: "14px 16px" }}>
+        <div className={styles.stepper} aria-label="Import progress">
+          {(["upload", "preview", "importing", "result"] as const).map((k, i) => {
+            const order = ["upload", "preview", "importing", "result"].indexOf(step);
+            const state = i < order ? "done" : i === order ? "current" : "todo";
+            return (
+              <div key={k} className={styles.step} data-state={state} aria-current={state === "current" ? "step" : undefined}>
+                <span className={styles.stepNum}>{state === "done" ? <Check size={13} aria-hidden="true" /> : i + 1}</span>
+                {["Upload file", "Review", "Import", "Result"][i]}
+              </div>
+            );
+          })}
+          {step !== "upload" && step !== "importing" && <button type="button" className="button ghost small" style={{ marginLeft: "auto" }} onClick={reset}><RotateCcw size={14} aria-hidden="true" />Start over</button>}
         </div>
-        <p style={{ color: "var(--muted)" }}>
-          Required columns: <strong>Company Name, Contact Person, Mobile Number</strong>. Optional: Email, City, State, Category, Requirements, Remarks.
-          Duplicate mobile numbers or emails are skipped automatically.
-        </p>
       </section>
 
       {step === "upload" && (
         <section className="card">
           <div
             className={`${styles.drop} ${dragging ? styles.dropActive : ""}`}
-            role="button" tabIndex={0}
+            role="button" tabIndex={0} aria-label="Choose a CSV file to import" aria-busy={busy}
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={(e) => { e.preventDefault(); setDragging(false); if (!busy) void onFile(e.dataTransfer.files?.[0]); }}
             onClick={() => !busy && inputRef.current?.click()}
-            onKeyDown={(e) => { if (e.key === "Enter" && !busy) inputRef.current?.click(); }}
+            onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !busy) { e.preventDefault(); inputRef.current?.click(); } }}
           >
-            <input ref={inputRef} type="file" accept=".csv" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
-            {busy ? "Reading and validating your file..." : "Drag and drop your CSV here, or click to browse (.csv, up to 50 MB)"}
+            <input ref={inputRef} type="file" accept=".csv" hidden aria-label="CSV file to import" onChange={(e) => void onFile(e.target.files?.[0])} />
+            <span className={styles.dropIcon} aria-hidden="true">{busy ? <RefreshCw size={20} className="spin" /> : <UploadCloud size={20} />}</span>
+            <strong>{busy ? "Reading and validating your file…" : "Drop your CSV here, or click to browse"}</strong>
+            <span className="muted" style={{ fontSize: ".8125rem" }}>.csv up to 50 MB · Required columns: Company Name, Contact Person, Mobile Number</span>
+            <span className="muted" style={{ fontSize: ".75rem" }}>Optional: Email, City, State, Category, Requirements, Remarks. Duplicate mobile numbers or emails are skipped automatically.</span>
           </div>
         </section>
       )}
@@ -157,12 +167,12 @@ export function ImportWizard({ isAdmin, users }: { isAdmin: boolean; users: { id
       {(step === "preview" || step === "importing") && analysis && (
         <>
           <section className="card">
-            <p>File: <strong>{fileName}</strong> - {analysis.summary.total} rows detected</p>
+            <p style={{ display: "flex", alignItems: "center", gap: 8 }}><FileSpreadsheet size={16} aria-hidden="true" style={{ color: "var(--text-3)" }} /><strong>{fileName}</strong><span className="muted">· {analysis.summary.total} rows detected</span></p>
             <div className={styles.summary}>
               <div className={styles.sum}>Total rows<strong>{analysis.summary.total}</strong></div>
-              <div className={styles.sum}>Valid rows<strong>{analysis.summary.valid}</strong></div>
-              <div className={styles.sum}>Invalid rows<strong>{analysis.summary.invalid}</strong></div>
-              <div className={styles.sum}>Duplicate rows<strong>{analysis.summary.duplicate}</strong></div>
+              <div className={styles.sum} data-tone="success">Valid rows<strong>{analysis.summary.valid}</strong></div>
+              <div className={styles.sum} data-tone="danger">Invalid rows<strong>{analysis.summary.invalid}</strong></div>
+              <div className={styles.sum} data-tone="warning">Duplicate rows<strong>{analysis.summary.duplicate}</strong></div>
             </div>
             {isAdmin && (
               <label className="field">
@@ -175,34 +185,34 @@ export function ImportWizard({ isAdmin, users }: { isAdmin: boolean; users: { id
             )}
             {step === "importing" ? (
               <div style={{ marginTop: 12 }}>
-                <div className={styles.track}><div className={styles.fill} style={{ width: `${pct}%` }} /></div>
-                <p>Processing row {progress.processed} of {progress.total} - {progress.imported} imported</p>
+                <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Import progress"><span style={{ width: `${pct}%` }} /></div>
+                <p className="muted" style={{ marginTop: 8 }} aria-live="polite">Processing row {progress.processed} of {progress.total} · {progress.imported} imported · {pct}%</p>
               </div>
             ) : (
               <div className={styles.row}>
                 <button type="button" className="button secondary" onClick={reset}>Cancel</button>
-                <button type="button" className="button" onClick={() => void runImport()} disabled={analysis.summary.valid === 0}>
+                <button type="button" className="button" onClick={() => void runImport()} disabled={analysis.summary.valid === 0}><Upload size={15} aria-hidden="true" />
                   Import {analysis.summary.valid} lead{analysis.summary.valid === 1 ? "" : "s"}
                 </button>
               </div>
             )}
-            {analysis.summary.valid === 0 && step === "preview" && <p className="error">No valid rows to import. Review the skipped rows below and fix your file.</p>}
+            {analysis.summary.valid === 0 && step === "preview" && <div className="callout tone-danger" role="alert" style={{ marginTop: 12 }}>No valid rows to import. Review the skipped rows below and fix your file.</div>}
           </section>
           {valid.length > 0 && (
             <section className="table-card">
-              <h3 style={{ padding: "12px 16px 0" }}>Valid rows {valid.length > PREVIEW_CAP && `(first ${PREVIEW_CAP} of ${valid.length})`}</h3>
+              <div className="section-head"><h3>Valid rows {valid.length > PREVIEW_CAP && <span className="muted">(first {PREVIEW_CAP} of {valid.length})</span>}</h3></div>
               <table>
                 <thead><tr><th>Row</th><th>Company</th><th>Status</th></tr></thead>
-                <tbody>{valid.slice(0, PREVIEW_CAP).map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.company}</td><td><span className="badge">Valid</span></td></tr>)}</tbody>
+                <tbody>{valid.slice(0, PREVIEW_CAP).map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.company}</td><td><StatusBadge value="Valid" /></td></tr>)}</tbody>
               </table>
             </section>
           )}
           {skipped.length > 0 && (
             <section className="table-card">
-              <h3 style={{ padding: "12px 16px 0" }}>Skipped rows {skipped.length > PREVIEW_CAP && `(first ${PREVIEW_CAP} of ${skipped.length})`}</h3>
+              <div className="section-head"><h3>Skipped rows {skipped.length > PREVIEW_CAP && <span className="muted">(first {PREVIEW_CAP} of {skipped.length})</span>}</h3></div>
               <table>
                 <thead><tr><th>Row</th><th>Company</th><th>Status</th><th>Reason</th></tr></thead>
-                <tbody>{skipped.slice(0, PREVIEW_CAP).map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.company || "-"}</td><td><span className="badge">{r.status}</span></td><td>{r.reason}</td></tr>)}</tbody>
+                <tbody>{skipped.slice(0, PREVIEW_CAP).map((r) => <tr key={r.rowNumber}><td>{r.rowNumber}</td><td>{r.company || "-"}</td><td><StatusBadge value={r.status} tone={r.status === "Duplicate" ? "warning" : "danger"} /></td><td>{r.reason}</td></tr>)}</tbody>
               </table>
             </section>
           )}
@@ -211,15 +221,15 @@ export function ImportWizard({ isAdmin, users }: { isAdmin: boolean; users: { id
 
       {step === "result" && result && (
         <section className="card">
-          <h3>Import result</h3>
+          <div className="callout tone-success" role="status" style={{ marginBottom: 12 }}><CircleCheck size={16} aria-hidden="true" />Import finished. Download the report for a row-by-row breakdown.</div>
           <div className={styles.summary}>
             <div className={styles.sum}>Total rows<strong>{result.total}</strong></div>
-            <div className={styles.sum}>Imported<strong>{result.imported}</strong></div>
-            <div className={styles.sum}>Skipped<strong>{result.skipped}</strong></div>
-            <div className={styles.sum}>Duplicates<strong>{result.duplicates}</strong></div>
+            <div className={styles.sum} data-tone="success">Imported<strong>{result.imported}</strong></div>
+            <div className={styles.sum} data-tone="danger">Skipped<strong>{result.skipped}</strong></div>
+            <div className={styles.sum} data-tone="warning">Duplicates<strong>{result.duplicates}</strong></div>
           </div>
           <div className={styles.row}>
-            <a className="button secondary" href={`/api/lead-import/report/${result.jobId}`}>Download import report</a>
+            <a className="button secondary" href={`/api/lead-import/report/${result.jobId}`}><Download size={15} aria-hidden="true" />Download import report</a>
             <button type="button" className="button" onClick={reset}>Import another file</button>
           </div>
         </section>

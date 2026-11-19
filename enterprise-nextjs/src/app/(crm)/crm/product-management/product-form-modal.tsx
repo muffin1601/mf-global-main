@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { CategoryRow } from "@/server/catalog/categories";
 import type { ProductView } from "@/server/catalog/products";
+import { ImageOff } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
+import leadStyles from "@/components/leads/leads.module.css";
 import styles from "./catalog.module.css";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -107,63 +110,74 @@ export function ProductFormModal({ mode, product, categories, onClose, onSaved, 
   const shown = filePreview ?? currentImage;
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label={mode === "add" ? "Add product" : "Edit product"} onClick={() => !saving && onClose()}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHead}>
-          <h2>{mode === "add" ? "Add new product" : `Edit ${product?.code ?? "product"}`}</h2>
-          <button type="button" className="button secondary" aria-label="Close" onClick={onClose} disabled={saving}>×</button>
-        </div>
-        <form onSubmit={submit}>
-          <div className={styles.modalBody}>
-            <div className={`field ${styles.full}`}>
-              <label htmlFor="pf-image">Product image (JPG, PNG, WEBP or GIF, max 5 MB)</label>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {shown && <img className={styles.preview} src={shown} alt="Product preview" />}
-              <input id="pf-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={saving} onChange={(e) => { pickFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
-              {(file || currentImage) && (
-                <div className={styles.actions}>
-                  {file && <button type="button" className="button secondary" onClick={() => setFile(null)}>Discard new image</button>}
-                  {mode === "edit" && currentImage && !file && <button type="button" className="button secondary" onClick={() => setRemoveImage(true)}>Remove image</button>}
-                </div>
-              )}
-              {removeImage && <span className={styles.muted}>The current image will be removed when you save. <button type="button" className="button secondary" onClick={() => setRemoveImage(false)}>Undo</button></span>}
-            </div>
+    <Modal
+      title={mode === "add" ? "Add product" : `Edit ${product?.code ?? "product"}`}
+      description={mode === "add" ? "Fields marked * are required. The product code is assigned when you save." : product?.name ?? undefined}
+      onClose={onClose} wide busy={saving}
+      footer={<>
+        <button type="button" className="button secondary" onClick={onClose} disabled={saving}>Cancel</button>
+        <button type="submit" form="product-form" className="button" disabled={saving}>{saving ? "Saving…" : mode === "add" ? "Add product" : "Save changes"}</button>
+      </>}
+    >
+      <form id="product-form" onSubmit={submit} noValidate={false}>
+        {error && <div className="callout tone-danger" role="alert" style={{ marginBottom: 14 }}>{error}</div>}
 
-            <div className="field">
-              <label htmlFor="pf-category">Category *</label>
-              <select id="pf-category" required value={form.categoryId} onChange={set("categoryId")} disabled={saving}>
-                <option value="">Select category</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="field">
-              <label>Product code</label>
-              <div className={styles.code}>
-                {mode === "edit" ? product?.code : codePreview || <span className={styles.muted}>Select a category</span>}
+        <h3 className={leadStyles.section}>Image</h3>
+        <div className={styles.imageRow}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {shown ? <img className={styles.preview} src={shown} alt="Product preview" /> : <span className={styles.previewEmpty} aria-hidden="true"><ImageOff size={22} /></span>}
+          <div className="field" style={{ flex: 1 }}>
+            <label htmlFor="pf-image">Product image</label>
+            <input id="pf-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={saving} onChange={(e) => { pickFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
+            <span className="hint">JPG, PNG, WEBP or GIF, up to 5 MB.</span>
+            {(file || currentImage) && (
+              <div className={styles.actions}>
+                {file && <button type="button" className="button secondary small" onClick={() => setFile(null)}>Discard new image</button>}
+                {mode === "edit" && currentImage && !file && <button type="button" className="button secondary small danger" onClick={() => setRemoveImage(true)}>Remove image</button>}
               </div>
-              <span className={styles.muted}>{mode === "edit" ? "Codes never change after creation." : "Preview only; final code is assigned on save."}</span>
-              {codeError && <span className="error">{codeError}</span>}
-            </div>
-            <div className="field"><label htmlFor="pf-s">Style code *</label><input id="pf-s" required value={form.secondaryCode} onChange={set("secondaryCode")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-n">Product name *</label><input id="pf-n" required value={form.name} onChange={set("name")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-t">Material type</label><input id="pf-t" value={form.type} onChange={set("type")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-c">Colour</label><input id="pf-c" value={form.color} onChange={set("color")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-h">HSN code</label><input id="pf-h" value={form.hsnCode} onChange={set("hsnCode")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-d">Dimensions</label><input id="pf-d" value={form.dimension} onChange={set("dimension")} disabled={saving} /></div>
-            <div className={`field ${styles.full}`}><label htmlFor="pf-desc">Description</label><textarea id="pf-desc" rows={3} value={form.description} onChange={set("description")} disabled={saving} /></div>
+            )}
+            {removeImage && <span className="hint">The current image will be removed when you save. <button type="button" className="button ghost small" onClick={() => setRemoveImage(false)}>Undo</button></span>}
+          </div>
+        </div>
 
-            <div className="field"><label htmlFor="pf-pp">Purchase price</label><input id="pf-pp" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={set("purchasePrice")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-ba">Basic amount *</label><input id="pf-ba" type="number" min="0" step="0.01" required value={form.basicAmount} onChange={set("basicAmount")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-g">GST rate (%) *</label><input id="pf-g" type="number" min="0" step="0.01" required value={form.gstRate} onChange={set("gstRate")} disabled={saving} /></div>
-            <div className="field"><label htmlFor="pf-net">Net amount (auto)</label><input id="pf-net" readOnly value={net} placeholder="Calculated" /></div>
-            {error && <div className={`error ${styles.full}`} role="alert">{error}</div>}
+        <h3 className={leadStyles.section}>Identification</h3>
+        <div className={styles.formGrid}>
+          <div className="field">
+            <label htmlFor="pf-category">Category<span className="req" aria-hidden="true">*</span></label>
+            <select id="pf-category" required value={form.categoryId} onChange={set("categoryId")} disabled={saving}>
+              <option value="">Select category</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
           </div>
-          <div className={styles.modalFoot}>
-            <button type="button" className="button secondary" onClick={onClose} disabled={saving}>Cancel</button>
-            <button type="submit" className="button" disabled={saving}>{saving ? "Saving…" : mode === "add" ? "Add product" : "Save changes"}</button>
+          <div className="field">
+            <span>Product code</span>
+            <div className={styles.codeBox}>
+              {mode === "edit" ? product?.code : codePreview || <span className="muted" style={{ fontFamily: "var(--font-sans)", fontWeight: 400 }}>Select a category</span>}
+            </div>
+            <span className="hint">{mode === "edit" ? "Codes never change after creation." : "Preview only; the final code is assigned on save."}</span>
+            {codeError && <span className="error">{codeError}</span>}
           </div>
-        </form>
-      </div>
-    </div>
+          <div className="field"><label htmlFor="pf-n">Product name<span className="req" aria-hidden="true">*</span></label><input id="pf-n" required value={form.name} onChange={set("name")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-s">Style code<span className="req" aria-hidden="true">*</span></label><input id="pf-s" required value={form.secondaryCode} onChange={set("secondaryCode")} disabled={saving} /></div>
+        </div>
+
+        <h3 className={leadStyles.section}>Specifications</h3>
+        <div className={styles.formGrid}>
+          <div className="field"><label htmlFor="pf-t">Material type</label><input id="pf-t" value={form.type} onChange={set("type")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-c">Colour</label><input id="pf-c" value={form.color} onChange={set("color")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-h">HSN code</label><input id="pf-h" inputMode="numeric" value={form.hsnCode} onChange={set("hsnCode")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-d">Dimensions</label><input id="pf-d" value={form.dimension} onChange={set("dimension")} disabled={saving} /></div>
+          <div className={`field ${styles.full}`}><label htmlFor="pf-desc">Description</label><textarea id="pf-desc" rows={3} value={form.description} onChange={set("description")} disabled={saving} /></div>
+        </div>
+
+        <h3 className={leadStyles.section}>Pricing</h3>
+        <div className={styles.formGrid}>
+          <div className="field"><label htmlFor="pf-pp">Purchase price (₹)</label><input id="pf-pp" type="number" min="0" step="0.01" inputMode="decimal" value={form.purchasePrice} onChange={set("purchasePrice")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-ba">Basic amount (₹)<span className="req" aria-hidden="true">*</span></label><input id="pf-ba" type="number" min="0" step="0.01" inputMode="decimal" required value={form.basicAmount} onChange={set("basicAmount")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-g">GST rate (%)<span className="req" aria-hidden="true">*</span></label><input id="pf-g" type="number" min="0" step="0.01" inputMode="decimal" required value={form.gstRate} onChange={set("gstRate")} disabled={saving} /></div>
+          <div className="field"><label htmlFor="pf-net">Net amount (₹, calculated)</label><input id="pf-net" readOnly value={net} placeholder="Basic + GST" /><span className="hint">Basic amount + GST.</span></div>
+        </div>
+      </form>
+    </Modal>
   );
 }

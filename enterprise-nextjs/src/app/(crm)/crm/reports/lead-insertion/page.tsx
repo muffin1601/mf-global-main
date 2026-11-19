@@ -9,13 +9,18 @@ import {
 import {
   ANY_IMPORTED, GROUPINGS, PRESETS, SOURCES, SOURCE_LABELS, UNASSIGNED, UNKNOWN_STATUS, parseFilters,
 } from "@/server/reports/lead-insertion-filters";
+import { CalendarDays, Download, LineChart, X } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { InsertionCharts } from "./charts";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Lead insertion report" };
 
 type SP = Record<string, string | string[] | undefined>;
-const COLORS = ["#2563eb", "#16a34a", "#d97706", "#9333ea", "#dc2626", "#0891b2", "#64748b", "#ca8a04"];
+// Fixed categorical order per source (validated palette tokens); colour follows the source, never its rank.
+const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)", "var(--chart-7)", "var(--chart-8)"];
 const FILTER_KEYS = ["preset", "from", "to", "grouping", "employee", "source", "status", "initialStatus", "assignment", "fileName", "importJobId", "dataType"];
 const PRESET_LABELS = { today: "Today", yesterday: "Yesterday", week: "This week", month: "This month", custom: "Custom" };
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -39,7 +44,7 @@ export default async function LeadInsertionPage({ searchParams }: { searchParams
     filters = parseFilters(sp);
     [report, options] = await Promise.all([getLeadInsertionReport(actor, filters), getLeadInsertionFilterOptions(actor)]);
   } catch (e) {
-    return <main className="page"><div className="error">{errorText(e)}</div></main>;
+    return <main className="page"><div className="callout tone-danger" role="alert">{errorText(e)}</div></main>;
   }
   const period = first(sp.period);
   const pageNo = Math.max(1, Number(first(sp.page)) || 1);
@@ -47,31 +52,27 @@ export default async function LeadInsertionPage({ searchParams }: { searchParams
   try {
     leads = period ? await getLeadInsertionLeads(actor, filters, { period, page: pageNo }) : null;
   } catch (e) {
-    return <main className="page"><div className="error">{errorText(e)}</div></main>;
+    return <main className="page"><div className="callout tone-danger" role="alert">{errorText(e)}</div></main>;
   }
 
-  const series = SOURCES.filter((s) => report.summary.bySource[s] > 0).map((s, i) => ({ key: s, label: SOURCE_LABELS[s], color: COLORS[i % COLORS.length] ?? "#64748b" }));
+  const series = SOURCES.map((s, i) => ({ key: s, label: SOURCE_LABELS[s], color: COLORS[i % COLORS.length] ?? "var(--chart-7)" })).filter((x) => report.summary.bySource[x.key] > 0);
   const chartRows = report.periods.map((p) => ({ label: p.label, total: p.total, ...p.bySource }));
   const s = report.summary;
   const exportHref = (format: string) => `/api/reports/lead-insertion/export?${qs({ format, period: undefined, page: undefined })}`;
   const imported = SOURCES.filter((k) => k !== "MANUAL");
+  // Website sources are always shown (even at 0) so each site is visible on its own.
+  const WEBSITE_SOURCES: string[] = ["PRINTKEE", "GIFTAGURU", "COACHINGPROMO"];
 
   return (
     <main className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">Reports</div>
-          <h1>Lead insertion report</h1>
-          <p style={{ color: "var(--muted)" }}>
-            Leads grouped by the day they were inserted (Asia/Kolkata). {isAdminUser ? "All leads." : "Showing only leads assigned to you."}
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-          {["csv", "xlsx", "pdf"].map((f) => <a key={f} className="button secondary" href={exportHref(f)}>Export {f.toUpperCase()}</a>)}
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Reports"
+        title="Lead insertion report"
+        description={<>Leads grouped by the day they were inserted (Asia/Kolkata). {isAdminUser ? "All leads." : "Showing only leads assigned to you."} Exports use the filters below.</>}
+        actions={["csv", "xlsx", "pdf"].map((f) => <a key={f} className="button secondary" href={exportHref(f)}><Download size={15} aria-hidden="true" />{f.toUpperCase()}</a>)}
+      />
 
-      <form method="get" className="card form-grid" style={{ marginBottom: "1rem" }}>
+      <form method="get" className="card report-filters" aria-label="Report filters">
         <label className="field">Range
           <select name="preset" defaultValue={filters.preset}>
             {PRESETS.map((p) => <option key={p} value={p}>{PRESET_LABELS[p]}</option>)}
@@ -122,13 +123,13 @@ export default async function LeadInsertionPage({ searchParams }: { searchParams
         <label className="field">Data type
           <select name="dataType" defaultValue={filters.dataType ?? ""}><option value="">All</option>{options.dataTypes.map((v) => <option key={v}>{v}</option>)}</select>
         </label>
-        <div style={{ display: "flex", gap: ".5rem", alignItems: "end" }}>
-          <button className="button" type="submit">Apply</button>
-          <Link className="button secondary" href="/crm/reports/lead-insertion">Reset</Link>
+        <div className="report-filter-actions">
+          <button className="button" type="submit">Apply filters</button>
+          <Link className="button ghost" href="/crm/reports/lead-insertion">Reset</Link>
         </div>
       </form>
 
-      <p style={{ color: "var(--muted)" }}>Range: {report.range.from} to {report.range.to} (IST, inclusive)</p>
+      <p className="muted" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: ".8125rem" }}><CalendarDays size={14} aria-hidden="true" />Range: <strong style={{ color: "var(--text)" }}>{report.range.from}</strong> to <strong style={{ color: "var(--text)" }}>{report.range.to}</strong> (IST, inclusive)</p>
 
       <section className="kpis">
         <div className="kpi"><span>Total leads</span><strong>{s.total}</strong></div>
@@ -136,70 +137,66 @@ export default async function LeadInsertionPage({ searchParams }: { searchParams
         <div className="kpi"><span>Imported</span><strong>{s.imported}</strong></div>
         <div className="kpi"><span>Assigned</span><strong>{s.assigned}</strong></div>
         <div className="kpi"><span>Unassigned</span><strong>{s.unassigned}</strong></div>
-        {imported.filter((k) => s.bySource[k] > 0).map((k) => <div className="kpi" key={k}><span>{SOURCE_LABELS[k]}</span><strong>{s.bySource[k]}</strong></div>)}
+        {imported.filter((k) => s.bySource[k] > 0 || WEBSITE_SOURCES.includes(k)).map((k) => <div className="kpi" key={k}><span>{SOURCE_LABELS[k]}</span><strong>{s.bySource[k]}</strong></div>)}
       </section>
 
       {s.total === 0 ? (
-        <section className="card" role="status">
-          <strong>No leads were inserted in this selection.</strong>
-          <p style={{ color: "var(--muted)" }}>Try a wider date range or clear some filters.</p>
-        </section>
+        <section className="card flush"><EmptyState icon={LineChart} title="No leads were inserted in this selection" description="Try a wider date range or clear some filters." /></section>
       ) : (
         <>
           <InsertionCharts rows={chartRows} series={series} />
           <section className="table-card" style={{ marginTop: "1rem" }}>
-            <div style={{ padding: "1rem" }}><strong>Insertions per period</strong> (click a period to see its leads)</div>
-            <table>
-              <thead><tr><th>Period</th><th>Total</th><th>Manual</th><th>Imported</th>{imported.map((k) => <th key={k}>{SOURCE_LABELS[k]}</th>)}<th>Assigned</th><th>Unassigned</th></tr></thead>
+            <div className="section-head"><div><h3>Insertions per period</h3><p>Select a period to list its leads.</p></div></div>
+            <div className="table-scroll"><table>
+              <thead><tr><th>Period</th><th className="num">Total</th><th className="num">Manual</th><th className="num">Imported</th>{imported.map((k) => <th className="num" key={k}>{SOURCE_LABELS[k]}</th>)}<th className="num">Assigned</th><th className="num">Unassigned</th></tr></thead>
               <tbody>
                 {report.periods.map((p) => (
                   <tr key={p.period}>
-                    <td><Link href={`?${qs({ period: p.period, page: undefined })}#leads`}>{p.label}</Link></td>
-                    <td>{p.total}</td><td>{p.manual}</td><td>{p.imported}</td>
-                    {imported.map((k) => <td key={k}>{p.bySource[k]}</td>)}
-                    <td>{p.assigned}</td><td>{p.unassigned}</td>
+                    <td><Link className="link" href={`?${qs({ period: p.period, page: undefined })}#leads`} aria-current={period === p.period ? "true" : undefined}>{p.label}</Link></td>
+                    <td className="num" style={{ fontWeight: 600 }}>{p.total}</td><td className="num">{p.manual}</td><td className="num">{p.imported}</td>
+                    {imported.map((k) => <td className="num" key={k}>{p.bySource[k]}</td>)}
+                    <td className="num">{p.assigned}</td><td className="num">{p.unassigned}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </section>
-          <section className="table-card" style={{ marginTop: "1rem" }}>
-            <div style={{ padding: "1rem" }}>
-              <strong>Per employee</strong>
-              <p style={{ color: "var(--muted)" }}>{report.employeeNote} Distinct leads: {s.total}. Assignment rows: {s.employeeAssignmentTotal}.</p>
+          <section className="table-card">
+            <div className="section-head">
+              <div><h3>Per employee</h3><p>{report.employeeNote} Distinct leads: {s.total}. Assignment rows: {s.employeeAssignmentTotal}.</p></div>
             </div>
-            <table>
-              <thead><tr><th>Employee</th><th>Leads</th></tr></thead>
+            <div className="table-scroll"><table>
+              <thead><tr><th>Employee</th><th className="num">Leads</th></tr></thead>
               <tbody>
-                {report.employees.map((e) => <tr key={e.userId ?? "unassigned"}><td>{e.name}</td><td>{e.leads}</td></tr>)}
-                {report.employees.length === 0 && <tr><td colSpan={2}>No assigned leads.</td></tr>}
+                {report.employees.map((e) => <tr key={e.userId ?? "unassigned"}><td className="cell-primary">{e.name}</td><td className="num">{e.leads}</td></tr>)}
+                {report.employees.length === 0 && <tr><td colSpan={2} className="cell-empty">No assigned leads.</td></tr>}
               </tbody>
-            </table>
+            </table></div>
           </section>
         </>
       )}
 
       {leads && (
-        <section className="table-card" style={{ marginTop: "1rem" }} id="leads">
-          <div style={{ padding: "1rem", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: ".5rem" }}>
-            <strong>Leads inserted in {period} ({leads.total})</strong>
-            <Link className="button secondary" href={`?${qs({ period: undefined, page: undefined })}`}>Close</Link>
+        <section className="table-card" id="leads">
+          <div className="section-head">
+            <div><h3>Leads inserted in {period}</h3><p>{leads.total.toLocaleString("en-IN")} lead{leads.total === 1 ? "" : "s"}</p></div>
+            <Link className="button secondary small" href={`?${qs({ period: undefined, page: undefined })}`}><X size={14} aria-hidden="true" />Close</Link>
           </div>
-          <table>
+          <div className="table-scroll"><table style={{ minWidth: 980 }}>
             <thead><tr><th>Lead</th><th>Phone</th><th>Source</th><th>Inserted at (IST)</th><th>Status at insertion</th><th>Current status</th><th>Assignee(s)</th><th>File name</th></tr></thead>
             <tbody>
               {leads.rows.map((r) => (
                 <tr key={r.id}>
-                  <td>{[r.name, r.company].filter(Boolean).join(" - ") || "-"}</td><td>{r.phone ?? "-"}</td><td>{SOURCE_LABELS[r.source]}</td>
-                  <td>{r.insertedAtIst}</td><td>{r.statusAtInsertion}</td><td>{r.currentStatus}</td>
+                  <td><span className="cell-primary">{r.name || "—"}</span>{r.company ? <span className="sub">{r.company}</span> : null}</td><td>{r.phone ?? "—"}</td><td>{SOURCE_LABELS[r.source]}</td>
+                  <td className="muted" style={{ whiteSpace: "nowrap" }}>{r.insertedAtIst}</td><td><StatusBadge value={r.statusAtInsertion} kind="lead" /></td><td><StatusBadge value={r.currentStatus} kind="lead" /></td>
                   <td>{r.assignees.join(", ") || "Unassigned"}</td><td>{r.fileName ?? "-"}</td>
                 </tr>
               ))}
-              {leads.rows.length === 0 && <tr><td colSpan={8}>No leads for this period.</td></tr>}
+              {leads.rows.length === 0 && <tr><td colSpan={8} className="cell-empty">No leads for this period.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
           {leads.pageCount > 1 && (
-            <div style={{ padding: "1rem", display: "flex", gap: ".5rem", alignItems: "center" }}>
+            <div className="table-foot" style={{ justifyContent: "flex-end", gap: 8 }}>
               {leads.page > 1 && <Link className="button secondary" href={`?${qs({ period, page: String(leads.page - 1) })}#leads`}>Previous</Link>}
               <span>Page {leads.page} of {leads.pageCount}</span>
               {leads.page < leads.pageCount && <Link className="button secondary" href={`?${qs({ period, page: String(leads.page + 1) })}#leads`}>Next</Link>}

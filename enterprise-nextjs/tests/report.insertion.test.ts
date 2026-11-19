@@ -83,14 +83,17 @@ describe("lead insertion report: aggregates", () => {
     const d = at("2026-11-10");
     await seed(d, { source: "MANUAL" }); await seed(d, { source: "IMPORT" }); await seed(d, { source: "INDIAMART" });
     await seed(d, { source: "TRADEINDIA" }); await seed(d, { source: "COACHINGPROMO" }); await seed(d, { source: "PRINTKEE" });
-    await seed(d, { source: "WEBHOOK" }); await seed(d, { source: "LEGACY" });
+    await seed(d, { source: "GIFTAGURU" }); await seed(d, { source: "WEBHOOK" }); await seed(d, { source: "LEGACY" });
     const q = { preset: "custom" as const, from: "2026-11-10", to: "2026-11-10" };
     const r = await getLeadInsertionReport(admin, q, NOW);
-    expect(r.periods[0]).toMatchObject({ total: 8, manual: 1, imported: 7 });
-    expect(r.summary.bySource).toEqual({ MANUAL: 1, IMPORT: 1, INDIAMART: 1, TRADEINDIA: 1, COACHINGPROMO: 1, PRINTKEE: 1, WEBHOOK: 1, LEGACY: 1 });
+    expect(r.periods[0]).toMatchObject({ total: 9, manual: 1, imported: 8 });
+    expect(r.summary.bySource).toEqual({ MANUAL: 1, IMPORT: 1, INDIAMART: 1, TRADEINDIA: 1, COACHINGPROMO: 1, PRINTKEE: 1, GIFTAGURU: 1, WEBHOOK: 1, LEGACY: 1 });
     expect((await getLeadInsertionReport(admin, { ...q, source: "MANUAL" }, NOW)).summary.total).toBe(1);
     expect((await getLeadInsertionReport(admin, { ...q, source: "INDIAMART" }, NOW)).summary.total).toBe(1);
-    expect((await getLeadInsertionReport(admin, { ...q, source: "IMPORTED" }, NOW)).summary.total).toBe(7);
+    // Each website is its own source: GiftaGuru is not counted under PrintKee or the old unattributed bucket.
+    expect((await getLeadInsertionReport(admin, { ...q, source: "GIFTAGURU" }, NOW)).summary.total).toBe(1);
+    expect((await getLeadInsertionReport(admin, { ...q, source: "PRINTKEE" }, NOW)).summary.total).toBe(1);
+    expect((await getLeadInsertionReport(admin, { ...q, source: "IMPORTED" }, NOW)).summary.total).toBe(8);
   });
 
   it("applies employee, assignment, status, status-at-insertion, file, batch and dataType filters", async () => {

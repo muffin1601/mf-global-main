@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { archiveAction, bulkArchiveAction, bulkStatusAction, restoreAction, setStatusAction } from "../actions";
 import { ActionButton } from "./confirm-button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import s from "./vendors.module.css";
 
 export type VendorRow = {
@@ -29,7 +30,6 @@ export type VendorRow = {
 };
 
 const STATUS_OPTIONS = [["ACTIVE", "Active"], ["PENDING", "Pending"], ["INACTIVE", "Inactive"], ["BLOCKED", "Blacklisted"]] as const;
-const badgeFor = (status: string) => (status === "ACTIVE" ? "" : status === "PENDING" ? s.badgeWarn : status === "BLOCKED" ? s.badgeBad : s.badgeNeutral);
 
 export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows: VendorRow[]; canEdit: boolean; canArchive: boolean; showArchived: boolean }) {
   const router = useRouter();
@@ -52,7 +52,7 @@ export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows:
   return (
     <>
       {selectable && selected.size > 0 ? (
-        <div className={s.toolbar} role="region" aria-label="Bulk actions">
+        <div className={s.toolbar} role="region" aria-label="Bulk actions" style={{ padding: "8px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", background: "var(--primary-soft)" }}>
           <strong>{selected.size} selected</strong>
           <div className={s.toolbarGroup}>
             {canEdit && !showArchived ? (
@@ -78,7 +78,7 @@ export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows:
             <thead>
               <tr>
                 {selectable ? <th style={{ width: 36 }}><input type="checkbox" aria-label="Select all" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))} /></th> : null}
-                <th>Vendor</th><th>Category</th><th>Primary contact</th><th>Status</th><th>Priority</th><th>Products</th><th>Rating</th><th>Owner</th><th />
+                <th>Vendor</th><th>Category</th><th>Primary contact</th><th>Status</th><th>Priority</th><th className="num">Products</th><th>Rating</th><th>Owner</th><th />
               </tr>
             </thead>
             <tbody>
@@ -86,7 +86,7 @@ export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows:
                 <tr key={r.id}>
                   {selectable ? <td><input type="checkbox" aria-label={`Select ${r.name}`} checked={selected.has(r.id)} onChange={() => toggle(r.id)} /></td> : null}
                   <td>
-                    <Link href={`/crm/vendors/${r.id}` as Route} className={s.linkBtn}>{r.name}</Link>
+                    <Link href={`/crm/vendors/${r.id}` as Route} className="cell-primary link" style={{ color: "var(--text)" }}>{r.name}</Link>
                     <div className={s.muted}><span className={s.mono}>{r.vendorCode}</span>{r.vendorType ? ` · ${r.vendorType}` : ""}{r.city ? ` · ${r.city}` : ""}</div>
                   </td>
                   <td>{r.categoryName ?? "-"}</td>
@@ -99,10 +99,10 @@ export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows:
                       }} disabled={pending}>
                         {STATUS_OPTIONS.filter(([v]) => v !== "BLOCKED" || canArchive || r.status === "BLOCKED").map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                       </select>
-                    ) : <span className={`badge ${badgeFor(r.status)}`}>{r.archived ? "Archived" : r.statusLabel}</span>}
+                    ) : <StatusBadge value={r.archived ? "Archived" : r.status}>{r.archived ? "Archived" : r.statusLabel}</StatusBadge>}
                   </td>
-                  <td>{r.priority}</td>
-                  <td>{r.productCount}</td>
+                  <td><StatusBadge value={r.priority} dot={false} /></td>
+                  <td className="num">{r.productCount}</td>
                   <td>{r.score == null ? <span className={s.muted}>No data</span> : `${r.score.toFixed(2)} · ${r.band}`}</td>
                   <td>{r.ownerName ?? <span className={s.muted}>Unassigned</span>}</td>
                   <td>
@@ -115,7 +115,7 @@ export function VendorTable({ rows, canEdit, canArchive, showArchived }: { rows:
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 ? <tr><td colSpan={selectable ? 10 : 9} className={s.empty}>No vendors match these filters.</td></tr> : null}
+              {rows.length === 0 ? <tr><td colSpan={selectable ? 10 : 9} className="cell-empty">No vendors match these filters. Try clearing a filter or switching the status view.</td></tr> : null}
             </tbody>
           </table>
         </div>

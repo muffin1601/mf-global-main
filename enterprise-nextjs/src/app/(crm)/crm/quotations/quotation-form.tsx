@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { calculateLineItem, calculateQuotationTotals } from "@/server/quotations/calc";
 import type { QuotationDto } from "@/server/quotations/service";
 import { saveQuotationAction } from "./actions";
+import { ArrowLeft, FileDown, Plus, Save, Search, Trash2, Truck } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import styles from "./quotation-form.module.css";
 
 type Ship = { name: string; address: string; state: string };
@@ -148,19 +150,22 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
 
   return (
     <main className="page">
-      <div className="page-head">
-        <div><div className="eyebrow">Sales documents</div><h1>{mode === "edit" ? "Edit quotation" : "Create quotation"}</h1></div>
-        <div className={styles.row}>
-          <Link className="button secondary" href="/crm/quotations">Back to list</Link>
-          {pdfUrl && <a className="button secondary" href={pdfUrl}>Download PDF</a>}
-          <button type="button" className="button" onClick={save} disabled={pending}>{pending ? "Saving..." : isEdit ? "Save changes" : "Save quotation"}</button>
-        </div>
-      </div>
-      {savedNumber && isEdit && mode === "create" && <p className="badge">Saved as {savedNumber}. Further saves update this quotation.</p>}
+      <PageHeader
+        eyebrow={isEdit && savedNumber ? <span style={{ fontFamily: "var(--font-mono)" }}>{savedNumber}</span> : "Sales document"}
+        title={mode === "edit" ? "Edit quotation" : "New quotation"}
+        description="Saving downloads the PDF automatically. Totals use the same calculation as the server."
+        actions={<>
+          <Link className="button ghost" href="/crm/quotations"><ArrowLeft size={15} aria-hidden="true" />Quotations</Link>
+          {pdfUrl && <a className="button secondary" href={pdfUrl}><FileDown size={15} aria-hidden="true" />PDF</a>}
+          <button type="button" className="button" onClick={save} disabled={pending}><Save size={15} aria-hidden="true" />{pending ? "Saving…" : isEdit ? "Save changes" : "Save quotation"}</button>
+        </>}
+      />
+      {savedNumber && isEdit && mode === "create" && <div className="callout tone-success" role="status"><span>Saved as <strong>{savedNumber}</strong>. Further saves update this quotation.</span></div>}
 
       <section className="card">
-        <h2>Quotation details</h2>
-        <div className="form-grid">
+        <h2 className="card-title">Quotation details</h2>
+        <p className="card-desc">The number is assigned when the quotation is first saved.</p>
+        <div className="form-grid cols-3">
           <div className="field"><label htmlFor="q-prefix">Prefix</label><input id="q-prefix" value={prefix} onChange={(e) => setPrefix(e.target.value)} disabled={isEdit} /></div>
           <div className="field"><label htmlFor="q-number">Number</label><input id="q-number" value={isEdit ? savedNumber.slice(prefix.length) : "Assigned on save"} readOnly disabled /></div>
           <div className="field"><label htmlFor="q-date">Date</label><input id="q-date" type="date" value={date} onChange={(e) => setInvoiceDate(e.target.value)} /></div>
@@ -172,26 +177,28 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
       </section>
 
       <section className="card">
-        <h2>Bill to</h2>
+        <div className={styles.cardHead}>
+          <div><h2 className="card-title">Bill to</h2><p className="card-desc">Pick a client from your leads, then adjust details for this document.</p></div>
+          <div className={styles.row} style={{ margin: 0 }}>
+            <button type="button" className="button secondary small" onClick={() => setPickerOpen((o) => !o)} aria-expanded={pickerOpen}><Search size={14} aria-hidden="true" />{party ? "Change client" : "Select client"}</button>
+            {party && <button type="button" className="button secondary small" onClick={() => setShipOpen((o) => !o)} aria-expanded={shipOpen}><Truck size={14} aria-hidden="true" />Ship to</button>}
+          </div>
+        </div>
         {party ? (
-          <div className="form-grid">
+          <div className="form-grid cols-3">
             <div className="field"><label htmlFor="p-name">Name</label><input id="p-name" value={party.name} onChange={(e) => { setParty({ ...party, name: e.target.value }); touch(); }} /></div>
             <div className="field"><label htmlFor="p-company">Company</label><input id="p-company" value={party.company} onChange={(e) => { setParty({ ...party, company: e.target.value }); touch(); }} /></div>
             <div className="field"><label htmlFor="p-phone">Phone</label><input id="p-phone" value={party.phone} onChange={(e) => { setParty({ ...party, phone: e.target.value }); touch(); }} /></div>
             <div className="field"><label htmlFor="p-state">State</label><input id="p-state" value={party.state} onChange={(e) => { setParty({ ...party, state: e.target.value }); touch(); }} /></div>
             <div className="field"><label htmlFor="p-pan">PAN</label><input id="p-pan" value={party.pan} onChange={(e) => { setParty({ ...party, pan: e.target.value }); touch(); }} /></div>
-            <div className="field"><label htmlFor="p-addr">Billing address</label><textarea id="p-addr" rows={2} value={party.billToAddress} onChange={(e) => { setParty({ ...party, billToAddress: e.target.value }); touch(); }} /></div>
+            <div className="field" style={{ gridColumn: "1 / -1" }}><label htmlFor="p-addr">Billing address</label><textarea id="p-addr" rows={2} value={party.billToAddress} onChange={(e) => { setParty({ ...party, billToAddress: e.target.value }); touch(); }} /></div>
           </div>
-        ) : <p>No client selected.</p>}
-        <div className={styles.row}>
-          <button type="button" className="button secondary" onClick={() => setPickerOpen((o) => !o)}>{party ? "Change client" : "Select client"}</button>
-          {party && <button type="button" className="button secondary" onClick={() => setShipOpen((o) => !o)}>Ship to</button>}
-        </div>
-        {party && <p><strong>Ship to:</strong> {party.selectedShippingAddress?.address || party.billToAddress}</p>}
+        ) : <div className="callout"><span>No client selected yet. Use <strong>Select client</strong> to search your leads.</span></div>}
+        {party && <p className={styles.shipLine}><Truck size={14} aria-hidden="true" /><span><strong>Ship to:</strong> {party.selectedShippingAddress?.address || party.billToAddress || "Same as billing"}</span></p>}
         {pickerOpen && (
           <div className={styles.panel}>
-            <input aria-label="Search clients" placeholder="Search by name, company or phone" value={clientQ} onChange={(e) => setClientQ(e.target.value)} autoFocus />
-            {clientsLoading && <p>Loading...</p>}
+            <input type="search" aria-label="Search clients" placeholder="Search by name, company or phone" value={clientQ} onChange={(e) => setClientQ(e.target.value)} autoFocus />
+            {clientsLoading && <p className="muted" style={{ margin: "8px 0 0" }}>Searching…</p>}
             <ul className={styles.list}>
               {clients.map((c) => (
                 <li key={c.id}><button type="button" onClick={() => pickClient(c)}>{c.name || c.company || c.contact || "Unnamed"} <small>{[c.company, c.phone || c.contact].filter(Boolean).join(" · ")}</small></button></li>
@@ -202,27 +209,31 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
         )}
         {party && shipOpen && (
           <div className={styles.panel}>
-            <strong>Select shipping address</strong>
+            <strong style={{ fontSize: ".8125rem" }}>Select a shipping address or add a new one</strong>
             <ul className={styles.list}>
               {(party.shippingAddresses ?? []).map((s, i) => (
                 <li key={`${s.name}-${i}`}><button type="button" onClick={() => selectShip(s)}>{s.name} <small>{s.address}{s.state ? `, ${s.state}` : ""}</small></button></li>
               ))}
             </ul>
-            <div className="form-grid">
+            <div className="form-grid cols-3" style={{ marginTop: 10 }}>
               <div className="field"><label htmlFor="s-name">Label</label><input id="s-name" value={newShip.name} onChange={(e) => setNewShip({ ...newShip, name: e.target.value })} /></div>
               <div className="field"><label htmlFor="s-addr">Address</label><input id="s-addr" value={newShip.address} onChange={(e) => setNewShip({ ...newShip, address: e.target.value })} /></div>
               <div className="field"><label htmlFor="s-state">State</label><input id="s-state" value={newShip.state} onChange={(e) => setNewShip({ ...newShip, state: e.target.value })} /></div>
             </div>
-            <button type="button" className="button" onClick={addShip}>Add address</button>
+            <button type="button" className="button small" style={{ marginTop: 10 }} onClick={addShip}><Plus size={14} aria-hidden="true" />Add address</button>
           </div>
         )}
       </section>
 
       <section className="card">
-        <h2>Items</h2>
+        <h2 className="card-title">Line items</h2>
+        <p className="card-desc">Search the catalogue to add a product, or add a custom line.</p>
         <div className={styles.row}>
-          <input aria-label="Search products" placeholder="Search products by name, code or HSN" value={productQ} onChange={(e) => setProductQ(e.target.value)} className={styles.grow} />
-          <button type="button" className="button secondary" onClick={addCustom}>Add custom item</button>
+          <div className="search-input" style={{ flex: "1 1 260px" }}>
+            <Search size={15} aria-hidden="true" />
+            <input type="search" aria-label="Search products" placeholder="Search products by name, code or HSN" value={productQ} onChange={(e) => setProductQ(e.target.value)} />
+          </div>
+          <button type="button" className="button secondary" onClick={addCustom}><Plus size={15} aria-hidden="true" />Custom item</button>
         </div>
         {products.length > 0 && (
           <ul className={`${styles.list} ${styles.panel}`}>
@@ -231,40 +242,44 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
             ))}
           </ul>
         )}
-        <div className="table-card" style={{ overflowX: "auto" }}>
-          <table>
-            <thead><tr><th>#</th><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Disc %</th><th>GST %</th><th>Amount</th><th /></tr></thead>
+        <div className="table-card" style={{ marginTop: 12 }}>
+          <div className="table-scroll">
+          <table className={styles.items}>
+            <thead><tr><th style={{ width: 36 }}>#</th><th>Item</th><th>HSN</th><th className="num">Qty</th><th className="num">Rate (₹)</th><th className="num">Disc %</th><th className="num">GST %</th><th className="num">Amount</th><th style={{ width: 1 }}><span className="sr-only">Remove</span></th></tr></thead>
             <tbody>
               {items.map((it, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
-                  <td><input aria-label={`Item ${i + 1} name`} value={it.name} onChange={(e) => setItem(i, { name: e.target.value })} /><input aria-label={`Item ${i + 1} description`} placeholder="Description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} /></td>
+                  <td><div className={styles.itemCell}><input aria-label={`Item ${i + 1} name`} placeholder="Item name" value={it.name} onChange={(e) => setItem(i, { name: e.target.value })} /><input aria-label={`Item ${i + 1} description`} placeholder="Description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} /></div></td>
                   <td><input aria-label={`Item ${i + 1} HSN`} className={styles.narrow} value={it.hsn} onChange={(e) => setItem(i, { hsn: e.target.value })} /></td>
                   <td><input aria-label={`Item ${i + 1} quantity`} className={styles.narrow} type="number" min={0} step="any" value={it.qty} onChange={(e) => setItem(i, { qty: e.target.value })} /></td>
                   <td><input aria-label={`Item ${i + 1} rate`} className={styles.narrow} type="number" min={0} step="any" value={it.price} onChange={(e) => setItem(i, { price: e.target.value })} /></td>
                   <td><input aria-label={`Item ${i + 1} discount`} className={styles.narrow} type="number" min={0} max={100} step="any" value={it.discount} onChange={(e) => setItem(i, { discount: e.target.value })} /></td>
                   <td><input aria-label={`Item ${i + 1} GST`} className={styles.narrow} type="number" min={0} max={100} step="any" value={it.tax} onChange={(e) => setItem(i, { tax: e.target.value })} /></td>
-                  <td>{inr((lineTotals[i]?.total ?? 0))}</td>
-                  <td><button type="button" className="button secondary" aria-label={`Remove item ${i + 1}`} onClick={() => { setItems((p) => p.filter((_, k) => k !== i)); touch(); }}>Remove</button></td>
+                  <td className="num" style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{inr((lineTotals[i]?.total ?? 0))}</td>
+                  <td><button type="button" className="icon-btn" style={{ color: "var(--danger)" }} aria-label={`Remove item ${i + 1}`} title="Remove item" onClick={() => { setItems((p) => p.filter((_, k) => k !== i)); touch(); }}><Trash2 size={15} /></button></td>
                 </tr>
               ))}
-              {items.length === 0 && <tr><td colSpan={9}>No items yet. Search a product or add a custom item.</td></tr>}
+              {items.length === 0 && <tr><td colSpan={9} className="cell-empty">No items yet. Search a product above or add a custom item.</td></tr>}
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
       <section className="card">
-        <h2>Summary</h2>
-        <div className="form-grid">
+        <h2 className="card-title">Summary</h2>
+        <p className="card-desc">Document-level discount, charges, round-off and payment received.</p>
+        <div className={styles.summaryGrid}>
+        <div className="form-grid cols-2">
           <div className="field"><label htmlFor="s-disc">Discount</label>
             <div className={styles.row}>
               <input id="s-disc" type="number" min={0} step="any" value={summary.discount} onChange={(e) => { setSummary({ ...summary, discount: e.target.value }); touch(); }} />
               <select aria-label="Discount type" value={summary.discountType} onChange={(e) => { setSummary({ ...summary, discountType: e.target.value }); touch(); }}><option value="%">%</option><option value={"₹"}>Amount</option></select>
             </div></div>
           <div className="field"><label htmlFor="s-charges">Additional charges</label><input id="s-charges" type="number" min={0} step="any" value={summary.additionalCharges} onChange={(e) => { setSummary({ ...summary, additionalCharges: e.target.value }); touch(); }} /></div>
-          <div className="field"><label><input type="checkbox" checked={summary.applyTCS} onChange={(e) => { setSummary({ ...summary, applyTCS: e.target.checked }); touch(); }} /> Apply TCS</label></div>
-          <div className="field"><label><input type="checkbox" checked={summary.autoRoundOff} onChange={(e) => { setSummary({ ...summary, autoRoundOff: e.target.checked }); touch(); }} /> Auto round off</label>
+          <div className="field"><label className="check-row"><input type="checkbox" checked={summary.applyTCS} onChange={(e) => { setSummary({ ...summary, applyTCS: e.target.checked }); touch(); }} /> Apply TCS</label></div>
+          <div className="field"><label className="check-row"><input type="checkbox" checked={summary.autoRoundOff} onChange={(e) => { setSummary({ ...summary, autoRoundOff: e.target.checked }); touch(); }} /> Auto round off</label>
             {summary.autoRoundOff && (
               <div className={styles.row}>
                 <select aria-label="Round off sign" value={summary.roundOffSign} onChange={(e) => { setSummary({ ...summary, roundOffSign: e.target.value }); touch(); }}><option value="+">+</option><option value="-">-</option></select>
@@ -284,29 +299,37 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
           <dt>Discount</dt><dd>-{inr(shown.totalDiscount)}</dd>
           <dt>Additional charges</dt><dd>{inr(shown.additionalCharges)}</dd>
           <dt>Round off</dt><dd>{inr(shown.roundOff)}</dd>
-          <dt><strong>Grand total</strong></dt><dd><strong>{inr(shown.grandTotal)}</strong></dd>
+          <dt className={styles.grand}>Grand total</dt><dd className={styles.grand}>{inr(shown.grandTotal)}</dd>
           <dt>Amount received</dt><dd>{inr(shown.amountReceived)}</dd>
           <dt>Balance</dt><dd>{inr(shown.balanceAmount)}</dd>
         </dl>
-        {!touched && <p><small>Showing the totals stored with this quotation. They are recalculated when you save changes.</small></p>}
+        </div>
+        {!touched && <p className="hint" style={{ marginTop: 10 }}>Showing the totals stored with this quotation. They are recalculated when you save changes.</p>}
       </section>
 
       <section className="card">
-        <h2>Terms, notes and bank details</h2>
-        <div className="form-grid">
+        <h2 className="card-title">Terms, notes and bank details</h2>
+        <p className="card-desc">Printed at the foot of the PDF.</p>
+        <div className="form-grid cols-2">
           <div className="field"><label htmlFor="t-terms">Terms and conditions</label><textarea id="t-terms" rows={5} value={terms} onChange={(e) => setTerms(e.target.value)} /></div>
           <div className="field"><label htmlFor="t-notes">Notes</label><textarea id="t-notes" rows={5} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+        </div>
+        <h3 className="card-title" style={{ marginTop: 18 }}>Bank details</h3>
+        <div className="form-grid cols-3" style={{ marginTop: 8 }}>
           <div className="field"><label htmlFor="b-holder">Account holder</label><input id="b-holder" value={bankDetails.accountHolder} onChange={(e) => setBankDetails({ ...bankDetails, accountHolder: e.target.value })} /></div>
           <div className="field"><label htmlFor="b-bank">Bank name</label><input id="b-bank" value={bankDetails.bankName} onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })} /></div>
           <div className="field"><label htmlFor="b-acc">Account number</label><input id="b-acc" value={bankDetails.accountNumber} onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })} /></div>
           <div className="field"><label htmlFor="b-ifsc">IFSC</label><input id="b-ifsc" value={bankDetails.ifscCode} onChange={(e) => setBankDetails({ ...bankDetails, ifscCode: e.target.value })} /></div>
           <div className="field"><label htmlFor="b-upi">UPI ID</label><input id="b-upi" value={bankDetails.upiId} onChange={(e) => setBankDetails({ ...bankDetails, upiId: e.target.value })} /></div>
         </div>
-        <div className={styles.row}>
-          <button type="button" className="button" onClick={save} disabled={pending}>{pending ? "Saving..." : isEdit ? "Save changes" : "Save quotation"}</button>
-          {pdfUrl && <a className="button secondary" href={pdfUrl}>Download PDF</a>}
-        </div>
       </section>
+      <div className={styles.saveBar}>
+        <span className="muted">Grand total <strong style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{inr(shown.grandTotal)}</strong> · {items.length} item{items.length === 1 ? "" : "s"}</span>
+        <div className={styles.row} style={{ margin: 0 }}>
+          {pdfUrl && <a className="button secondary" href={pdfUrl}><FileDown size={15} aria-hidden="true" />Download PDF</a>}
+          <button type="button" className="button" onClick={save} disabled={pending}><Save size={15} aria-hidden="true" />{pending ? "Saving…" : isEdit ? "Save changes" : "Save quotation"}</button>
+        </div>
+      </div>
     </main>
   );
 }

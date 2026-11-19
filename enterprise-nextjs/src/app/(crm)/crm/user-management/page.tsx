@@ -1,5 +1,66 @@
+import { ShieldCheck, UserCheck, UserX, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma/client";
 import { requireAdmin } from "@/lib/auth/session";
-import { changePasswordAction, createUserAction, toggleUserAction } from "./actions";
-export const dynamic="force-dynamic";
-export default async function UserManagementPage(){await requireAdmin();const users=await prisma.user.findMany({orderBy:{name:"asc"}});return <main className="page"><div className="page-head"><div><div className="eyebrow">Administration</div><h1>User management</h1><p style={{color:"var(--muted)"}}>Provision Supabase accounts and control application access.</p></div></div><section className="card"><h3>Register user</h3><form action={createUserAction} className="form-grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))"}}><div className="field"><label>Name</label><input name="name" required maxLength={120}/></div><div className="field"><label>Username</label><input name="username" required minLength={3} maxLength={40}/></div><div className="field"><label>Email</label><input name="email" type="email" required/></div><div className="field"><label>Temporary password</label><input name="password" type="password" minLength={12} required/></div><div className="field"><label>Location</label><input name="location" maxLength={120}/></div><div className="field"><label>Role</label><select name="role" defaultValue="USER"><option value="USER">User</option><option value="ADMIN">Admin</option></select></div><button className="button" type="submit">Register user</button></form></section><section className="table-card"><table><thead><tr><th>User ID</th><th>Name / username</th><th>Email</th><th>Role</th><th>Account</th><th>Actions</th></tr></thead><tbody>{users.map(user=><tr key={user.id}><td>{user.userId}</td><td>{user.name}<br/><small>{user.username||"No username"}</small></td><td>{user.email||"—"}</td><td>{user.role}</td><td><span className="badge">{user.enabled?"Enabled":"Disabled"}</span></td><td><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><form action={toggleUserAction}><input type="hidden" name="id" value={user.id}/><button className="button secondary" type="submit">{user.enabled?"Disable":"Enable"}</button></form><form action={changePasswordAction} style={{display:"flex",gap:6}}><input type="hidden" name="id" value={user.id}/><input name="password" type="password" minLength={12} required placeholder="New password" style={{width:140,padding:8,border:"1px solid var(--line)",borderRadius:8}}/><button className="button secondary" type="submit">Update</button></form></div></td></tr>)}{users.length===0&&<tr><td colSpan={6}>No application users found.</td></tr>}</tbody></table></section></main>}
+import { MetricCard } from "@/components/ui/metric-card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyRow } from "@/components/ui/empty-state";
+import { AddUserButton, UserRowActions } from "./user-admin-client";
+
+export const dynamic = "force-dynamic";
+
+const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
+
+export default async function UserManagementPage() {
+  const me = await requireAdmin();
+  // Only display fields are selected: no auth ids, hashes or tokens reach the page.
+  const users = await prisma.user.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, userId: true, name: true, username: true, email: true, role: true, enabled: true, location: true },
+  });
+  const admins = users.filter((u) => u.role === "ADMIN").length;
+  const enabled = users.filter((u) => u.enabled).length;
+
+  return (
+    <main className="page">
+      <PageHeader
+        eyebrow="Administration"
+        title="User management"
+        description="Provision Supabase accounts, control access and reset passwords. Every change is written to the activity log."
+        actions={<AddUserButton />}
+      />
+      <section className="kpis" aria-label="User totals">
+        <MetricCard label="Users" value={users.length} icon={Users} />
+        <MetricCard label="Administrators" value={admins} icon={ShieldCheck} tone="violet" />
+        <MetricCard label="Enabled" value={enabled} icon={UserCheck} tone="success" />
+        <MetricCard label="Disabled" value={users.length - enabled} icon={UserX} tone="neutral" />
+      </section>
+      <section className="table-card">
+        <div className="table-scroll">
+          <table style={{ minWidth: 820 }}>
+            <thead><tr><th>User</th><th>User ID</th><th>Email</th><th>Location</th><th>Role</th><th>Account</th><th style={{ width: 1 }}><span className="sr-only">Actions</span></th></tr></thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span className="avatar" aria-hidden="true">{initials(user.name)}</span>
+                      <span><span className="cell-primary">{user.name}{user.id === me.id ? <span className="muted" style={{ fontWeight: 400 }}> (you)</span> : null}</span><span className="sub">{user.username ? `@${user.username}` : "No username"}</span></span>
+                    </span>
+                  </td>
+                  <td className="mono" style={{ fontSize: ".8125rem" }}>{user.userId ?? "—"}</td>
+                  <td>{user.email || "—"}</td>
+                  <td>{user.location || "—"}</td>
+                  <td><StatusBadge value={user.role} dot={false}>{user.role === "ADMIN" ? "Admin" : "User"}</StatusBadge></td>
+                  <td><StatusBadge value={user.enabled ? "Enabled" : "Disabled"} /></td>
+                  <td><UserRowActions id={user.id} name={user.name} enabled={user.enabled} isSelf={user.id === me.id} /></td>
+                </tr>
+              ))}
+              {users.length === 0 && <EmptyRow colSpan={7} title="No application users found" description="Use Add user to create the first account." />}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  );
+}

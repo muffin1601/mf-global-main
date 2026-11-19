@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as tradeindiaCron } from "@/app/api/cron/tradeindia/route";
-import { GET as indiamartCron } from "@/app/api/cron/indiamart/route";
 import { formatIndiaMartDate, pullIndiaMart } from "@/server/integrations/indiamart";
 import { pullTradeIndia } from "@/server/integrations/tradeindia";
 import { runCron } from "@/server/integrations/cron";
+
+// The /api/cron/indiamart route was removed (Vercel Hobby has no sub-daily crons); its logic is still exercised through runCron.
+const indiamartCron = (request: Request) => runCron("indiamart", request);
 import { prisma, resetDb } from "./helpers/db";
 
 const SECRET = "cron-secret-abcdef";

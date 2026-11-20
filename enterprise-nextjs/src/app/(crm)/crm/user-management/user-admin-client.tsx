@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { KeyRound, Power, UserPlus, Pencil } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -18,7 +17,6 @@ const FAILED = "The change was not saved. Check the details (unique username and
 export function AddUserButton() {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
-  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   return (
     <>
@@ -42,7 +40,6 @@ export function AddUserButton() {
                   await createUserAction(fd);
                   toast.success(`User ${String(fd.get("name"))} created.`);
                   setOpen(false);
-                  router.refresh();
                 } catch {
                   toast.error(FAILED);
                 }
@@ -69,7 +66,6 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
   const [dialog, setDialog] = useState<null | "toggle" | "password" | "edit">(null);
   const [pending, start] = useTransition();
   const [mismatch, setMismatch] = useState(false);
-  const router = useRouter();
   const fd = (extra: Record<string, string>) => { const f = new FormData(); f.set("id", id); for (const [k, v] of Object.entries(extra)) f.set(k, v); return f; };
 
   return (
@@ -106,7 +102,6 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
                   await updateUserAction(fd({ name: String(f.get("name") || ""), email: String(f.get("email") || ""), location: String(f.get("location") || "") }));
                   toast.success(`User details updated.`);
                   setDialog(null);
-                  router.refresh();
                 } catch (err) {
                   toast.error("Failed to update user details. Email may already be in use.");
                 }
@@ -126,7 +121,7 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
           message={enabled ? <><strong>{name}</strong> will be signed out of the CRM on their next request and cannot sign in until re-enabled.</> : <>Allow <strong>{name}</strong> to sign in again?</>}
           onClose={() => setDialog(null)}
           onConfirm={async () => {
-            try { await toggleUserAction(fd({})); toast.success(`${name} ${enabled ? "disabled" : "enabled"}.`); router.refresh(); return true; }
+            try { await toggleUserAction(fd({})); toast.success(`${name} ${enabled ? "disabled" : "enabled"}.`); return true; }
             catch { toast.error("The account status was not changed. Please try again."); return false; }
           }}
         />

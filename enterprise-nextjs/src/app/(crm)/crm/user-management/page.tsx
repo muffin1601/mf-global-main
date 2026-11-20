@@ -16,7 +16,7 @@ export default async function UserManagementPage() {
   // Only display fields are selected: no auth ids, hashes or tokens reach the page.
   const users = await prisma.user.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, userId: true, name: true, username: true, email: true, role: true, enabled: true, location: true },
+    select: { id: true, userId: true, name: true, username: true, email: true, role: true, enabled: true, location: true, authUserId: true },
   });
   const admins = users.filter((u) => u.role === "ADMIN").length;
   const enabled = users.filter((u) => u.enabled).length;
@@ -53,7 +53,7 @@ export default async function UserManagementPage() {
                   <td>{user.location || "—"}</td>
                   <td><StatusBadge value={user.role} dot={false}>{user.role === "ADMIN" ? "Admin" : "User"}</StatusBadge></td>
                   <td><StatusBadge value={user.enabled ? "Enabled" : "Disabled"} /></td>
-                  <td><UserRowActions id={user.id} name={user.name} email={user.email} location={user.location} enabled={user.enabled} isSelf={user.id === me.id} /></td>
+                  <td><UserRowActions id={user.id} name={user.name} email={user.email} location={user.location} enabled={user.enabled} isSelf={user.id === me.id} hasAuth={!!user.authUserId} /></td>
                 </tr>
               ))}
               {users.length === 0 && <EmptyRow colSpan={7} title="No application users found" description="Use Add user to create the first account." />}

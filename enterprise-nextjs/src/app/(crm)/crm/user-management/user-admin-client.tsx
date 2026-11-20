@@ -65,7 +65,7 @@ export function AddUserButton() {
   );
 }
 
-export function UserRowActions({ id, name, email, location, enabled, isSelf }: { id: string; name: string; email?: string | null; location?: string | null; enabled: boolean; isSelf: boolean }) {
+export function UserRowActions({ id, name, email, location, enabled, isSelf, hasAuth }: { id: string; name: string; email?: string | null; location?: string | null; enabled: boolean; isSelf: boolean; hasAuth: boolean }) {
   const [dialog, setDialog] = useState<null | "toggle" | "password" | "edit">(null);
   const [pending, start] = useTransition();
   const [mismatch, setMismatch] = useState(false);
@@ -77,7 +77,7 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf }: {
       <button type="button" className="button ghost small" onClick={() => setDialog("edit")} title="Edit user details">
         <Pencil size={14} aria-hidden="true" />Edit
       </button>
-      <button type="button" className="button ghost small" disabled={!enabled || pending} onClick={() => setDialog("password")} title={enabled ? "Set a new password" : "Enable the account first"}>
+      <button type="button" className="button ghost small" disabled={!enabled || !hasAuth || pending} onClick={() => setDialog("password")} title={!hasAuth ? "User has no Supabase account" : enabled ? "Set a new password" : "Enable the account first"}>
         <KeyRound size={14} aria-hidden="true" />Password
       </button>
       <button

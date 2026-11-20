@@ -53,7 +53,7 @@ export default async function UserManagementPage() {
                   <td>{user.location || "—"}</td>
                   <td><StatusBadge value={user.role} dot={false}>{user.role === "ADMIN" ? "Admin" : "User"}</StatusBadge></td>
                   <td><StatusBadge value={user.enabled ? "Enabled" : "Disabled"} /></td>
-                  <td><UserRowActions id={user.id} name={user.name} enabled={user.enabled} isSelf={user.id === me.id} /></td>
+                  <td><UserRowActions id={user.id} name={user.name} email={user.email} location={user.location} enabled={user.enabled} isSelf={user.id === me.id} /></td>
                 </tr>
               ))}
               {users.length === 0 && <EmptyRow colSpan={7} title="No application users found" description="Use Add user to create the first account." />}

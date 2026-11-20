@@ -3,10 +3,10 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { KeyRound, Power, UserPlus } from "lucide-react";
+import { KeyRound, Power, UserPlus, Pencil } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Modal } from "@/components/ui/modal";
-import { changePasswordAction, createUserAction, toggleUserAction } from "./actions";
+import { changePasswordAction, createUserAction, toggleUserAction, updateUserAction } from "./actions";
 
 /*
  * Client wrappers around the existing user-management Server Actions (unchanged). The actions throw on
@@ -65,8 +65,8 @@ export function AddUserButton() {
   );
 }
 
-export function UserRowActions({ id, name, enabled, isSelf }: { id: string; name: string; enabled: boolean; isSelf: boolean }) {
-  const [dialog, setDialog] = useState<null | "toggle" | "password">(null);
+export function UserRowActions({ id, name, email, location, enabled, isSelf }: { id: string; name: string; email?: string | null; location?: string | null; enabled: boolean; isSelf: boolean }) {
+  const [dialog, setDialog] = useState<null | "toggle" | "password" | "edit">(null);
   const [pending, start] = useTransition();
   const [mismatch, setMismatch] = useState(false);
   const router = useRouter();
@@ -74,6 +74,9 @@ export function UserRowActions({ id, name, enabled, isSelf }: { id: string; name
 
   return (
     <div className="row-actions">
+      <button type="button" className="button ghost small" onClick={() => setDialog("edit")} title="Edit user details">
+        <Pencil size={14} aria-hidden="true" />Edit
+      </button>
       <button type="button" className="button ghost small" disabled={!enabled || pending} onClick={() => setDialog("password")} title={enabled ? "Set a new password" : "Enable the account first"}>
         <KeyRound size={14} aria-hidden="true" />Password
       </button>
@@ -83,6 +86,39 @@ export function UserRowActions({ id, name, enabled, isSelf }: { id: string; name
       >
         <Power size={14} aria-hidden="true" />{enabled ? "Disable" : "Enable"}
       </button>
+
+      {dialog === "edit" ? (
+        <Modal
+          title="Edit user details" description={`Update information for ${name}.`}
+          onClose={() => setDialog(null)} busy={pending}
+          footer={<>
+            <button type="button" className="button secondary" onClick={() => setDialog(null)} disabled={pending}>Cancel</button>
+            <button type="submit" form={`edit-${id}`} className="button" disabled={pending}>{pending ? "Saving…" : "Save changes"}</button>
+          </>}
+        >
+          <form
+            id={`edit-${id}`} className="form-grid cols-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              start(async () => {
+                try {
+                  await updateUserAction(fd({ name: String(f.get("name") || ""), email: String(f.get("email") || ""), location: String(f.get("location") || "") }));
+                  toast.success(`User details updated.`);
+                  setDialog(null);
+                  router.refresh();
+                } catch (err) {
+                  toast.error("Failed to update user details. Email may already be in use.");
+                }
+              });
+            }}
+          >
+            <div className="field"><label htmlFor={`edit-name-${id}`}>Full name</label><input id={`edit-name-${id}`} name="name" defaultValue={name} required minLength={2} maxLength={120} autoComplete="off" /></div>
+            <div className="field"><label htmlFor={`edit-email-${id}`}>Email</label><input id={`edit-email-${id}`} name="email" type="email" defaultValue={email || ""} autoComplete="off" /></div>
+            <div className="field col-full"><label htmlFor={`edit-location-${id}`}>Location</label><input id={`edit-location-${id}`} name="location" defaultValue={location || ""} maxLength={120} autoComplete="off" /></div>
+          </form>
+        </Modal>
+      ) : null}
 
       {dialog === "toggle" ? (
         <ConfirmDialog

@@ -113,6 +113,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
   // Ctrl/Cmd+K (anywhere) or "/" (outside form fields) opens global search; Ctrl/Cmd+K again closes it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!e.key) return;
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setPaletteOpen((o) => !o); }

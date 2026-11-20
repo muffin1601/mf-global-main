@@ -41,6 +41,12 @@ The scale is based on 4px steps: 4, 6, 8, 10, 12, 14, 16, 20, 24, 28. Pages use 
 | Forms | `.form-grid` (+`.cols-2` / `.cols-3`), `.field` > `label` + control + `.hint`/`.error`, `.req` marker |
 | Filters | `.filter-bar` (with `.field.grow`) or `.report-filters` for dense report panels; `.search-input` for icon search boxes |
 | Tables | `.table-card` > `.section-head` / `.table-scroll` > `table` / `.table-foot` with `.pager`. Classes: `td.num`, `.cell-primary`, `.sub`, `.row-actions`, `.cell-empty` |
+| Server-driven table | `<DataTable>` (`components/ui/data-table.tsx`) with `parseTableState` (`lib/table-params.ts`): URL-driven sort, page size, column picker (GET form), compact density. Server Components only |
+| Loading | `<Skeleton>`, `<TableSkeleton>`, `<MetricsSkeleton>`, `<PageSkeleton>` (`components/ui/skeleton.tsx`) |
+| Error panel | `<ErrorState>` — safe message + optional reference (digest), never raw errors |
+| People | `<UserAvatar>` / `<UserChip>`; `initialsOf()` |
+| Long forms | `<FormSection>` (fieldset + legend, optional `split` layout) inside `<FormCard>` |
+| Search / commands | `<CommandPalette>` (`components/layout/command-palette.tsx`), opened by Ctrl/⌘+K, `/` or the topbar trigger; results from `/api/search` |
 | Other | `.segmented` view switcher, `.tabs`/`.tab`, `.callout.tone-*`, `.progress`, `.skeleton`, `.dl-grid` |
 
 ## Status tone map (display only)

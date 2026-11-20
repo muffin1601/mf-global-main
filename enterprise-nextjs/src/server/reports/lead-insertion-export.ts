@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import { toCsv, toXlsx, type Column } from "@/lib/export/tabular";
 import type { Actor } from "@/server/actor";
 import { badRequest } from "@/server/errors";
+import { recordAudit } from "@/server/audit/log";
 import { getLeadInsertionExportRows, getLeadInsertionReport, type LeadRow, type ReportResult } from "./lead-insertion";
 import { SOURCES, SOURCE_LABELS, SOURCE_SHORT_LABELS, parseFilters, type ReportFilters } from "./lead-insertion-filters";
 
@@ -84,12 +85,18 @@ export type ExportResult = { filename: string; contentType: string; body: string
 export async function exportLeadInsertion(actor: Actor, input: ReportFilters, format: string, now: Date = new Date()): Promise<ExportResult> {
   if (!(EXPORT_FORMATS as readonly string[]).includes(format)) throw badRequest("format must be csv, xlsx or pdf.");
   const stamp = now.toISOString().slice(0, 10);
+  let result: ExportResult;
   if (format === "pdf") {
     const report = await getLeadInsertionReport(actor, input, now);
     const body = await buildPdf(report, describeFilters(input, report), now, actor.name);
-    return { filename: `lead-insertion-${stamp}.pdf`, contentType: "application/pdf", body, rowCount: report.summary.total };
+    result = { filename: `lead-insertion-${stamp}.pdf`, contentType: "application/pdf", body, rowCount: report.summary.total };
+  } else {
+    const rows = await getLeadInsertionExportRows(actor, input, now);
+    result = format === "csv"
+      ? { filename: `lead-insertion-${stamp}.csv`, contentType: "text/csv; charset=utf-8", body: toCsv(LEAD_COLUMNS, rows), rowCount: rows.length }
+      : { filename: `lead-insertion-${stamp}.xlsx`, contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", body: await toXlsx("Leads", LEAD_COLUMNS, rows), rowCount: rows.length };
   }
-  const rows = await getLeadInsertionExportRows(actor, input, now);
-  if (format === "csv") return { filename: `lead-insertion-${stamp}.csv`, contentType: "text/csv; charset=utf-8", body: toCsv(LEAD_COLUMNS, rows), rowCount: rows.length };
-  return { filename: `lead-insertion-${stamp}.xlsx`, contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", body: await toXlsx("Leads", LEAD_COLUMNS, rows), rowCount: rows.length };
+  // Data exports are audited (Enterprise CRM 2.0 §19): who, format, filters, row count. Never the rows.
+  await recordAudit(actor, "report.lead_insertion.exported", { format, rows: result.rowCount, filters: input });
+  return result;
 }

@@ -3,6 +3,7 @@ import { toCsv, toXlsx, type Column } from "@/lib/export/tabular";
 import { istDateString } from "@/lib/time/ist";
 import type { Actor } from "@/server/actor";
 import { badRequest } from "@/server/errors";
+import { recordAudit } from "@/server/audit/log";
 import { EXPORT_ROW_CAP, type LeadFilter, type LeadPreset } from "./filter-schema";
 import { buildLeadWhere, leadOrderBy } from "./where";
 import type { Prisma } from "@/generated/prisma/client";
@@ -66,5 +67,7 @@ export async function exportLeads(actor: Actor, input: LeadExportInput): Promise
   const stamp = istDateString(input.now ?? new Date());
   const filename = `leads-${stamp}.${input.format}`;
   const body = input.format === "csv" ? toCsv(LEAD_EXPORT_COLUMNS, rows) : await toXlsx("Leads", LEAD_EXPORT_COLUMNS, rows);
+  // Data exports are audited (Enterprise CRM 2.0 §19): who, what scope/filters, how many rows. Never the rows.
+  await recordAudit(actor, "lead.exported", { format: input.format, rows: rows.length, truncated, preset: input.preset ?? "all", filter });
   return { filename, body, contentType: input.format, rows: rows.length, truncated };
 }

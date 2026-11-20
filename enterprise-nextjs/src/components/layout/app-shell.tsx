@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ChevronRight, FileText, LogOut, Menu, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Plus, Search, Sun, Upload, UserPlus, X, Package,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { initialsOf } from "@/components/ui/user-avatar";
+import { CommandPalette } from "./command-palette";
 import { activeHref, crumbsFor, navFor, type NavItem } from "./nav-config";
 import { applyTheme, readTheme, setSidebarCollapsed, type ThemePreference } from "./theme";
 
 export type ShellUser = { name: string; email: string | null; role: "ADMIN" | "USER"; userId: string | null };
 
-const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "U";
+const initials = initialsOf;
 
 /* Theme preference as an external store so every toggle stays in sync without effects. */
 const themeListeners = new Set<() => void>();
@@ -95,7 +97,6 @@ function ThemeMenuItems() {
 export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
   const isAdmin = user.role === "ADMIN";
   const pathname = usePathname();
-  const router = useRouter();
   const groups = navFor(isAdmin);
   const current = activeHref(groups, pathname);
   const crumbs = crumbsFor(pathname);
@@ -104,16 +105,18 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
   const closeMenu = () => setMenu(null);
   const createRef = useDismiss(menu === "create", closeMenu);
   const userRef = useDismiss(menu === "user", closeMenu);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const closePalette = () => setPaletteOpen(false);
   const theme = useTheme();
   const leadsHref = isAdmin ? "/crm/lead-management" : "/crm/my-leads";
 
-  // "/" or Ctrl/Cmd+K focuses record search (ignored while typing in a field).
+  // Ctrl/Cmd+K (anywhere) or "/" (outside form fields) opens global search; Ctrl/Cmd+K again closes it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
-      if ((e.key === "k" && (e.ctrlKey || e.metaKey)) || (e.key === "/" && !typing)) { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setPaletteOpen((o) => !o); }
+      else if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); setPaletteOpen(true); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -178,18 +181,14 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
               ))}
             </ol>
           </nav>
-          <form
-            className="global-search" role="search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const q = new FormData(e.currentTarget).get("q")?.toString().trim();
-              router.push((q ? `${leadsHref}?q=${encodeURIComponent(q)}` : leadsHref) as Route);
-            }}
-          >
+          <button type="button" className="global-search" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K /">
             <Search size={15} aria-hidden="true" />
-            <input ref={searchRef} name="q" type="search" placeholder="Search leads by name, phone, email…" aria-label="Search leads" autoComplete="off" />
-            <kbd aria-hidden="true">/</kbd>
-          </form>
+            <span className="global-search-text">Search records or jump to…</span>
+            <kbd aria-hidden="true">Ctrl K</kbd>
+          </button>
+          <button type="button" className="icon-btn mobile-search" onClick={() => setPaletteOpen(true)} aria-label="Search">
+            <Search size={17} />
+          </button>
           <div className="topbar-actions">
             <div className="menu-wrap" ref={createRef}>
               <button type="button" className="button small" aria-haspopup="menu" aria-expanded={menu === "create"} onClick={() => setMenu(menu === "create" ? null : "create")}>
@@ -232,6 +231,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
         </header>
         <div id="main" tabIndex={-1} style={{ outline: "none" }}>{children}</div>
       </div>
+      <CommandPalette open={paletteOpen} onClose={closePalette} isAdmin={isAdmin} userKey={user.userId ?? user.name} quickActions={quick} />
     </div>
   );
 }

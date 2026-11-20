@@ -8,7 +8,7 @@ export const MAX_ACTION_LENGTH = 100;
 export const MAX_DETAILS_BYTES = 8 * 1024;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export type ActivityQuery = { userId?: string; from?: string; to?: string; q?: string; page?: number; pageSize?: number };
+export type ActivityQuery = { userId?: string; from?: string; to?: string; q?: string; page?: number; pageSize?: number; sortDir?: "asc" | "desc" };
 
 /** Admin-only, paginated, IST-date-filtered activity listing. Handles legacy rows (no user link). */
 export async function listActivity(actor: Actor, input: ActivityQuery = {}) {
@@ -33,10 +33,11 @@ export async function listActivity(actor: Actor, input: ActivityQuery = {}) {
     and.push({ OR: [{ action: c }, { actorName: c }, { actorUserCode: c }, { user: { name: c } }, { user: { userId: c } }] });
   }
   const where: Prisma.ActivityLogWhereInput = and.length ? { AND: and } : {};
+  const dir: Prisma.SortOrder = input.sortDir === "asc" ? "asc" : "desc"; // newest first unless asked otherwise
   const [total, rows] = await Promise.all([
     prisma.activityLog.count({ where }),
     prisma.activityLog.findMany({
-      where, orderBy: [{ occurredAt: "desc" }, { id: "desc" }], skip: (page - 1) * pageSize, take: pageSize,
+      where, orderBy: [{ occurredAt: dir }, { id: dir }], skip: (page - 1) * pageSize, take: pageSize,
       include: { user: { select: { id: true, name: true, userId: true, role: true } } },
     }),
   ]);

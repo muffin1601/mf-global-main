@@ -11,14 +11,15 @@ describe("CRM permission catalog (pins current ADMIN/USER behaviour)", () => {
 
   it("grants USER exactly the capabilities the services allow today", () => {
     expect(permissionsFor("USER").sort()).toEqual([
-      "leads.create", "leads.edit", "leads.export", "leads.import", "leads.view_own",
+      "activities.create", "leads.create", "leads.edit", "leads.export", "leads.import", "leads.view_own",
       "products.view", "quotations.create", "quotations.edit", "reports.export", "reports.view",
     ]);
   });
 
   it("never grants USER an admin-only capability", () => {
     for (const p of ["leads.view_all", "leads.assign", "leads.delete", "leads.bulk_update", "leads.import_assign", "quotations.view_all", "quotations.delete",
-      "products.manage", "reports.view_all", "users.manage", "audit.view", "settings.manage", "dashboard.view_org"] as const) {
+      "products.manage", "reports.view_all", "users.manage", "audit.view", "settings.manage", "dashboard.view_org",
+      "activities.view_all", "activities.assign", "views.share"] as const) {
       expect(can("USER", p), p).toBe(false);
     }
   });

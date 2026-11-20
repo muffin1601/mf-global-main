@@ -7,7 +7,7 @@ import {
   addContactAction, checkDuplicateAction, createLeadAction, deleteContactAction, updateLeadAction,
   type AddressValues, type LeadFormValues,
 } from "@/app/(crm)/crm/lead-management/actions";
-import { CALL_STATUSES, DATA_TYPES, LEAD_STATUSES } from "@/lib/crm/constants";
+import { CALL_STATUSES, DATA_TYPES, LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/crm/constants";
 import { istDateString } from "@/lib/time/ist";
 import type { Address, LeadDetail } from "@/server/leads/types";
 import { fmtDate } from "./format";
@@ -33,6 +33,7 @@ function fromDetail(l: LeadDetail): LeadFormValues {
     location: l.location ?? "", state: l.state ?? "", category: l.category ?? "", dataType: l.dataType ?? "", quantity: l.quantity === null ? "" : String(l.quantity),
     requirements: l.requirements ?? "", remarks: l.remarks ?? "", address: l.address ?? "", status: l.status, callStatus: l.callStatus,
     followUpDate: dateValue(l.followUpDate), callingDate: dateValue(l.callingDate), billing: addr(l.billingAddress), shipping: addr(l.shippingAddress),
+    priority: l.priority ?? "", tags: l.tags.join(", "),
   };
 }
 
@@ -153,6 +154,20 @@ function LeadFormInner({ mode, initial, lead, reload, isAdmin, users, onClose, o
             <label htmlFor="lf-call">Call status</label>
             <select id="lf-call" value={v.callStatus} onChange={(e) => set("callStatus", e.target.value)}>{CALL_STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
           </div>
+          {mode === "edit" ? (
+            <>
+              <div className="field">
+                <label htmlFor="lf-priority">Priority</label>
+                <select id="lf-priority" value={v.priority ?? ""} onChange={(e) => set("priority", e.target.value)}>
+                  <option value="">Not set</option>{LEAD_PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="lf-tags">Tags</label>
+                <input id="lf-tags" value={v.tags ?? ""} onChange={(e) => set("tags", e.target.value)} placeholder="Comma separated" maxLength={1000} />
+              </div>
+            </>
+          ) : null}
           <div className="field"><label htmlFor="lf-fu">Follow-up date</label><input id="lf-fu" type="date" value={v.followUpDate ?? ""} onChange={(e) => set("followUpDate", e.target.value)} /></div>
           <div className="field"><label htmlFor="lf-cd">Calling date</label><input id="lf-cd" type="date" value={v.callingDate ?? ""} onChange={(e) => set("callingDate", e.target.value)} /></div>
         </div>

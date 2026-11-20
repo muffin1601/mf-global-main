@@ -1,6 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { can, hasVendorPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma/client";
+import { escapeLike, likePattern, literalContains } from "@/lib/db/like";
 import { isAdmin, leadScope, type Actor } from "@/server/actor";
 
 /**
@@ -33,15 +34,7 @@ export function normalizeQuery(raw: unknown): string {
   return q.length >= SEARCH_MIN_LENGTH ? q : "";
 }
 
-/** Escape LIKE wildcards (and the escape character) so user input is matched literally. */
-export const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
-/** Escaped `%term%` pattern for raw-SQL ILIKE. */
-export const likePattern = (q: string) => `%${escapeLike(q)}%`;
-/**
- * Prisma `contains` filter that matches literally. Prisma does NOT escape % and _ for PostgreSQL
- * (pinned by tests/search.global.test.ts); PostgreSQL's default LIKE escape character is backslash.
- */
-const literalContains = (q: string) => ({ contains: escapeLike(q), mode: "insensitive" as const });
+export { escapeLike, likePattern } from "@/lib/db/like";
 
 const join = (...parts: (string | null | undefined)[]) => parts.map((p) => p?.trim()).filter(Boolean).join(" · ");
 

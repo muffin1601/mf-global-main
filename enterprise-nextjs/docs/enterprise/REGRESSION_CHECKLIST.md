@@ -51,6 +51,17 @@ Run after every phase. **Automated** items are covered by `npm test` (embedded P
 - [ ] Activity log: sort toggle, rows per page, columns picker, compact density; filters keep table preferences; pagination (manual + auto `listActivity sortDir`)
 - [ ] Loading skeleton and error boundary render in light and dark themes (manual)
 
+## Phase 2 (core CRM)
+
+- [ ] Migration `20261120000000_enterprise_phase2_core` applies on a fresh DB (auto: every test run) and on staging before production
+- [ ] Existing leads show no priority and no tags after migration (auto)
+- [ ] Every assignment path writes ownership history (auto: `phase2.leads`)
+- [ ] Activities: access rules, IST views, explicit completion only, idempotent complete (auto: `phase2.activities`)
+- [ ] Log a completed call from a lead, see it on the timeline; create a follow-up due today, mark done, see it under Completed (manual, done 2026-11-20)
+- [ ] Bulk status & tags as admin; sort A–Z with tiebreak; save and share a view; open it as another user and confirm scope (manual)
+- [ ] `%` and `_` in any search box match literally (auto)
+- [ ] Dashboard activity and quotation cards match `KPI_GLOSSARY.md` (auto + manual spot check)
+
 ## Public website
 
 - [ ] Home, blogs, careers, contact render unchanged; no CRM CSS leaks (manual; no files in `src/legacy-marketing` or `src/app/(website)` changed — check `git diff --stat`)

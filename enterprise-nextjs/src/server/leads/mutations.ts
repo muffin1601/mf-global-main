@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
-import { CALL_STATUSES, LEAD_STATUSES } from "@/lib/crm/constants";
+import { CALL_STATUSES, LEAD_PRIORITIES, LEAD_STATUSES, MAX_TAG_LENGTH, normalizeTags } from "@/lib/crm/constants";
 import { prisma } from "@/lib/prisma/client";
 import { assertAdmin, isAdmin, leadScope, type Actor } from "@/server/actor";
 import { badRequest, conflict, forbidden, notFound } from "@/server/errors";
 import { createLead, recordStatusChange } from "./ingest";
 import { rotateFollowUp, type LeadFilter, type LeadPreset } from "./filter-schema";
 import { buildLeadWhere } from "./where";
+import { recordAssignmentChanges, snapshotAssignments } from "./assignment-history";
 
 type Tx = Prisma.TransactionClient;
 
@@ -20,8 +21,10 @@ function parse<S extends z.ZodType>(schema: S, raw: unknown): z.output<S> {
   return r.data;
 }
 
-async function log(tx: Tx, actor: Actor, action: string, details: Prisma.InputJsonObject) {
-  await tx.activityLog.create({ data: { userId: actor.id, actorUserCode: actor.userId ?? null, actorName: actor.name, actorRole: actor.role, action, details } });
+async function log(tx: Tx, actor: Actor, action: string, details: Prisma.InputJsonObject, leadId?: string) {
+  await tx.activityLog.create({
+    data: { userId: actor.id, actorUserCode: actor.userId ?? null, actorName: actor.name, actorRole: actor.role, action, details, ...(leadId ? { entityType: "lead", entityId: leadId } : {}) },
+  });
 }
 
 // ---------- schemas ----------
@@ -44,6 +47,8 @@ const baseFields = {
 const createSchema = z.object({ ...baseFields, assignedUserId: z.uuid().nullish() });
 const updateSchema = z.object({
   ...baseFields,
+  priority: z.enum(LEAD_PRIORITIES).nullish(),
+  tags: z.array(z.string().max(MAX_TAG_LENGTH * 4)).max(100).optional(),
   billingAddress: addressSchema, shippingAddress: addressSchema,
   assignedTo: z.array(z.object({ userId: z.uuid(), canUpdate: z.boolean().default(false) })).optional(),
 });
@@ -123,6 +128,8 @@ export async function updateLead(actor: Actor, id: string, raw: UpdateLeadInput)
     if (input.callingDate !== undefined) data.callingDate = input.callingDate;
     if (input.billingAddress !== undefined) data.billingAddress = input.billingAddress ?? Prisma.DbNull;
     if (input.shippingAddress !== undefined) data.shippingAddress = input.shippingAddress ?? Prisma.DbNull;
+    if (input.priority !== undefined) data.priority = input.priority;
+    if (input.tags !== undefined) data.tags = normalizeTags(input.tags);
     if (input.status) data.status = input.status;
     if (input.callStatus) data.callStatus = input.callStatus;
     if (input.followUpDate && input.followUpDate.getTime() !== lead.followUpDate?.getTime()) Object.assign(data, rotateFollowUp(lead, input.followUpDate));
@@ -144,13 +151,15 @@ export async function updateLead(actor: Actor, id: string, raw: UpdateLeadInput)
       { status: input.status ?? lead.status, callStatus: input.callStatus ?? lead.callStatus }, actor.id,
     );
     if (input.assignedTo !== undefined) {
+      const before = await snapshotAssignments(tx, [id]);
       await tx.leadAssignment.deleteMany({ where: { leadId: id } });
       if (input.assignedTo.length) {
         await tx.leadAssignment.createMany({ data: input.assignedTo.map((a) => ({ leadId: id, userId: a.userId, canView: true, canUpdate: a.canUpdate, assignedBy: actor.id })) });
       }
+      await recordAssignmentChanges(tx, before, await snapshotAssignments(tx, [id]), actor.id, "edit");
       changed.push("assignedTo");
     }
-    if (changed.length) await log(tx, actor, "lead.updated", { leadId: id, changed });
+    if (changed.length) await log(tx, actor, "lead.updated", { leadId: id, changed }, id);
   });
   return { id };
 }
@@ -198,9 +207,13 @@ export async function deleteLead(actor: Actor, id: string) {
 /** Delete every lead matching the current filters/preset. Refuses an unfiltered "delete everything". */
 export async function deleteAllFiltered(actor: Actor, input: { filter?: LeadFilter; preset?: LeadPreset }): Promise<{ deleted: number }> {
   assertAdmin(actor);
-  const filter = input.filter ?? {};
+  // Sorting is not a filter: a sort-only request must not count as "filtered" for a bulk delete.
+  const { sort: _sort, ...filter } = input.filter ?? {};
+  void _sort;
   const preset = input.preset ?? "all";
-  if (preset === "all" && Object.keys(filter).length === 0) throw badRequest("Apply at least one filter before deleting all matching leads.");
+  if (preset === "all" && Object.values(filter).every((v) => v === undefined || (Array.isArray(v) && v.length === 0) || v === "")) {
+    throw badRequest("Apply at least one filter before deleting all matching leads.");
+  }
   const where = buildLeadWhere(actor, filter, preset);
   return prisma.$transaction(async (tx) => {
     const { count } = await tx.lead.deleteMany({ where });
@@ -241,10 +254,12 @@ export async function assignLeads(actor: Actor, raw: { leadIds: string[]; userId
     const leads = await tx.lead.findMany({ where: { id: { in: input.leadIds } }, select: { id: true } });
     if (!leads.length) throw notFound("No matching leads found.");
     const userIds = users.map((u) => u.id), leadIds = leads.map((l) => l.id);
+    const before = await snapshotAssignments(tx, leadIds);
     await tx.leadAssignment.deleteMany({ where: { leadId: { in: leadIds }, userId: { in: userIds } } });
     await tx.leadAssignment.createMany({
       data: leadIds.flatMap((leadId) => userIds.map((userId) => ({ leadId, userId, canView: true, canUpdate: input.level === "update", canDelete: false, assignedBy: actor.id }))),
     });
+    await recordAssignmentChanges(tx, before, await snapshotAssignments(tx, leadIds), actor.id, "assign");
     await log(tx, actor, "lead.assigned", { leads: leadIds.length, userIds, level: input.level, leadIds: leadIds.slice(0, 200) });
     return { leads: leadIds.length, users: userIds.length };
   }, { timeout: 60_000 });
@@ -254,7 +269,9 @@ export async function removeAssignments(actor: Actor, leadIds: string[]): Promis
   assertAdmin(actor);
   const ids = parse(idList, leadIds);
   return prisma.$transaction(async (tx) => {
+    const before = await snapshotAssignments(tx, ids);
     const { count } = await tx.leadAssignment.deleteMany({ where: { leadId: { in: ids } } });
+    await recordAssignmentChanges(tx, before, await snapshotAssignments(tx, ids), actor.id, "unassign");
     await log(tx, actor, "lead.unassigned", { leads: ids.length, assignmentsRemoved: count, leadIds: ids.slice(0, 200) });
     return { leads: ids.length };
   }, { timeout: 60_000 });
@@ -270,9 +287,69 @@ export async function transferAssignments(actor: Actor, raw: { leadIds: string[]
     const leads = await tx.lead.findMany({ where: { id: { in: input.leadIds } }, select: { id: true } });
     if (!leads.length) throw notFound("No matching leads found.");
     const leadIds = leads.map((l) => l.id);
+    const before = await snapshotAssignments(tx, leadIds);
     await tx.leadAssignment.deleteMany({ where: { leadId: { in: leadIds } } });
     await tx.leadAssignment.createMany({ data: leadIds.map((leadId) => ({ leadId, userId: target.id, canView: true, canUpdate: true, canDelete: false, assignedBy: actor.id })) });
+    await recordAssignmentChanges(tx, before, await snapshotAssignments(tx, leadIds), actor.id, "transfer");
     await log(tx, actor, "lead.transferred", { leads: leadIds.length, targetUserId: target.id, leadIds: leadIds.slice(0, 200) });
     return { leads: leadIds.length };
   }, { timeout: 60_000 });
+}
+
+// ---------- bulk status / priority / tags (admin, Phase 2) ----------
+const bulkFieldsSchema = z.object({
+  ids: idList,
+  status: z.enum(LEAD_STATUSES).optional(),
+  callStatus: z.enum(CALL_STATUSES).optional(),
+  priority: z.enum(LEAD_PRIORITIES).optional(),
+  addTags: z.array(z.string().max(MAX_TAG_LENGTH * 4)).max(20).optional(),
+});
+
+/**
+ * Bulk-set status / call status / priority and add tags. Status changes write one LeadStatusHistory
+ * row per lead whose value actually changed (same rule as a single edit); unchanged leads get none.
+ * Admin-only, like the existing bulk category/location update.
+ */
+export async function bulkSetLeadFields(actor: Actor, raw: z.input<typeof bulkFieldsSchema>): Promise<{ updated: number; statusChanged: number }> {
+  assertAdmin(actor);
+  const input = parse(bulkFieldsSchema, raw);
+  const addTags = input.addTags ? normalizeTags(input.addTags) : [];
+  if (!input.status && !input.callStatus && !input.priority && !addTags.length) throw badRequest("Choose a status, call status, priority or tags to apply.");
+  return prisma.$transaction(async (tx) => {
+    const leads = await tx.lead.findMany({ where: { id: { in: input.ids } }, select: { id: true, status: true, callStatus: true, tags: true } });
+    if (!leads.length) throw notFound("No matching leads found.");
+    let statusChanged = 0;
+    for (const lead of leads) {
+      const next = { status: input.status ?? lead.status, callStatus: input.callStatus ?? lead.callStatus };
+      const data: Prisma.LeadUpdateInput = {};
+      if (next.status !== lead.status) data.status = next.status;
+      if (next.callStatus !== lead.callStatus) data.callStatus = next.callStatus;
+      if (input.priority) data.priority = input.priority;
+      if (addTags.length) data.tags = normalizeTags([...(lead.tags ?? []), ...addTags]);
+      if (!Object.keys(data).length) continue;
+      await tx.lead.update({ where: { id: lead.id }, data });
+      if (data.status !== undefined || data.callStatus !== undefined) {
+        await recordStatusChange(tx, lead.id, { status: lead.status, callStatus: lead.callStatus }, next, actor.id);
+        statusChanged++;
+      }
+    }
+    await log(tx, actor, "lead.bulk_fields_updated", {
+      count: leads.length, statusChanged, status: input.status ?? null, callStatus: input.callStatus ?? null, priority: input.priority ?? null, addTags, leadIds: leads.map((l) => l.id).slice(0, 200),
+    });
+    return { updated: leads.length, statusChanged };
+  }, { timeout: 60_000 });
+}
+
+// ---------- ownership history ----------
+export type OwnershipEvent = { id: string; action: string; reason: string; canUpdate: boolean | null; at: Date; user: string | null; actor: string | null };
+
+/** Assignment history for one lead, newest first. Same visibility as the lead itself. */
+export async function getLeadOwnershipHistory(actor: Actor, leadId: string, take = 100): Promise<OwnershipEvent[]> {
+  const visible = await prisma.lead.findFirst({ where: { AND: [{ id: leadId }, leadScope(actor)] }, select: { id: true } });
+  if (!visible) throw notFound("Lead not found.");
+  const rows = await prisma.leadAssignmentEvent.findMany({
+    where: { leadId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: Math.min(Math.max(take, 1), 500),
+    include: { user: { select: { name: true } }, actor: { select: { name: true } } },
+  });
+  return rows.map((r) => ({ id: r.id, action: r.action, reason: r.reason, canUpdate: r.canUpdate, at: r.createdAt, user: r.user?.name ?? null, actor: r.actor?.name ?? null }));
 }

@@ -8,6 +8,7 @@ export type LeadRow = {
   id: string; name: string | null; company: string | null; email: string | null; phone: string | null; contact: string | null;
   location: string | null; state: string | null; category: string | null; dataType: string | null; fileName: string | null;
   status: string; callStatus: string; followUpDate: string | null; createdAt: string; source: string;
+  priority: string | null; tags: string[]; lastActivityAt: string | null; updatedAt: string;
   assignees: LeadAssignee[];
   /** Whether the signed-in actor may edit this lead (admin, or assignee with update permission). */
   canUpdate: boolean;
@@ -28,5 +29,5 @@ export type LeadDetail = LeadRow & {
 };
 
 export type LeadListResult = { rows: LeadRow[]; total: number; page: number; pageSize: number; pages: number };
-export type FilterMeta = { categories: string[]; locations: string[]; states: string[]; fileNames: string[]; dataTypes: string[] };
+export type FilterMeta = { categories: string[]; locations: string[]; states: string[]; fileNames: string[]; dataTypes: string[]; tags: string[] };
 export type DuplicateCheck = { exists: false } | { exists: true; field: "phone" | "contact"; lead: { id: string; name: string | null; company: string | null; phone: string | null } | null };

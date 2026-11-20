@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import type { Prisma } from "@/generated/prisma/client";
 import { isDateString, istDayEndExclusive, istDayStart } from "@/lib/time/ist";
 import { assertAdmin, isAdmin, type Actor } from "@/server/actor";
@@ -29,7 +30,7 @@ export async function listActivity(actor: Actor, input: ActivityQuery = {}) {
   if (from || to) and.push({ occurredAt: { ...(from ? { gte: istDayStart(from) } : {}), ...(to ? { lt: istDayEndExclusive(to) } : {}) } });
   const text = q?.trim().slice(0, 100);
   if (text) {
-    const c = { contains: text, mode: "insensitive" as const };
+    const c = { contains: escapeLike(text), mode: "insensitive" as const };
     and.push({ OR: [{ action: c }, { actorName: c }, { actorUserCode: c }, { user: { name: c } }, { user: { userId: c } }] });
   }
   const where: Prisma.ActivityLogWhereInput = and.length ? { AND: and } : {};

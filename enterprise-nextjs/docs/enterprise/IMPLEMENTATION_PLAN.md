@@ -17,9 +17,52 @@
 
 No schema change, no new dependency, no change to the public website.
 
-## Phase 2 — Core CRM
+## Phase 2 — Core CRM (in progress)
 
-Contacts, companies, unified activities/tasks/notes, lead timeline and ownership history, saved views, lead priority/qualification/tags, bulk status update, multi-column sort, wildcard-safe list filters, dashboard quotation totals and KPI glossary, `RecordDetailsDrawer`. Needs **M1, M2, M3** and decisions **D-02**.
+### Delivered (part A, migration `20261120000000_enterprise_phase2_core` = M1 + the non-D-02 parts of M2/M3)
+
+| Feature | Where | Verified by |
+|---|---|---|
+| Unified activities: call, email, meeting, follow-up, task, note, other; priority, due (IST), outcome, explicit complete/reopen/cancel, comments, delete | `server/activities/service.ts`, `/crm/activities`, `components/activities/*` | `tests/phase2.activities.test.ts`; browser |
+| Activities workspace: Today / Upcoming / Overdue / Completed / All with counts, filters, sort, columns | `/crm/activities` | tests + browser (desktop, tablet, phone) |
+| Lead timeline: creation, status changes, ownership changes, activities | `server/leads/timeline.ts`, lead detail page | tests + browser |
+| Ownership history table, written in the same transaction as every assignment change (create, import, assign, transfer, unassign, edit) | `server/leads/assignment-history.ts`, `ingest.ts`, `mutations.ts` | tests |
+| Lead priority and tags (no back-fill), edit form, filters, list badges | schema, `mutations.ts`, lead UI | tests + browser |
+| Bulk status / call status / priority / add tags (admin), with per-lead status history | `bulkSetLeadFields` | tests + browser |
+| Multi-column sort (up to 3 keys; priority deliberately not sortable) and toolbar sort + tiebreak | `filter-schema.ts`, `where.ts`, `leads-client.tsx` | tests + browser |
+| Saved views (own + admin-shared), parameters only, re-scoped on open | `server/views/service.ts`, `saved-views-menu.tsx` | tests + browser |
+| Wildcard-safe search in leads, vendors, products, quotation clients, activity log | `lib/db/like.ts` | tests |
+| Trigram indexes for search columns; `activity_logs(occurred_at)` and entity indexes; structured `entity_type`/`entity_id` on new audit rows | migration | migration applied on every test run |
+| Dashboard: my activities due/overdue, quotation totals (month / all); leads-per-day aggregated in SQL | `dashboard/metrics.ts` | tests + browser |
+| KPI glossary | `KPI_GLOSSARY.md` | — |
+| Lead aging and last-activity date on lead detail | lead detail page | browser |
+| Fix: mobile search icon showed beside the search box on tablets (Phase 1 CSS) | `globals.css` | browser |
+
+New permissions (pinned by tests): `activities.create` (all), `activities.view_all`, `activities.assign`, `views.share` (admin).
+
+### Remaining in Phase 2
+
+- **Contacts and companies** (360° profile, matching, merge): blocked on **D-02**.
+- Lead qualification field (needs a definition of the stages), lead inactivity alerts (needs the job runner, D-06).
+- `RecordDetailsDrawer`, saved views for the activities page, activity comments UI (the API exists).
+
+### Rollback for the Phase 2 migration
+
+All changes are additive. To roll back after taking a backup:
+
+```sql
+DROP TABLE IF EXISTS activity_comments, activities, saved_views, lead_assignment_events;
+DROP TYPE IF EXISTS "ActivityType", "ActivityStatus", "ActivityPriority";
+DROP INDEX IF EXISTS leads_name_trgm_idx, leads_company_trgm_idx, leads_phone_trgm_idx, leads_contact_trgm_idx, leads_email_trgm_idx,
+  products_name_trgm_idx, products_code_trgm_idx, vendors_name_trgm_idx, leads_tags_idx, leads_priority_idx,
+  activity_logs_occurred_at_idx, activity_logs_entity_type_entity_id_occurred_at_idx;
+ALTER TABLE leads DROP COLUMN IF EXISTS priority, DROP COLUMN IF EXISTS tags, DROP COLUMN IF EXISTS last_activity_at;
+ALTER TABLE activity_logs DROP COLUMN IF EXISTS entity_type, DROP COLUMN IF EXISTS entity_id;
+DELETE FROM _prisma_migrations WHERE migration_name = '20261120000000_enterprise_phase2_core';
+-- pg_trgm is left installed (harmless; other objects may use it).
+```
+
+Then deploy the previous application version. Data entered in activities, views and ownership history since the migration is lost on rollback; export it first if needed.
 
 ## Phase 3 — Sales pipeline
 

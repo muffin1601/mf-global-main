@@ -2,6 +2,8 @@
 
 **Date:** 2026-11-20. Each requirement from the Enterprise CRM 2.0 brief (§3–§27) is classified against the code as audited in `EXISTING_MODULES.md`.
 
+> **Update 2026-11-20:** Phase 2 part A closed the gaps for activities/tasks/notes, timeline, ownership history, priority/tags, bulk status, multi-column sort, saved views (leads), wildcard-safe filters, quotation KPIs and the KPI glossary. See `IMPLEMENTATION_PLAN.md` → Phase 2. Rows below are kept as the original audit baseline.
+
 **Classification:** **W** existing and working · **I** existing but incomplete · **M** missing · **N** needs improvement · **X** blocked by external credentials or infrastructure · **A** requires business approval before building.
 
 "Phase" is the phase in `IMPLEMENTATION_PLAN.md` that closes the gap. Decision IDs (D-xx) refer to the plan's decision register.

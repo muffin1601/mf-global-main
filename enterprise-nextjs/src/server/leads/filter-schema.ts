@@ -8,6 +8,15 @@ export const isLeadPreset = (v: unknown): v is LeadPreset => typeof v === "strin
 
 export type LeadDateType = "createdAt" | "followUpDate";
 
+/**
+ * Server-side sort keys for lead lists (multi-column: up to 3, applied in order, id as final tiebreak).
+ * Priority is deliberately not sortable: it is stored as text, so the order would be High, Low, Medium.
+ */
+export const LEAD_SORT_FIELDS = ["createdAt", "updatedAt", "followUpDate", "lastActivityAt", "name", "company", "status", "callStatus", "location"] as const;
+export type LeadSortField = (typeof LEAD_SORT_FIELDS)[number];
+export type LeadSort = { field: LeadSortField; dir: "asc" | "desc" };
+export const MAX_SORT_KEYS = 3;
+
 /** The single typed filter object. Multi-value fields: "" means blank/missing. */
 export type LeadFilter = {
   q?: string;
@@ -18,6 +27,10 @@ export type LeadFilter = {
   fileName?: string[];
   status?: string[];
   callStatus?: string[];
+  /** Low | Medium | High; "" = not set. */
+  priority?: string[];
+  /** Any of these tags. */
+  tag?: string[];
   assigned?: "assigned" | "unassigned";
   /** User ids (any of). */
   assignedTo?: string[];
@@ -25,9 +38,11 @@ export type LeadFilter = {
   /** Inclusive IST dates, YYYY-MM-DD. */
   from?: string;
   to?: string;
+  /** Explicit sort; absent = the preset's default order. */
+  sort?: LeadSort[];
 };
 
-export const MULTI_FIELDS = ["category", "location", "state", "dataType", "fileName", "status", "callStatus", "assignedTo"] as const;
+export const MULTI_FIELDS = ["category", "location", "state", "dataType", "fileName", "status", "callStatus", "priority", "tag", "assignedTo"] as const;
 
 type ParamSource = URLSearchParams | Record<string, string | string[] | undefined>;
 function getAll(src: ParamSource, key: string): string[] {
@@ -52,7 +67,21 @@ export function parseLeadFilter(src: ParamSource): LeadFilter {
   const from = getAll(src, "from")[0], to = getAll(src, "to")[0];
   if (from && DATE_RE.test(from)) f.from = from;
   if (to && DATE_RE.test(to)) f.to = to;
+  const sort = parseSort(getAll(src, "sort"));
+  if (sort.length) f.sort = sort;
   return f;
+}
+
+/** "field:dir" tokens -> validated sort keys (unknown fields dropped, duplicates ignored, max 3). */
+export function parseSort(tokens: string[]): LeadSort[] {
+  const out: LeadSort[] = [];
+  for (const token of tokens.flatMap((t) => t.split(","))) {
+    const [field, dir] = token.trim().split(":");
+    if (!(LEAD_SORT_FIELDS as readonly string[]).includes(field ?? "") || out.some((s) => s.field === field)) continue;
+    out.push({ field: field as LeadSortField, dir: dir === "asc" ? "asc" : "desc" });
+    if (out.length === MAX_SORT_KEYS) break;
+  }
+  return out;
 }
 
 export function filterToParams(f: LeadFilter): URLSearchParams {
@@ -63,6 +92,7 @@ export function filterToParams(f: LeadFilter): URLSearchParams {
   if (f.dateType) p.set("dateType", f.dateType);
   if (f.from) p.set("from", f.from);
   if (f.to) p.set("to", f.to);
+  for (const s of f.sort ?? []) p.append("sort", `${s.field}:${s.dir}`);
   return p;
 }
 

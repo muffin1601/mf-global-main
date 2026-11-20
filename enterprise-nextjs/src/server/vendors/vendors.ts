@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import type { VendorStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma/client";
 import { vendorPermissions } from "@/lib/permissions";
@@ -75,16 +76,16 @@ export async function buildVendorWhere(query: VendorListQuery): Promise<Prisma.V
   const term = String(query.search ?? "").trim();
   if (term) {
     const or: Prisma.VendorWhereInput[] = [
-      { name: { contains: term, mode: "insensitive" } },
-      { legalName: { contains: term, mode: "insensitive" } },
-      { vendorCode: { contains: term, mode: "insensitive" } },
-      { email: { contains: term, mode: "insensitive" } },
-      { phone: { contains: term } },
-      { contacts: { some: { OR: [{ name: { contains: term, mode: "insensitive" } }, { email: { contains: term, mode: "insensitive" } }] } } },
+      { name: { contains: escapeLike(term), mode: "insensitive" } },
+      { legalName: { contains: escapeLike(term), mode: "insensitive" } },
+      { vendorCode: { contains: escapeLike(term), mode: "insensitive" } },
+      { email: { contains: escapeLike(term), mode: "insensitive" } },
+      { phone: { contains: escapeLike(term) } },
+      { contacts: { some: { OR: [{ name: { contains: escapeLike(term), mode: "insensitive" } }, { email: { contains: escapeLike(term), mode: "insensitive" } }] } } },
     ];
     const code = normalizeCode(term);
     if (code) {
-      or.push({ gstin: { startsWith: code, mode: "insensitive" } }, { pan: { startsWith: code, mode: "insensitive" } });
+      or.push({ gstin: { startsWith: escapeLike(code), mode: "insensitive" } }, { pan: { startsWith: escapeLike(code), mode: "insensitive" } });
     }
     const digits = term.replace(/\D/g, "");
     if (digits.length >= 4) {

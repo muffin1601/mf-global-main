@@ -61,7 +61,7 @@ export async function exportLeads(actor: Actor, input: LeadExportInput): Promise
   const filter = { ...(input.filter ?? {}) };
   if ((filter.from || filter.to) && !filter.dateType) filter.dateType = "createdAt";
   const where = buildLeadWhere(actor, filter, input.preset ?? "all", input.now);
-  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(input.preset ?? "all"), take: EXPORT_ROW_CAP + 1, include: exportInclude });
+  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(input.preset ?? "all", filter.sort), take: EXPORT_ROW_CAP + 1, include: exportInclude });
   const truncated = rows.length > EXPORT_ROW_CAP;
   if (truncated) rows.pop();
   const stamp = istDateString(input.now ?? new Date());

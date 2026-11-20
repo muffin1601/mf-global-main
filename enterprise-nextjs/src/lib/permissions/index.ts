@@ -56,6 +56,10 @@ export const CRM_PERMISSIONS = {
   "quotations.create": "Create quotations",
   "quotations.edit": "Edit quotations within scope (USER: own only)",
   "quotations.delete": "Delete quotations",
+  "activities.create": "Log calls, meetings, notes and tasks for yourself, on leads you can edit",
+  "activities.view_all": "See every user's activities and tasks",
+  "activities.assign": "Assign activities and tasks to other users",
+  "views.share": "Share saved list views with every user",
   "products.view": "View and search the product catalogue",
   "products.manage": "Create, edit and archive products and categories",
   "reports.view": "View lead reports within scope",
@@ -71,6 +75,7 @@ export const crmPermissionList = Object.keys(CRM_PERMISSIONS) as CrmPermission[]
 const USER_GRANTS: readonly CrmPermission[] = [
   "leads.view_own", "leads.create", "leads.edit", "leads.import", "leads.export",
   "quotations.create", "quotations.edit",
+  "activities.create",
   "products.view",
   "reports.view", "reports.export",
 ];

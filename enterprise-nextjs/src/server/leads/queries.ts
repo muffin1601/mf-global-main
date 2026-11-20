@@ -20,6 +20,7 @@ export function toRow(lead: RowLead, actor: Actor): LeadRow {
     location: lead.location, state: lead.state, category: lead.category, dataType: lead.dataType, fileName: lead.fileName,
     status: lead.status, callStatus: lead.callStatus, followUpDate: iso(lead.followUpDate), createdAt: lead.createdAt.toISOString(),
     source: lead.source,
+    priority: lead.priority, tags: lead.tags ?? [], lastActivityAt: iso(lead.lastActivityAt), updatedAt: lead.updatedAt.toISOString(),
     assignees: lead.assignments.map((a) => ({ userId: a.userId, name: a.user.name, canView: a.canView, canUpdate: a.canUpdate })),
     canUpdate: isAdmin(actor) || Boolean(own?.canUpdate && own.canView),
   };
@@ -35,7 +36,7 @@ export async function listLeads(
   const total = await prisma.lead.count({ where });
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const page = Math.min(Math.max(1, Math.trunc(input.page ?? 1) || 1), pages);
-  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(preset), skip: (page - 1) * pageSize, take: pageSize, include: rowInclude });
+  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(preset, input.filter?.sort), skip: (page - 1) * pageSize, take: pageSize, include: rowInclude });
   return { rows: rows.map((r) => toRow(r, actor)), total, page, pageSize, pages };
 }
 
@@ -101,10 +102,15 @@ export async function getFilterMeta(actor: Actor, input: MetaScope = { scope: "a
     const sorted = [...values].sort((a, b) => a.localeCompare(b));
     return blank ? ["", ...sorted] : sorted;
   };
-  const [categories, locations, states, fileNames, dataTypes] = await Promise.all([
-    distinct("category"), distinct("location"), distinct("state"), distinct("fileName"), distinct("dataType"),
+  // Tags: distinct values from tagged leads in scope (capped read; tag lists are short by design).
+  const tagged = async () => {
+    const rows = await prisma.lead.findMany({ where: { AND: [where, { NOT: { tags: { isEmpty: true } } }] }, select: { tags: true }, take: 5000 });
+    return [...new Set(rows.flatMap((r) => r.tags ?? []))].sort((a, b) => a.localeCompare(b));
+  };
+  const [categories, locations, states, fileNames, dataTypes, tags] = await Promise.all([
+    distinct("category"), distinct("location"), distinct("state"), distinct("fileName"), distinct("dataType"), tagged(),
   ]);
-  return { categories, locations, states, fileNames, dataTypes };
+  return { categories, locations, states, fileNames, dataTypes, tags };
 }
 
 /** Live duplicate check (client.js:60,83). Details are only disclosed for leads the actor may see. */

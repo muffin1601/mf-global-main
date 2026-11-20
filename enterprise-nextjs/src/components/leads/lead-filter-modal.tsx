@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CALL_STATUSES, LEAD_STATUSES } from "@/lib/crm/constants";
+import { CALL_STATUSES, LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/crm/constants";
 import type { LeadDateType, LeadFilter } from "@/server/leads/filter-schema";
 import type { FilterMeta } from "@/server/leads/types";
 import styles from "./leads.module.css";
 import { Modal } from "./modal";
 import type { UserOption } from "./lead-form-modal";
 
-type ListField = "category" | "location" | "state" | "dataType" | "fileName" | "status" | "callStatus" | "assignedTo";
+type ListField = "category" | "location" | "state" | "dataType" | "fileName" | "status" | "callStatus" | "priority" | "tag" | "assignedTo";
 type Option = { value: string; label: string };
 
 function CheckGroup({ title, options, selected, onChange }: { title: string; options: Option[]; selected: string[]; onChange: (next: string[]) => void }) {
@@ -85,6 +85,8 @@ export function FilterModal({ filter, meta, users, isAdmin, showAssignment, onAp
       <div className={styles.filterGroups}>
         <CheckGroup title="Status" options={LEAD_STATUSES.map((s) => ({ value: s, label: s }))} selected={list("status")} onChange={setList("status")} />
         <CheckGroup title="Call status" options={CALL_STATUSES.map((s) => ({ value: s, label: s }))} selected={list("callStatus")} onChange={setList("callStatus")} />
+        <CheckGroup title="Priority" options={[{ value: "", label: "(not set)" }, ...LEAD_PRIORITIES.map((p) => ({ value: p, label: p }))]} selected={list("priority")} onChange={setList("priority")} />
+        {meta.tags.length ? <CheckGroup title="Tags" options={meta.tags.map((t) => ({ value: t, label: t }))} selected={list("tag")} onChange={setList("tag")} /> : null}
         <CheckGroup title="Category" options={withBlank(meta.categories)} selected={list("category")} onChange={setList("category")} />
         <CheckGroup title="Data type" options={withBlank(meta.dataTypes)} selected={list("dataType")} onChange={setList("dataType")} />
         <CheckGroup title="Location" options={withBlank(meta.locations)} selected={list("location")} onChange={setList("location")} />

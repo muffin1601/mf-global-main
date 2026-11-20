@@ -88,7 +88,13 @@ export async function createLeadTx(tx: Tx, input: NewLeadInput, ctx: IngestConte
   for (const a of ctx.assignTo ?? []) {
     await tx.leadAssignment.create({ data: { leadId: lead.id, userId: a.userId, canView: a.canView ?? true, canUpdate: a.canUpdate ?? true, canDelete: a.canDelete ?? false, assignedBy: ctx.assignedBy ?? ctx.createdById ?? null } });
   }
-  await tx.activityLog.create({ data: { userId: ctx.createdById ?? null, action: "lead.created", details: { leadId: lead.id, source: ctx.source, importJobId: ctx.importJobId ?? null } } });
+  // Ownership history (Phase 2): the initial assignees of a new lead.
+  if (ctx.assignTo?.length) {
+    await tx.leadAssignmentEvent.createMany({
+      data: ctx.assignTo.map((a) => ({ leadId: lead.id, userId: a.userId, action: "ASSIGNED", canUpdate: a.canUpdate ?? true, reason: ctx.source === "IMPORT" ? "import" : "create", actorId: ctx.assignedBy ?? ctx.createdById ?? null })),
+    });
+  }
+  await tx.activityLog.create({ data: { userId: ctx.createdById ?? null, action: "lead.created", entityType: "lead", entityId: lead.id, details: { leadId: lead.id, source: ctx.source, importJobId: ctx.importJobId ?? null } } });
   return { status: "created", leadId: lead.id };
 }
 

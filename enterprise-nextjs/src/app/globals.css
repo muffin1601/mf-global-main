@@ -464,7 +464,7 @@ a.kpi:hover .kpi-arrow { opacity: 1; }
 .global-search svg { flex: none; color: var(--text-4); }
 .global-search-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .global-search kbd, .cmdk kbd { flex: none; padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-3); font: 500 .6875rem var(--font-sans); }
-.mobile-search { display: none; }
+.icon-btn.mobile-search { display: none; }
 .icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none; border: 1px solid transparent; border-radius: var(--radius); background: transparent; color: var(--text-2); cursor: pointer; }
 .icon-btn:hover { background: var(--surface-3); color: var(--text); }
 .icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
@@ -505,7 +505,7 @@ a.kpi:hover .kpi-arrow { opacity: 1; }
 @media (max-width: 640px) {
   .topbar .crumbs { display: none; }
   .global-search { display: none; }
-  .mobile-search { display: inline-grid; }
+  .icon-btn.mobile-search { display: inline-grid; }
   .page { padding: 16px 16px 32px; }
   .page-head { align-items: flex-start; flex-direction: column; }
   .page-actions { width: 100%; }
@@ -618,3 +618,16 @@ th[aria-sort="ascending"] .dt-sort svg, th[aria-sort="descending"] .dt-sort svg 
 .form-section-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-xs); }
 .form-section.split { display: grid; grid-template-columns: minmax(180px, 260px) minmax(0, 1fr); gap: 24px; }
 @media (max-width: 900px) { .form-section.split { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+
+/* ============================================================== TIMELINE */
+.timeline { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.timeline-item { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding-bottom: 16px; }
+.timeline-item:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--border); }
+.timeline-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-3); color: var(--text-2); }
+.timeline-item.kind-activity .timeline-icon { background: var(--primary-soft); color: var(--primary); }
+.timeline-item.kind-status .timeline-icon { background: var(--violet-soft); color: var(--violet); }
+.timeline-item.kind-ownership .timeline-icon { background: var(--info-soft); color: var(--info); }
+.timeline-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 28px; font-size: .875rem; }
+.timeline-detail { margin: 2px 0 0; color: var(--text-2); font-size: .8125rem; white-space: pre-line; overflow-wrap: anywhere; }
+.timeline-meta { margin: 2px 0 0; color: var(--text-3); font-size: .75rem; }
+.tag-list { display: inline-flex; flex-wrap: wrap; gap: 4px; }

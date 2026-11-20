@@ -73,31 +73,60 @@ enum DocumentStatus {
   ARCHIVED
 }
 
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  FOLLOW_UP
+  TASK
+  NOTE
+  OTHER
+}
+
+enum ActivityStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum ActivityPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
-  id                String             @id @default(uuid()) @db.Uuid
-  authUserId        String?            @unique @map("auth_user_id") @db.Uuid
-  legacyId          String?            @unique @map("legacy_id")
-  userId            String             @unique @map("user_id")
-  name              String
-  username          String?            @unique
-  email             String?            @unique
-  location          String?
-  role              UserRole           @default(USER)
-  enabled           Boolean            @default(true)
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @updatedAt @map("updated_at")
-  createdLeads      Lead[]             @relation("LeadCreator")
-  assignments       LeadAssignment[]
-  activities        ActivityLog[]
-  quotations        Quotation[]
-  importJobs        LeadImportJob[]
-  vendorImportJobs  VendorImportJob[]
-  ownedVendors      Vendor[]           @relation("VendorOwner")
-  createdVendors    Vendor[]           @relation("VendorCreator")
-  vendorActivities  VendorActivity[]
-  vendorDocuments   VendorDocument[]
-  vendorEvaluations VendorEvaluation[]
-  leadPermissions   LeadPermission[]
+  id                  String                @id @default(uuid()) @db.Uuid
+  authUserId          String?               @unique @map("auth_user_id") @db.Uuid
+  legacyId            String?               @unique @map("legacy_id")
+  userId              String                @unique @map("user_id")
+  name                String
+  username            String?               @unique
+  email               String?               @unique
+  location            String?
+  role                UserRole              @default(USER)
+  enabled             Boolean               @default(true)
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+  createdLeads        Lead[]                @relation("LeadCreator")
+  assignments         LeadAssignment[]
+  activities          ActivityLog[]
+  quotations          Quotation[]
+  importJobs          LeadImportJob[]
+  vendorImportJobs    VendorImportJob[]
+  ownedVendors        Vendor[]              @relation("VendorOwner")
+  createdVendors      Vendor[]              @relation("VendorCreator")
+  vendorActivities    VendorActivity[]
+  vendorDocuments     VendorDocument[]
+  vendorEvaluations   VendorEvaluation[]
+  leadPermissions     LeadPermission[]
+  assignmentEvents    LeadAssignmentEvent[] @relation("AssignmentEventUser")
+  assignmentActions   LeadAssignmentEvent[] @relation("AssignmentEventActor")
+  createdActivities   Activity[]            @relation("ActivityCreator")
+  assignedActivities  Activity[]            @relation("ActivityAssignee")
+  completedActivities Activity[]            @relation("ActivityCompleter")
+  activityComments    ActivityComment[]
+  savedViews          SavedView[]
 
   @@index([role, enabled])
   @@map("users")
@@ -112,48 +141,55 @@ model UserSequence {
 }
 
 model Lead {
-  id                 String              @id @default(uuid()) @db.Uuid
-  legacyId           String?             @unique @map("legacy_id")
-  createdById        String?             @map("created_by_id") @db.Uuid
+  id                 String                @id @default(uuid()) @db.Uuid
+  legacyId           String?               @unique @map("legacy_id")
+  createdById        String?               @map("created_by_id") @db.Uuid
   name               String?
   company            String?
   email              String?
-  countryCode        String?             @map("country_code")
+  countryCode        String?               @map("country_code")
   phone              String?
   contact            String?
   location           String?
   state              String?
   category           String?
-  quantity           Decimal?            @db.Decimal(14, 3)
+  quantity           Decimal?              @db.Decimal(14, 3)
   requirements       String?
   remarks            String?
-  dataType           String?             @map("data_type")
-  callStatus         String              @default("Not Called") @map("call_status")
-  status             String              @default("New Lead")
-  followUpDate       DateTime?           @map("follow_up_date")
-  followUpDateOne    DateTime?           @map("follow_up_date_one")
-  followUpDateTwo    DateTime?           @map("follow_up_date_two")
-  followUpDateThree  DateTime?           @map("follow_up_date_three")
-  callingDate        DateTime?           @map("calling_date")
-  inquiryDate        String?             @map("inquiry_date")
+  dataType           String?               @map("data_type")
+  callStatus         String                @default("Not Called") @map("call_status")
+  status             String                @default("New Lead")
+  followUpDate       DateTime?             @map("follow_up_date")
+  followUpDateOne    DateTime?             @map("follow_up_date_one")
+  followUpDateTwo    DateTime?             @map("follow_up_date_two")
+  followUpDateThree  DateTime?             @map("follow_up_date_three")
+  callingDate        DateTime?             @map("calling_date")
+  inquiryDate        String?               @map("inquiry_date")
   address            String?
-  fileName           String?             @map("file_name")
-  source             LeadSource          @default(MANUAL)
-  sourceInferred     Boolean             @default(false) @map("source_inferred")
-  importJobId        String?             @map("import_job_id") @db.Uuid
-  externalKey        String?             @unique @map("external_key")
-  initialStatus      String?             @map("initial_status")
-  billingAddress     Json?               @map("billing_address")
-  shippingAddress    Json?               @map("shipping_address")
-  additionalContacts Json?               @map("additional_contacts")
-  createdAt          DateTime            @default(now()) @map("created_at")
-  updatedAt          DateTime            @updatedAt @map("updated_at")
-  createdBy          User?               @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  fileName           String?               @map("file_name")
+  source             LeadSource            @default(MANUAL)
+  sourceInferred     Boolean               @default(false) @map("source_inferred")
+  importJobId        String?               @map("import_job_id") @db.Uuid
+  externalKey        String?               @unique @map("external_key")
+  initialStatus      String?               @map("initial_status")
+  billingAddress     Json?                 @map("billing_address")
+  shippingAddress    Json?                 @map("shipping_address")
+  additionalContacts Json?                 @map("additional_contacts")
+  /// Low | Medium | High (validated in src/lib/crm/constants.ts). NULL = not set; existing leads are never back-filled.
+  priority           String?
+  tags               String[]              @default([])
+  /// Last time an activity was logged or completed on this lead.
+  lastActivityAt     DateTime?             @map("last_activity_at")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  createdBy          User?                 @relation("LeadCreator", fields: [createdById], references: [id], onDelete: SetNull)
   assignments        LeadAssignment[]
   permissions        LeadPermission[]
   importRows         LeadImportRow[]
-  importJob          LeadImportJob?      @relation("ImportedLeads", fields: [importJobId], references: [id], onDelete: SetNull)
+  importJob          LeadImportJob?        @relation("ImportedLeads", fields: [importJobId], references: [id], onDelete: SetNull)
   statusHistory      LeadStatusHistory[]
+  assignmentEvents   LeadAssignmentEvent[]
+  activities         Activity[]
 
   @@index([createdAt(sort: Desc)])
   @@index([source, createdAt(sort: Desc)])
@@ -167,6 +203,13 @@ model Lead {
   @@index([location])
   @@index([state])
   @@index([dataType])
+  @@index([priority])
+  @@index([tags], type: Gin)
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_name_trgm_idx")
+  @@index([company(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_company_trgm_idx")
+  @@index([phone(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_phone_trgm_idx")
+  @@index([contact(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_contact_trgm_idx")
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_email_trgm_idx")
   @@map("leads")
 }
 
@@ -282,6 +325,8 @@ model Product {
   @@index([categoryId, updatedAt(sort: Desc)])
   @@index([status, updatedAt(sort: Desc)])
   @@index([name])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "products_name_trgm_idx")
+  @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "products_code_trgm_idx")
   @@map("products")
 }
 
@@ -408,6 +453,7 @@ model Vendor {
   @@index([categoryId, status])
   @@index([ownerId])
   @@index([name])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "vendors_name_trgm_idx")
   @@map("vendors")
 }
 
@@ -771,11 +817,16 @@ model ActivityLog {
   actorRole     String?  @map("actor_role")
   action        String
   details       Json?
+  /// Structured record reference (e.g. "lead" + id). NULL on rows written before Phase 2.
+  entityType    String?  @map("entity_type")
+  entityId      String?  @map("entity_id")
   occurredAt    DateTime @default(now()) @map("occurred_at")
   createdAt     DateTime @default(now()) @map("created_at")
   user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt(sort: Desc)])
+  @@index([occurredAt(sort: Desc)])
+  @@index([entityType, entityId, occurredAt(sort: Desc)])
   @@map("activity_logs")
 }
 
@@ -900,4 +951,87 @@ model InvoiceCounter {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("invoice_counters")
+}
+
+/// Append-only ownership history: one row per assignee added, removed or changed on a lead.
+model LeadAssignmentEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @map("lead_id") @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  /// ASSIGNED | UNASSIGNED | ACCESS_CHANGED
+  action    String
+  canUpdate Boolean? @map("can_update")
+  /// create | import | assign | transfer | unassign | edit
+  reason    String
+  actorId   String?  @map("actor_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user      User?    @relation("AssignmentEventUser", fields: [userId], references: [id], onDelete: SetNull)
+  actor     User?    @relation("AssignmentEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("lead_assignment_events")
+}
+
+/// Unified sales activity: calls, emails, meetings, follow-ups, tasks and notes. Records are entered
+/// by people. Nothing here means the system placed a call or sent an email.
+model Activity {
+  id            String            @id @default(uuid()) @db.Uuid
+  type          ActivityType
+  subject       String
+  body          String            @default("")
+  status        ActivityStatus    @default(OPEN)
+  priority      ActivityPriority  @default(MEDIUM)
+  dueAt         DateTime?         @map("due_at")
+  completedAt   DateTime?         @map("completed_at")
+  completedById String?           @map("completed_by_id") @db.Uuid
+  outcome       String?
+  leadId        String?           @map("lead_id") @db.Uuid
+  createdById   String?           @map("created_by_id") @db.Uuid
+  assigneeId    String?           @map("assignee_id") @db.Uuid
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  lead          Lead?             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdBy     User?             @relation("ActivityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  assignee      User?             @relation("ActivityAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  completedBy   User?             @relation("ActivityCompleter", fields: [completedById], references: [id], onDelete: SetNull)
+  comments      ActivityComment[]
+
+  @@index([assigneeId, status, dueAt])
+  @@index([status, dueAt])
+  @@index([leadId, createdAt(sort: Desc)])
+  @@index([createdById, createdAt(sort: Desc)])
+  @@map("activities")
+}
+
+model ActivityComment {
+  id         String   @id @default(uuid()) @db.Uuid
+  activityId String   @map("activity_id") @db.Uuid
+  authorId   String?  @map("author_id") @db.Uuid
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([activityId, createdAt])
+  @@map("activity_comments")
+}
+
+/// A named list configuration (filters, sort, columns) for a list page. Shared views are visible to
+/// every user who can open that page. They never widen record access.
+model SavedView {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  entity    String
+  name      String
+  params    Json
+  shared    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entity, name])
+  @@index([entity, shared])
+  @@map("saved_views")
 }

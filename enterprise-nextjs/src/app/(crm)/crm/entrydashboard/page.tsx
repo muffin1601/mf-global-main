@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { Route } from "next";
 import {
-  AlarmClock, BriefcaseBusiness, CalendarClock, CircleX, Clock, Flame, Inbox, ListChecks, Percent, Sparkles, Trophy, UserCheck,
+  AlarmClock, BriefcaseBusiness, CalendarCheck, CalendarClock, CircleX, Clock, FileText, Flame, IndianRupee, Inbox, ListChecks, Percent, Sparkles, Trophy, UserCheck,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth/session";
 import { isAdmin, type Actor } from "@/server/actor";
-import { getKpis, getLeadsPerDay, getPerformance, getRecentLeads, getStatusBreakdown } from "@/server/dashboard/metrics";
+import { getKpis, getLeadsPerDay, getPerformance, getQuotationKpis, getRecentLeads, getStatusBreakdown } from "@/server/dashboard/metrics";
+import { activityCounts } from "@/server/activities/service";
 import { parseRange, resolveRange, type PerformanceRange } from "@/server/dashboard/range";
 import { isDateString } from "@/lib/time/ist";
 import { DashboardCharts } from "@/components/dashboard/charts";
@@ -40,10 +41,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const customInvalid = range === "custom" && !!from && !!to && from > to;
   const window = customInvalid ? {} : resolveRange(range, from, to);
 
-  const [kpis, recent, performance, statusData, perDay, overall] = await Promise.all([
+  const [kpis, recent, performance, statusData, perDay, overall, quotes, myActivities] = await Promise.all([
     getKpis(actor), getRecentLeads(actor), getPerformance(actor, window), getStatusBreakdown(actor), getLeadsPerDay(actor, 30),
     admin ? getPerformance(actor, {}) : Promise.resolve([]),
+    getQuotationKpis(actor), activityCounts(actor, { assigneeId: actor.id }),
   ]);
+  const inr = (v: number) => v.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
   const leadsHref = admin ? "/crm/lead-management" : "/crm/my-leads";
   const rangeHref = (r: PerformanceRange) => (r === "all" ? "/crm/entrydashboard" : `/crm/entrydashboard?range=${r}`) as Route;
   const firstName = user.name.split(/\s+/)[0] ?? user.name;
@@ -94,6 +97,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <MetricCard
             label="Overdue" value={n(kpis.overdue)} icon={AlarmClock} tone={kpis.overdue > 0 ? "danger" : "neutral"}
             hint={kpis.overdue > 0 ? "Past date, still open (not won/lost)" : "Nothing overdue"}
+          />
+        </div>
+      </section>
+
+      <section aria-labelledby="kpi-work">
+        <div className="section-title-row"><h2 id="kpi-work">My activities &amp; quotations</h2></div>
+        <div className="kpis">
+          <MetricCard label="My activities due today" value={n(myActivities.today)} icon={CalendarCheck} tone="info" href="/crm/activities?view=today" />
+          <MetricCard
+            label="My overdue activities" value={n(myActivities.overdue)} icon={AlarmClock} tone={myActivities.overdue > 0 ? "danger" : "neutral"}
+            href="/crm/activities?view=overdue" hint={myActivities.overdue > 0 ? "Open, due before today (IST)" : "Nothing overdue"}
+          />
+          <MetricCard
+            label={admin ? "Quotations this month" : "My quotations this month"} value={inr(quotes.monthTotal)} icon={IndianRupee} tone="success"
+            href="/crm/quotations" hint={`${n(quotes.monthCount)} quotation${quotes.monthCount === 1 ? "" : "s"} · grand totals incl. tax`}
+          />
+          <MetricCard
+            label={admin ? "All quotations" : "All my quotations"} value={inr(quotes.total)} icon={FileText} tone="neutral"
+            href="/crm/quotations" hint={`${n(quotes.count)} quotation${quotes.count === 1 ? "" : "s"} · quoted value, not revenue`}
           />
         </div>
       </section>

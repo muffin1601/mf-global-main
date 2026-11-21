@@ -16,7 +16,7 @@ export default async function UserManagementPage() {
   // Only display fields are selected: no auth ids, hashes or tokens reach the page.
   const users = await prisma.user.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, userId: true, name: true, username: true, email: true, role: true, enabled: true, location: true, authUserId: true },
+    select: { id: true, userId: true, name: true, username: true, email: true, role: true, enabled: true, location: true, authUserId: true, avatarPath: true, avatarUpdatedAt: true },
   });
   const admins = users.filter((u) => u.role === "ADMIN").length;
   const enabled = users.filter((u) => u.enabled).length;
@@ -44,7 +44,10 @@ export default async function UserManagementPage() {
                 <tr key={user.id}>
                   <td>
                     <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span className="avatar" aria-hidden="true">{initials(user.name)}</span>
+                      {user.avatarPath
+                        // eslint-disable-next-line @next/next/no-img-element -- private, authenticated image route
+                        ? <img src={`/api/profile/avatar/${user.id}?v=${user.avatarUpdatedAt?.getTime() ?? 0}`} alt="" aria-hidden="true" width={30} height={30} className="avatar" style={{ objectFit: "cover", padding: 0 }} />
+                        : <span className="avatar" aria-hidden="true">{initials(user.name)}</span>}
                       <span><span className="cell-primary">{user.name}{user.id === me.id ? <span className="muted" style={{ fontWeight: 400 }}> (you)</span> : null}</span><span className="sub">{user.username ? `@${user.username}` : "No username"}</span></span>
                     </span>
                   </td>

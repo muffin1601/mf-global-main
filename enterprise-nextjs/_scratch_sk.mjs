@@ -1,0 +1,12 @@
+import { base, signedIn, launch } from "./tests/e2e/lib.mjs";
+const b = await launch(); const ctx = await signedIn(b, "qa.exec1"); const p = await ctx.newPage();
+p.on("request", (r) => { const u = new URL(r.url()); if (u.pathname.startsWith("/crm")) console.log("REQ", r.method(), u.pathname + u.search, JSON.stringify(Object.fromEntries(Object.entries(r.headers()).filter(([k]) => /rsc|router|prefetch/.test(k))))); });
+await p.goto(base + "/crm/entrydashboard"); await p.waitForLoadState("networkidle"); await p.waitForTimeout(3000); console.log(await p.locator("a.kpi").evaluateAll(a=>a.map(x=>x.getAttribute("href"))));
+console.log("---click");
+await p.locator("a.kpi[href='/crm/quotations']").first().click();
+await p.waitForURL("**/crm/quotations"); await p.waitForTimeout(1000);
+console.log("---404 check");
+const r = await p.goto(base + "/crm/quotations/00000000-0000-0000-0000-000000000000/edit"); console.log(r.status(), (await p.locator("main").innerText()).slice(0, 200));
+console.log("---activity");
+await p.goto(base + "/crm/activity-log"); await p.waitForTimeout(3000); console.log(p.url());
+await b.close();

@@ -1,6 +1,7 @@
 // DB-DEL regression: migration 20261120145700 must deactivate non-admin users, never delete them
 // or their quotations. Executes the committed SQL against populated data.
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { makeUser, prisma, resetDb } from "./helpers/db";
@@ -14,6 +15,19 @@ const run = () => prisma.$executeRawUnsafe(sql);
 beforeEach(resetDb);
 
 describe("20261120145700_remove_non_admin_users", () => {
+  it("every migration is stored with LF line endings so Prisma checksums are stable across platforms", () => {
+    const dir = path.resolve("prisma/migrations");
+    const crlf = readdirSync(dir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .filter((d) => readFileSync(path.join(dir, d.name, "migration.sql")).includes(0x0d))
+      .map((d) => d.name);
+    expect(crlf).toEqual([]);
+  });
+
+  it("is the approved disable-only revision (checksum pinned)", () => {
+    expect(createHash("sha256").update(readFileSync(path.resolve("prisma/migrations/20261120145700_remove_non_admin_users/migration.sql"))).digest("hex").slice(0, 12)).toBe("50bac0a81f6c");
+  });
+
   it("contains no DELETE/TRUNCATE/DROP statement", () => {
     const code = sql.split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
     expect(code).not.toMatch(/\b(delete|truncate|drop)\b/i);

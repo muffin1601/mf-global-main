@@ -15,6 +15,7 @@ export const BUCKET_SPECS = [
   { id: "vendor-documents", public: false, fileSizeLimit: 10 * MB, allowedMimeTypes: ["application/pdf", ...IMAGES, "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] },
   { id: "blog-media", public: true, fileSizeLimit: 5 * MB, allowedMimeTypes: IMAGES },
   { id: "product-images", public: true, fileSizeLimit: 5 * MB, allowedMimeTypes: [...IMAGES, "image/gif"] },
+  { id: "user-avatars", public: false, fileSizeLimit: 2 * MB, allowedMimeTypes: IMAGES },
 ] as const;
 
 const apply = process.argv.includes("--apply");

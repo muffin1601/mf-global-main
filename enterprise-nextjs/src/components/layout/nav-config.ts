@@ -106,6 +106,7 @@ export function crumbsFor(pathname: string): { label: string; href?: string }[] 
       found = { group: g.title, parent: leaf === i ? undefined : i, leaf };
     }
   }
+  if (pathname === "/crm/profile") return [{ label: "Account" }, { label: "My profile" }];
   if (!found) return [{ label: "CRM" }];
   const trail: { label: string; href?: string }[] = [{ label: found.group }];
   if (found.parent && found.parent.href !== found.leaf.href) trail.push({ label: found.parent.label, href: found.parent.href });

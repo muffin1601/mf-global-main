@@ -7,6 +7,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
  *   vendor-documents private   vendor compliance documents
  *   blog-media       public    blog images
  *   product-images   public    catalogue photos
+ *   user-avatars     private   profile photos (served by /api/profile/avatar/[id] to signed-in users only)
  * Browser clients get NO storage policies; every access goes through server code
  * that has already authorised the caller.
  */
@@ -15,6 +16,7 @@ export const BUCKETS = {
   vendorDocuments: "vendor-documents",
   blogMedia: "blog-media",
   productImages: "product-images",
+  avatars: "user-avatars",
 } as const;
 
 export interface StorageDriver {

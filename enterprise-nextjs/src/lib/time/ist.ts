@@ -5,8 +5,12 @@ export const IST_OFFSET_MS = 330 * 60 * 1000;
 const DAY_MS = 86_400_000;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const isDateString = (value: unknown): value is string =>
-  typeof value === "string" && DATE_RE.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+// Must be a real calendar day: V8's Date.parse silently rolls "2024-02-31" over to 2 March, so round-trip it.
+export const isDateString = (value: unknown): value is string => {
+  if (typeof value !== "string" || !DATE_RE.test(value)) return false;
+  const ms = Date.parse(`${value}T00:00:00Z`);
+  return !Number.isNaN(ms) && new Date(ms).toISOString().slice(0, 10) === value;
+};
 
 /** YYYY-MM-DD of the IST calendar day containing `instant`. */
 export function istDateString(instant: Date): string {

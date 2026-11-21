@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   if (!user || !user.enabled) return NextResponse.json({ message: "Authentication required" }, { status: 401 });
   if (user.role !== "ADMIN") return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
-  const form = await request.formData();
+  const form = await request.formData().catch(() => null);
+  if (!form) return NextResponse.json({ error: "Expected multipart form data" }, { status: 400 });
   const title = String(form.get("title") ?? "").trim();
   const content = String(form.get("content") ?? "").trim();
   const author = String(form.get("author") ?? "").trim() || "Anonymous";

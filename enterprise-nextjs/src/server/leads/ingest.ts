@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma, LeadSource } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
+import { findPhoneMatch, lockLeadKeys, phoneKey } from "./phone-identity";
 
 /**
  * The ONE way a lead is inserted (manual entry, CSV import, IndiaMART,
@@ -47,22 +48,22 @@ export async function createLeadTx(tx: Tx, input: NewLeadInput, ctx: IngestConte
   // stable order so two transactions can never deadlock.
   const lockKeys = [
     ctx.externalKey && `ext:${ctx.externalKey}`,
-    dedupe.phone && phone && `phone:${phone}`,
-    dedupe.contact && contact && `contact:${contact}`,
+    phone && `phone:${phoneKey(phone)}`,
+    contact && `phone:${phoneKey(contact)}`,
     dedupe.email && email && `email:${email}`,
-  ].filter((k): k is string => Boolean(k)).sort();
-  for (const key of lockKeys) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+  ].filter((k): k is string => Boolean(k));
+  await lockLeadKeys(tx, lockKeys);
 
   if (ctx.externalKey) {
     const hit = await tx.lead.findUnique({ where: { externalKey: ctx.externalKey }, select: { id: true } });
     if (hit) return { status: "duplicate", existingId: hit.id, field: "externalKey" };
   }
   if (dedupe.phone && phone) {
-    const hit = await tx.lead.findFirst({ where: { OR: [{ phone }, { contact: phone }] }, select: { id: true } });
+    const hit = await findPhoneMatch(tx, phone);
     if (hit) return { status: "duplicate", existingId: hit.id, field: "phone" };
   }
   if (dedupe.contact && contact) {
-    const hit = await tx.lead.findFirst({ where: { OR: [{ contact }, { phone: contact }] }, select: { id: true } });
+    const hit = await findPhoneMatch(tx, contact);
     if (hit) return { status: "duplicate", existingId: hit.id, field: "contact" };
   }
   if (dedupe.email && email) {

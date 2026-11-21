@@ -180,16 +180,23 @@ export async function findDuplicates(candidate: Input, excludeId: string | null 
     email: normalizeEmail(candidate.email), phone: normalizePhone(candidate.phone),
   };
   const conds: Prisma.Sql[] = [];
+  const blockingConds: Prisma.Sql[] = [];
+  // Prefix match on purpose: the stored name may still carry a legal suffix ("Pvt Ltd") that normalisation strips.
+  // Because many similarly named vendors can fill the row limit, GSTIN/PAN matches are ranked first (see ORDER BY),
+  // so a blocking duplicate can never be pushed out of the result.
   if (keys.name) conds.push(Prisma.sql`lower(regexp_replace(name, '[^a-zA-Z0-9]', '', 'g')) like ${`${keys.name}%`}`);
-  if (keys.gstin) conds.push(Prisma.sql`upper(regexp_replace(coalesce(gstin,''), '[^a-zA-Z0-9]', '', 'g')) = ${keys.gstin}`);
-  if (keys.pan) conds.push(Prisma.sql`upper(regexp_replace(coalesce(pan,''), '[^a-zA-Z0-9]', '', 'g')) = ${keys.pan}`);
+  if (keys.gstin) blockingConds.push(Prisma.sql`upper(regexp_replace(coalesce(gstin,''), '[^a-zA-Z0-9]', '', 'g')) = ${keys.gstin}`);
+  if (keys.pan) blockingConds.push(Prisma.sql`upper(regexp_replace(coalesce(pan,''), '[^a-zA-Z0-9]', '', 'g')) = ${keys.pan}`);
+  conds.push(...blockingConds);
   if (keys.email) conds.push(Prisma.sql`lower(trim(coalesce(email,''))) = ${keys.email}`);
   if (keys.phone) conds.push(Prisma.sql`regexp_replace(coalesce(phone,''), '[^0-9]', '', 'g') like ${`%${keys.phone}`}`);
   if (!conds.length) return { blocking: [] as DuplicateMatch[], warnings: [] as DuplicateMatch[] };
   const exclude = excludeId && isUuid(excludeId) ? Prisma.sql`and id <> ${excludeId}::uuid` : Prisma.empty;
   const rows = await db.$queryRaw<{ id: string; vendor_code: string; name: string; status: string; archived_at: Date | null; gstin: string | null; pan: string | null; email: string | null; phone: string | null }[]>(Prisma.sql`
     select id::text as id, vendor_code, name, status::text as status, archived_at, gstin, pan, email, phone
-    from vendors where (${Prisma.join(conds, " or ")}) ${exclude} limit 30`);
+    from vendors where (${Prisma.join(conds, " or ")}) ${exclude}
+    order by ${blockingConds.length ? Prisma.sql`case when (${Prisma.join(blockingConds, " or ")}) then 0 else 1 end,` : Prisma.empty} created_at
+    limit 30`);
   const blocking: DuplicateMatch[] = [];
   const warnings: DuplicateMatch[] = [];
   for (const m of rows) {
@@ -438,6 +445,8 @@ export async function setVendorStatus(actor: MaybeActor, id: string, statusValue
   const status = statusFor(a, statusValue);
   const v = await loadVendor(id);
   if (v.status === status) return { ...v, unchanged: true };
+  // Leaving the blacklist is as privileged as entering it.
+  if (v.status === "BLOCKED" && !can(a, "vendor.archive")) throw new HttpError(403, "Only an administrator can remove a vendor from the blacklist", "FORBIDDEN");
   const updated = await prisma.$transaction(async (tx) => {
     const u = await tx.vendor.update({ where: { id: v.id }, data: { status }, select: { id: true, vendorCode: true, name: true, status: true } });
     await audit(tx, a, "vendor.status_changed", u, { from: v.status, to: status, ...(reason ? { reason: String(reason).slice(0, 500) } : {}) });
@@ -459,7 +468,8 @@ export async function bulkSetStatus(actor: MaybeActor, ids: unknown, statusValue
   const list = bulkIds(ids);
   const status = statusFor(a, statusValue);
   return prisma.$transaction(async (tx) => {
-    const res = await tx.vendor.updateMany({ where: { id: { in: list }, status: { not: status } }, data: { status } });
+    // Without vendor.archive, blacklisted vendors in the selection are skipped (not silently un-blacklisted).
+    const res = await tx.vendor.updateMany({ where: { id: { in: list }, status: can(a, "vendor.archive") ? { not: status } : { notIn: [status, "BLOCKED"] } }, data: { status } });
     await audit(tx, a, "vendor.status_changed_bulk", null, { count: res.count, to: status, vendorIds: list.slice(0, 50) });
     return { updated: res.count };
   });
@@ -522,6 +532,7 @@ export async function deleteVendor(actor: MaybeActor, id: string, confirmCode: u
 export async function vendorAudit(actor: MaybeActor, id: string, query: { page?: unknown; limit?: unknown } = {}) {
   authorize(actor, "vendor.view");
   const vid = requireId(id);
+  if (!(await prisma.vendor.findUnique({ where: { id: vid }, select: { id: true } }))) throw notFound("Vendor not found");
   const { page, limit, skip } = pageParams(query);
   const where: Prisma.ActivityLogWhereInput = { AND: [{ details: { path: ["module"], equals: "vendor" } }, { details: { path: ["vendorId"], equals: vid } }] };
   const [entries, total] = await Promise.all([

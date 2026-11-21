@@ -8,11 +8,10 @@ import { Modal } from "@/components/ui/modal";
 import { changePasswordAction, createUserAction, toggleUserAction, updateUserAction } from "./actions";
 
 /*
- * Client wrappers around the existing user-management Server Actions (unchanged). The actions throw on
- * failure; in production Next.js hides the thrown message, so failures show a generic, actionable toast
- * and the form keeps what the administrator typed.
+ * Client wrappers around the user-management Server Actions. The actions return { error } with a readable
+ * reason; a thrown error (network, server crash) falls back to a generic toast. The form keeps its input.
  */
-const FAILED = "The change was not saved. Check the details (unique username and email, password of at least 12 characters) and try again.";
+const FAILED = "The change was not saved. Please check your connection and try again.";
 
 export function AddUserButton() {
   const [open, setOpen] = useState(false);
@@ -37,7 +36,8 @@ export function AddUserButton() {
               const fd = new FormData(e.currentTarget);
               start(async () => {
                 try {
-                  await createUserAction(fd);
+                  const res = await createUserAction(fd);
+                  if (res.error) { toast.error(res.error); return; }
                   toast.success(`User ${String(fd.get("name"))} created.`);
                   setOpen(false);
                 } catch {
@@ -99,11 +99,12 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
               const f = new FormData(e.currentTarget);
               start(async () => {
                 try {
-                  await updateUserAction(fd({ name: String(f.get("name") || ""), email: String(f.get("email") || ""), location: String(f.get("location") || "") }));
-                  toast.success(`User details updated.`);
+                  const res = await updateUserAction(fd({ name: String(f.get("name") || ""), email: String(f.get("email") || ""), location: String(f.get("location") || "") }));
+                  if (res.error) { toast.error(res.error); return; }
+                  toast.success("User details updated.");
                   setDialog(null);
-                } catch (err) {
-                  toast.error("Failed to update user details. Email may already be in use.");
+                } catch {
+                  toast.error(FAILED);
                 }
               });
             }}
@@ -121,8 +122,11 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
           message={enabled ? <><strong>{name}</strong> will be signed out of the CRM on their next request and cannot sign in until re-enabled.</> : <>Allow <strong>{name}</strong> to sign in again?</>}
           onClose={() => setDialog(null)}
           onConfirm={async () => {
-            try { await toggleUserAction(fd({})); toast.success(`${name} ${enabled ? "disabled" : "enabled"}.`); return true; }
-            catch { toast.error("The account status was not changed. Please try again."); return false; }
+            try {
+              const res = await toggleUserAction(fd({}));
+              if (res.error) { toast.error(res.error); return false; }
+              toast.success(`${name} ${enabled ? "disabled" : "enabled"}.`); return true;
+            } catch { toast.error(FAILED); return false; }
           }}
         />
       ) : null}
@@ -144,8 +148,11 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
               const password = String(f.get("password") ?? "");
               if (password !== String(f.get("confirm") ?? "")) { setMismatch(true); return; }
               start(async () => {
-                try { await changePasswordAction(fd({ password })); toast.success(`Password updated for ${name}.`); setDialog(null); }
-                catch { toast.error("The password was not changed. It must be at least 12 characters and the account must be enabled."); }
+                try {
+                  const res = await changePasswordAction(fd({ password }));
+                  if (res.error) { toast.error(res.error); return; }
+                  toast.success(`Password updated for ${name}.`); setDialog(null);
+                } catch { toast.error(FAILED); }
               });
             }}
           >

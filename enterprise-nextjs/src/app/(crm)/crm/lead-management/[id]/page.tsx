@@ -22,7 +22,7 @@ const leadAgeDays = (createdAt: string, now: number = Date.now()) => Math.max(0,
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
   const actor: Actor = { id: user.id, role: user.role, name: user.name, userId: user.userId, email: user.email };
   let lead, timeline;
   try {

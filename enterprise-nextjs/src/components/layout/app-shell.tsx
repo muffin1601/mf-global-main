@@ -192,7 +192,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
           </button>
           <div className="topbar-actions">
             <div className="menu-wrap" ref={createRef}>
-              <button type="button" className="button small" aria-haspopup="menu" aria-expanded={menu === "create"} onClick={() => setMenu(menu === "create" ? null : "create")}>
+              <button type="button" className="button small" aria-label="Create" aria-haspopup="menu" aria-expanded={menu === "create"} onClick={() => setMenu(menu === "create" ? null : "create")}>
                 <Plus size={15} aria-hidden="true" /><span className="create-label">Create</span>
               </button>
               {menu === "create" ? (

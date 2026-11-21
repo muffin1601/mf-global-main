@@ -13,9 +13,11 @@ function fail(error: unknown): { ok: false; error: string } {
   return { ok: false, error: "Something went wrong. Please try again." };
 }
 
+// requireUser() stays OUTSIDE the try: it signals "session expired / disabled" by throwing Next's redirect,
+// which fail() would otherwise turn into "Something went wrong" instead of sending the user to sign in.
 export async function saveQuotationAction(id: string | null, payload: unknown): Promise<SaveResult> {
+  const user = await requireUser();
   try {
-    const user = await requireUser();
     const actor = { id: user.id, role: user.role, name: user.name, userId: user.userId, email: user.email };
     const q = id ? await updateQuotation(actor, id, payload) : await createQuotation(actor, payload);
     revalidatePath("/crm/quotations");
@@ -26,8 +28,8 @@ export async function saveQuotationAction(id: string | null, payload: unknown): 
 }
 
 export async function deleteQuotationAction(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await requireUser();
   try {
-    const user = await requireUser();
     await deleteQuotation({ id: user.id, role: user.role, name: user.name, userId: user.userId, email: user.email }, id);
     revalidatePath("/crm/quotations");
     return { ok: true };

@@ -2,8 +2,10 @@
 // Parity: backend/routes/Products/product.js parseAndValidatePrice and AddProductModal.jsx.
 import { z } from "zod";
 import { badRequest } from "@/server/errors";
+import { round2 } from "@/server/quotations/calc";
 
-export const round2 = (n: number) => Number(n.toFixed(2));
+// Same decimal half-up rounding as quotations (toFixed(2) rounds the binary value: 1.575 -> "1.57").
+export { round2 } from "@/server/quotations/calc";
 
 /** net = basic + basic * gst / 100, rounded to 2 dp. */
 export const computeNetAmount = (basicAmount: number, gstRate: number) => round2(basicAmount + (basicAmount * gstRate) / 100);

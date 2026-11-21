@@ -59,9 +59,9 @@ describe("invoice numbering", () => {
       await prisma.quotation.create({ data: { userId: owner.id, party: { name: "Old" }, invoiceDetails: { prefix: "MF/Q/", number: n }, grandTotal: 1 } });
     }
     await prisma.quotation.create({ data: { userId: owner.id, party: { name: "Other" }, invoiceDetails: { prefix: "OTHER/", number: "9000" } } });
-    const q = await createQuotation(owner, payload());
+    const q = await createQuotation(admin, payload());
     expect(q.invoiceDetails.number).toBe("1572");
-    const other = await createQuotation(owner, payload({ invoiceDetails: { prefix: "OTHER/" } }));
+    const other = await createQuotation(admin, payload({ invoiceDetails: { prefix: "OTHER/" } }));
     expect(other.invoiceDetails.number).toBe("9001");
   });
   it("honours CompanySettings.invoiceStart for a fresh prefix", async () => {
@@ -82,7 +82,7 @@ describe("update", () => {
     expect(await prisma.quotation.count()).toBe(1);
     expect(await prisma.quotationItem.count()).toBe(1);
     expect(updated.invoiceDetails.number).toBe(created.invoiceDetails.number);
-    expect(updated.invoiceDetails.prefix).toBe("MF/Q/");
+    expect(updated.invoiceDetails.prefix).toBe(created.invoiceDetails.prefix);
     expect(updated.userId).toBe(owner.id);
     expect(updated.totals.grandTotal).toBe(60);
   });

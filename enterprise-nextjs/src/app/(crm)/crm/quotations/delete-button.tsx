@@ -24,7 +24,9 @@ export function DeleteQuotationButton({ id, number }: { id: string; number: stri
           title="Delete quotation" confirmLabel="Delete quotation" destructive onClose={() => setAsking(false)}
           message={<>Delete quotation <strong>{number}</strong>? This cannot be undone.</>}
           onConfirm={() => new Promise<boolean>((resolve) => start(async () => {
-            const r = await deleteQuotationAction(id);
+            let r: Awaited<ReturnType<typeof deleteQuotationAction>>;
+            try { r = await deleteQuotationAction(id); }
+            catch { toast.error("The quotation was not deleted. Please try again."); resolve(false); return; }
             if (r.ok) { toast.success("Quotation deleted"); router.refresh(); resolve(true); } else { toast.error(r.error); resolve(false); }
           }))}
         />

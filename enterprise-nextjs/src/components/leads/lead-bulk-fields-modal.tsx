@@ -19,8 +19,10 @@ export function BulkFieldsModal({ leadIds, onClose, onDone }: { leadIds: string[
   const apply = async () => {
     if (!status && !callStatus && !priority && !addTags.length) { setError("Choose at least one change."); return; }
     setBusy(true); setError("");
-    const r = await bulkSetFieldsAction(leadIds, { status, callStatus, priority, addTags });
-    setBusy(false);
+    let r: Awaited<ReturnType<typeof bulkSetFieldsAction>>;
+    try { r = await bulkSetFieldsAction(leadIds, { status, callStatus, priority, addTags }); }
+    catch { setError("The update could not be sent. Check your connection and try again."); return; }
+    finally { setBusy(false); }
     if (!r.ok) { setError(r.error); return; }
     toast.success(`Updated ${r.updated} lead(s)${r.statusChanged ? `; ${r.statusChanged} status change(s) recorded` : ""}.`);
     onDone();

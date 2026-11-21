@@ -15,6 +15,9 @@ export function useLeadDetail(id: string) {
     getLeadDetailAction(id).then((res) => {
       if (cancelled) return;
       setState(res.ok ? { id, tick, lead: res.lead } : { id, tick, error: res.error });
+    }).catch(() => {
+      // Network/transport failure: show an error instead of an endless loading skeleton.
+      if (!cancelled) setState({ id, tick, error: "Could not load the lead. Check your connection and try again." });
     });
     return () => { cancelled = true; };
   }, [id, tick]);

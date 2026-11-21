@@ -12,5 +12,5 @@ export default defineConfig([
       "react-hooks/set-state-in-effect": "off"
     }
   },
-  globalIgnores([".next/**", "generated/**"])
+  globalIgnores([".next/**", ".next-e2e/**", "generated/**", "test-artifacts/**", "tests/e2e/**"])
 ]);

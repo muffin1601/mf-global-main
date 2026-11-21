@@ -95,7 +95,8 @@ describe("exports", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load((await toXlsx("Leads", cols, rows)) as never);
     const ws = wb.worksheets[0]!;
-    expect(ws.getRow(2).getCell(1).value).toBe(`'=HYPERLINK("http://evil")`);
+    expect(ws.getRow(2).getCell(1).type).toBe(ExcelJS.ValueType.String);
+    expect(ws.getRow(2).getCell(1).value).toBe(rows[0]!.name);
     expect(ws.getRow(2).getCell(2).value).toBe(5);
   });
 });

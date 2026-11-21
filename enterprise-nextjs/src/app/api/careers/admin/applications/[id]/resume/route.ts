@@ -30,6 +30,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         "Content-Type": contentType,
         "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${filename}"`,
         "Cache-Control": "no-store",
+        // Applicant-supplied file served inline from the app origin: never let it run script (same as vendor docs).
+        "Content-Security-Policy": "default-src 'none'; img-src 'self'; object-src 'none'; sandbox",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   });

@@ -1,4 +1,5 @@
 // Pure (client-safe) lead filter model shared by the list, the exports and the UI.
+import { isDateString } from "@/lib/time/ist";
 export const PAGE_SIZES = [25, 50, 100, 200] as const;
 export const EXPORT_ROW_CAP = 50_000;
 
@@ -50,14 +51,16 @@ function getAll(src: ParamSource, key: string): string[] {
   const v = src[key];
   return v === undefined ? [] : Array.isArray(v) ? v : [v];
 }
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function parseLeadFilter(src: ParamSource): LeadFilter {
   const f: LeadFilter = {};
   const q = getAll(src, "q")[0]?.trim();
   if (q) f.q = q.slice(0, 200);
   for (const key of MULTI_FIELDS) {
-    const vals = getAll(src, key).map((v) => v.trim()).slice(0, 200);
+    let vals = getAll(src, key).map((v) => v.trim()).slice(0, 200);
+    // assignedTo hits a uuid column: a malformed id would make Postgres throw (500) instead of matching nothing.
+    if (key === "assignedTo") vals = vals.filter((v) => UUID_RE.test(v));
     if (vals.length) f[key] = [...new Set(vals)];
   }
   const assigned = getAll(src, "assigned")[0];
@@ -65,8 +68,8 @@ export function parseLeadFilter(src: ParamSource): LeadFilter {
   const dateType = getAll(src, "dateType")[0];
   if (dateType === "createdAt" || dateType === "followUpDate") f.dateType = dateType;
   const from = getAll(src, "from")[0], to = getAll(src, "to")[0];
-  if (from && DATE_RE.test(from)) f.from = from;
-  if (to && DATE_RE.test(to)) f.to = to;
+  if (from && isDateString(from)) f.from = from;
+  if (to && isDateString(to)) f.to = to;
   const sort = parseSort(getAll(src, "sort"));
   if (sort.length) f.sort = sort;
   return f;

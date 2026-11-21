@@ -84,6 +84,13 @@ export async function recordClientActivity(actor: Actor, input: { action: unknow
     if (!target) throw notFound("User not found.");
     targetId = target.id;
   }
-  const row = await prisma.activityLog.create({ data: { userId: targetId, action, ...(details !== undefined ? { details } : {}) } });
+  // Client-supplied entries live in their own "client." namespace so a browser can never write an entry that looks
+  // like a server audit event ("lead.deleted", "user.created"...). On-behalf entries name who really wrote them.
+  const storedAction = action.startsWith("client.") ? action : `client.${action}`;
+  if (targetId !== actor.id) {
+    const base = details && typeof details === "object" && !Array.isArray(details) ? (details as Prisma.InputJsonObject) : details === undefined ? {} : { value: details };
+    details = { ...base, loggedBy: { id: actor.id, userId: actor.userId, name: actor.name } };
+  }
+  const row = await prisma.activityLog.create({ data: { userId: targetId, action: storedAction, ...(details !== undefined ? { details } : {}) } });
   return { id: row.id };
 }

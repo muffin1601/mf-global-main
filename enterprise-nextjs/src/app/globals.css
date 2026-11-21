@@ -494,8 +494,8 @@ a.kpi:hover .kpi-arrow { opacity: 1; }
 /* responsive shell */
 @media (max-width: 1023px) {
   .app-shell, :root[data-sidebar="collapsed"] .app-shell { grid-template-columns: minmax(0, 1fr); }
-  .sidebar { position: fixed; inset: 0 auto 0 0; width: min(288px, 86vw); transform: translateX(-100%); transition: transform .18s ease; box-shadow: var(--shadow-lg); }
-  .app-shell[data-mobile-open="true"] .sidebar { transform: none; }
+  .sidebar { position: fixed; inset: 0 auto 0 0; width: min(288px, 86vw); visibility: hidden; transform: translateX(-100%); transition: transform .18s ease; box-shadow: var(--shadow-lg); }
+  .app-shell[data-mobile-open="true"] .sidebar { visibility: visible; transform: none; }
   .app-shell[data-mobile-open="true"] .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: var(--overlay); }
   .collapse-btn, .expand-btn { display: none !important; }
   .mobile-only { display: inline-grid; }

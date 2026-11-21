@@ -39,8 +39,8 @@ describe("price calculation (MERN parity)", () => {
     expect(computeNetAmount(99.99, 12)).toBe(111.99);
     expect(computeNetAmount(0, 18)).toBe(0);
     expect(computeNetAmount(33.33, 18)).toBe(39.33);
-    // Same IEEE-754 rounding as MERN's Number((b + b*g/100).toFixed(2)): 263.025 -> 263.02.
-    expect(computeNetAmount(250.5, 5)).toBe(Number((250.5 + (250.5 * 5) / 100).toFixed(2)));
+    // Exact decimal total is 263.025, which rounds half up to 263.03.
+    expect(computeNetAmount(250.5, 5)).toBe(263.03);
   });
   it("rejects negative / non-numeric amounts and accepts blank purchase price", () => {
     expect(() => parsePrice({ basicAmount: -1, gstRate: 5 })).toThrow(/non-negative/);

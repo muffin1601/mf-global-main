@@ -5,6 +5,7 @@ import { badRequest, forbidden, notFound } from "@/server/errors";
 import { PAGE_SIZES, type LeadFilter, type LeadPreset } from "./filter-schema";
 import type { Address, AdditionalContact, DuplicateCheck, FilterMeta, LeadDetail, LeadListResult, LeadRow } from "./types";
 import { buildLeadWhere, leadOrderBy } from "./where";
+import { findPhoneMatch } from "./phone-identity";
 
 export const rowInclude = {
   assignments: { include: { user: { select: { id: true, name: true } } }, orderBy: { assignedAt: "asc" } },
@@ -117,11 +118,12 @@ export async function getFilterMeta(actor: Actor, input: MetaScope = { scope: "a
 export async function checkDuplicate(actor: Actor, input: { phone?: string | null; contact?: string | null; excludeId?: string }): Promise<DuplicateCheck> {
   const phone = input.phone?.trim(), contact = input.contact?.trim();
   if (!phone && !contact) throw badRequest("A phone or contact number is required.");
-  const notSelf: Prisma.LeadWhereInput = input.excludeId ? { id: { not: input.excludeId } } : {};
   for (const [field, value] of [["phone", phone], ["contact", contact]] as const) {
     if (!value) continue;
-    const hit = await prisma.lead.findFirst({
-      where: { AND: [notSelf, { OR: [{ phone: value }, { contact: value }] }] },
+    const match = await findPhoneMatch(prisma, value, input.excludeId);
+    if (!match) continue;
+    const hit = await prisma.lead.findUnique({
+      where: { id: match.id },
       select: { id: true, name: true, company: true, phone: true, assignments: { where: { userId: actor.id, canView: true }, select: { userId: true } } },
     });
     if (hit) {

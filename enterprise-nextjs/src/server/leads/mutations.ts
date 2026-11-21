@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma/client";
 import { assertAdmin, isAdmin, leadScope, type Actor } from "@/server/actor";
 import { badRequest, conflict, forbidden, notFound } from "@/server/errors";
 import { createLead, recordStatusChange } from "./ingest";
+import { findPhoneMatch, lockLeadKeys, phoneKey } from "./phone-identity";
 import { rotateFollowUp, type LeadFilter, type LeadPreset } from "./filter-schema";
 import { buildLeadWhere } from "./where";
 import { recordAssignmentChanges, snapshotAssignments } from "./assignment-history";
@@ -134,9 +135,12 @@ export async function updateLead(actor: Actor, id: string, raw: UpdateLeadInput)
     if (input.callStatus) data.callStatus = input.callStatus;
     if (input.followUpDate && input.followUpDate.getTime() !== lead.followUpDate?.getTime()) Object.assign(data, rotateFollowUp(lead, input.followUpDate));
 
-    for (const [field, value] of [["phone", data.phone], ["contact", data.contact]] as const) {
+    const identityFields = [["phone", data.phone], ["contact", data.contact]] as const;
+    await lockLeadKeys(tx, identityFields.flatMap(([field, value]) =>
+      typeof value === "string" && value !== lead[field] ? [`phone:${phoneKey(value)}`] : []));
+    for (const [field, value] of identityFields) {
       if (typeof value === "string" && value !== lead[field]) {
-        const dup = await tx.lead.findFirst({ where: { id: { not: id }, OR: [{ phone: value }, { contact: value }] }, select: { id: true } });
+        const dup = await findPhoneMatch(tx, value, id);
         if (dup) throw conflict("Another lead already uses that phone or contact number.");
       }
     }
@@ -211,7 +215,10 @@ export async function deleteAllFiltered(actor: Actor, input: { filter?: LeadFilt
   const { sort: _sort, ...filter } = input.filter ?? {};
   void _sort;
   const preset = input.preset ?? "all";
-  if (preset === "all" && Object.values(filter).every((v) => v === undefined || (Array.isArray(v) && v.length === 0) || v === "")) {
+  // dateType only says WHICH date from/to apply to; on its own it narrows nothing, so it must not count.
+  const { dateType: _dateType, ...narrowing } = filter;
+  void _dateType;
+  if (preset === "all" && Object.values(narrowing).every((v) => v === undefined || (Array.isArray(v) && v.length === 0) || v === "")) {
     throw badRequest("Apply at least one filter before deleting all matching leads.");
   }
   const where = buildLeadWhere(actor, filter, preset);

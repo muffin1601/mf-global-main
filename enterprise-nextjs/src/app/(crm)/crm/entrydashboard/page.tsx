@@ -8,7 +8,7 @@ import { isAdmin, type Actor } from "@/server/actor";
 import { getKpis, getLeadsPerDay, getPerformance, getQuotationKpis, getRecentLeads, getStatusBreakdown } from "@/server/dashboard/metrics";
 import { activityCounts } from "@/server/activities/service";
 import { parseRange, resolveRange, type PerformanceRange } from "@/server/dashboard/range";
-import { isDateString } from "@/lib/time/ist";
+import { addDaysIst, isDateString, todayIst } from "@/lib/time/ist";
 import { DashboardCharts } from "@/components/dashboard/charts";
 import { MetricCard } from "@/components/ui/metric-card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -33,6 +33,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const user = await requireUser();
   const actor: Actor = { id: user.id, role: user.role, name: user.name, userId: user.userId, email: user.email };
   const admin = isAdmin(actor);
+  // Each KPI card must open a list holding exactly the leads it counted. For admins the KPIs span every lead,
+  // while /crm/today-followups, /upcoming-followups ("mine") and /new-leads (rolling 24 h) answer a different
+  // question, so admins drill into the full lead list filtered by the same IST window. Users' scope already
+  // equals "mine", so their preset pages match.
+  const today = todayIst();
+  const tomorrow = addDaysIst(today, 1);
+  const kpiLinks = admin
+    ? {
+        newToday: `/crm/lead-management?dateType=createdAt&from=${today}&to=${today}` as Route,
+        dueToday: `/crm/lead-management?dateType=followUpDate&from=${today}&to=${today}` as Route,
+        upcoming: `/crm/lead-management?dateType=followUpDate&from=${tomorrow}` as Route,
+      }
+    : { newToday: undefined, dueToday: "/crm/today-followups" as Route, upcoming: "/crm/upcoming-followups" as Route };
   const sp = await searchParams;
   const range = parseRange(one(sp.range));
   const rawFrom = one(sp.from), rawTo = one(sp.to);
@@ -72,7 +85,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div className="kpis">
           {admin ? (<>
             <MetricCard label="Total leads" value={n(kpis.total)} icon={ListChecks} href="/crm/lead-management" />
-            <MetricCard label="New today" value={n(kpis.newToday)} icon={Sparkles} tone="info" href="/crm/new-leads" hint="Created since midnight IST" />
+            <MetricCard label="New today" value={n(kpis.newToday)} icon={Sparkles} tone="info" href={kpiLinks.newToday} hint="Created since midnight IST" />
             <MetricCard label="Assigned" value={n(kpis.assigned)} icon={UserCheck} tone="violet" href="/crm/assigned-leads" />
             <MetricCard label="Unassigned" value={n(kpis.unassigned)} icon={Inbox} tone={kpis.unassigned > 0 ? "warning" : "neutral"} href="/crm/unassigned-leads" />
             <MetricCard label="In progress" value={n(kpis.trending)} icon={Flame} tone="warning" href="/crm/trending-leads" />
@@ -92,8 +105,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <section aria-labelledby="kpi-followups">
         <div className="section-title-row"><h2 id="kpi-followups">Follow-ups</h2></div>
         <div className="kpis">
-          <MetricCard label="Due today" value={n(kpis.followUpsToday)} icon={Clock} tone="info" href="/crm/today-followups" />
-          <MetricCard label="Upcoming" value={n(kpis.upcoming)} icon={CalendarClock} tone="violet" href="/crm/upcoming-followups" />
+          <MetricCard label="Due today" value={n(kpis.followUpsToday)} icon={Clock} tone="info" href={kpiLinks.dueToday} />
+          <MetricCard label="Upcoming" value={n(kpis.upcoming)} icon={CalendarClock} tone="violet" href={kpiLinks.upcoming} />
           <MetricCard
             label="Overdue" value={n(kpis.overdue)} icon={AlarmClock} tone={kpis.overdue > 0 ? "danger" : "neutral"}
             hint={kpis.overdue > 0 ? "Past date, still open (not won/lost)" : "Nothing overdue"}

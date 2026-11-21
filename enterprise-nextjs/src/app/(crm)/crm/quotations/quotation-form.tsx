@@ -29,7 +29,7 @@ function useDebounced<T>(value: T, ms: number) {
   return v;
 }
 
-export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | "edit"; defaults: Defaults; quotation?: QuotationDto }) {
+export function QuotationForm({ mode, defaults, quotation, canChoosePrefix = false }: { canChoosePrefix?: boolean; mode: "create" | "edit"; defaults: Defaults; quotation?: QuotationDto }) {
   const inv = quotation?.invoiceDetails ?? {};
   const sum = quotation?.summary ?? {};
   const bank = quotation?.bankDetails ?? {};
@@ -131,7 +131,11 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
         party, items, terms, notes, bankDetails, summary,
         invoiceDetails: { prefix, date, validityDays, validityDate, poNo, placeOfSupply },
       };
-      const r = await saveQuotationAction(savedId, payload);
+      // A rejected action (network drop, deploy skew, oversized body) must not reach the error boundary:
+      // that would unmount the form and lose the whole unsaved quotation.
+      let r: Awaited<ReturnType<typeof saveQuotationAction>>;
+      try { r = await saveQuotationAction(savedId, payload); }
+      catch { toast.error("The quotation could not be saved. Check your connection and try again; your entries are kept."); return; }
       if (!r.ok) { toast.error(r.error); return; }
       setSavedId(r.id); setSavedNumber(r.number);
       toast.success(`Quotation ${r.number} saved`);
@@ -166,7 +170,7 @@ export function QuotationForm({ mode, defaults, quotation }: { mode: "create" | 
         <h2 className="card-title">Quotation details</h2>
         <p className="card-desc">The number is assigned when the quotation is first saved.</p>
         <div className="form-grid cols-3">
-          <div className="field"><label htmlFor="q-prefix">Prefix</label><input id="q-prefix" value={prefix} onChange={(e) => setPrefix(e.target.value)} disabled={isEdit} /></div>
+          <div className="field"><label htmlFor="q-prefix">Prefix</label><input id="q-prefix" value={prefix} onChange={(e) => setPrefix(e.target.value)} disabled={isEdit || !canChoosePrefix} /></div>
           <div className="field"><label htmlFor="q-number">Number</label><input id="q-number" value={isEdit ? savedNumber.slice(prefix.length) : "Assigned on save"} readOnly disabled /></div>
           <div className="field"><label htmlFor="q-date">Date</label><input id="q-date" type="date" value={date} onChange={(e) => setInvoiceDate(e.target.value)} /></div>
           <div className="field"><label htmlFor="q-vdays">Validity (days)</label><input id="q-vdays" type="number" min={0} value={validityDays} onChange={(e) => setDays(e.target.value)} /></div>

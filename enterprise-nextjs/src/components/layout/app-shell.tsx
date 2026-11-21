@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
-  ChevronRight, FileText, LogOut, Menu, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Plus, Search, Sun, Upload, UserPlus, X, Package,
+  ChevronRight, FileText, LogOut, Menu, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Plus, Search, Sun, Upload, UserPlus, UserRound, X, Package,
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { initialsOf } from "@/components/ui/user-avatar";
@@ -13,9 +13,17 @@ import { CommandPalette } from "./command-palette";
 import { activeHref, crumbsFor, navFor, type NavItem } from "./nav-config";
 import { applyTheme, readTheme, setSidebarCollapsed, type ThemePreference } from "./theme";
 
-export type ShellUser = { name: string; email: string | null; role: "ADMIN" | "USER"; userId: string | null };
+export type ShellUser = { name: string; email: string | null; role: "ADMIN" | "USER"; userId: string | null; avatarUrl?: string | null };
 
 const initials = initialsOf;
+
+/** Profile photo when the user has one, otherwise initials. Decorative: the name is always printed beside it or in the menu. */
+function ShellAvatar({ user, size }: { user: ShellUser; size?: "sm" }) {
+  const px = size === "sm" ? 24 : 30;
+  // eslint-disable-next-line @next/next/no-img-element -- private, authenticated image route
+  return user.avatarUrl ? <img src={user.avatarUrl} alt="" aria-hidden="true" width={px} height={px} className={`avatar${size === "sm" ? " sm" : ""}`} style={{ objectFit: "cover", padding: 0 }} />
+    : <span className={`avatar${size === "sm" ? " sm" : ""}`} aria-hidden="true">{initials(user.name)}</span>;
+}
 
 /* Theme preference as an external store so every toggle stays in sync without effects. */
 const themeListeners = new Set<() => void>();
@@ -160,7 +168,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
         </nav>
         <div className="sidebar-foot">
           <div className="user-chip" data-tip={`${user.name} · ${isAdmin ? "Administrator" : "User"}`} style={{ position: "relative" }}>
-            <span className="avatar" aria-hidden="true">{initials(user.name)}</span>
+            <ShellAvatar user={user} />
             <span className="who"><strong>{user.name}</strong><span>{isAdmin ? "Administrator" : "Sales user"}{user.userId ? ` · ${user.userId}` : ""}</span></span>
           </div>
         </div>
@@ -211,14 +219,16 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
             </button>
             <div className="menu-wrap" ref={userRef}>
               <button type="button" className="icon-btn" style={{ width: 36 }} aria-haspopup="menu" aria-expanded={menu === "user"} aria-label="Account menu" onClick={() => setMenu(menu === "user" ? null : "user")}>
-                <span className="avatar sm" aria-hidden="true">{initials(user.name)}</span>
+                <ShellAvatar user={user} size="sm" />
               </button>
               {menu === "user" ? (
                 <div className="menu" role="menu" aria-label="Account" style={{ minWidth: 248 }}>
                   <div className="menu-head">
-                    <span className="avatar" aria-hidden="true">{initials(user.name)}</span>
+                    <ShellAvatar user={user} />
                     <span className="who"><strong>{user.name}</strong><span>{user.email ?? (isAdmin ? "Administrator" : "Sales user")}</span></span>
                   </div>
+                  <div className="menu-sep" />
+                  <Link role="menuitem" className="menu-item" href={"/crm/profile" as Route} onClick={closeMenu}><UserRound size={15} aria-hidden="true" />My profile</Link>
                   <div className="menu-sep" />
                   <ThemeMenuItems />
                   <div className="menu-sep" />

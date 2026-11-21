@@ -1,4 +1,5 @@
 "use client";
+import { PasswordInput } from "@/legacy-marketing/components/PasswordInput";
 
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -49,7 +50,7 @@ export function AddUserButton() {
             <div className="field"><label htmlFor="ru-name">Full name<span className="req" aria-hidden="true">*</span></label><input id="ru-name" name="name" required minLength={2} maxLength={120} autoComplete="off" /></div>
             <div className="field"><label htmlFor="ru-username">Username<span className="req" aria-hidden="true">*</span></label><input id="ru-username" name="username" required minLength={3} maxLength={40} pattern="[A-Za-z0-9._\-]{3,40}" autoComplete="off" /><span className="hint">3–40 letters, numbers, dot, dash or underscore.</span></div>
             <div className="field"><label htmlFor="ru-email">Work email<span className="req" aria-hidden="true">*</span></label><input id="ru-email" name="email" type="email" required autoComplete="off" /></div>
-            <div className="field"><label htmlFor="ru-password">Temporary password<span className="req" aria-hidden="true">*</span></label><input id="ru-password" name="password" type="password" minLength={12} maxLength={256} required autoComplete="new-password" /><span className="hint">At least 12 characters.</span></div>
+            <div className="field"><label htmlFor="ru-password">Temporary password<span className="req" aria-hidden="true">*</span></label><PasswordInput fieldLabel="temporary password" id="ru-password" name="password" minLength={12} maxLength={256} required autoComplete="new-password" /><span className="hint">At least 12 characters.</span></div>
             <div className="field"><label htmlFor="ru-location">Location</label><input id="ru-location" name="location" maxLength={120} /></div>
             <div className="field">
               <label htmlFor="ru-role">Role</label>
@@ -156,8 +157,8 @@ export function UserRowActions({ id, name, email, location, enabled, isSelf, has
               });
             }}
           >
-            <div className="field"><label htmlFor={`pw-new-${id}`}>New password</label><input id={`pw-new-${id}`} name="password" type="password" minLength={12} maxLength={256} required autoComplete="new-password" onChange={() => setMismatch(false)} /><span className="hint">At least 12 characters.</span></div>
-            <div className="field"><label htmlFor={`pw-confirm-${id}`}>Confirm password</label><input id={`pw-confirm-${id}`} name="confirm" type="password" minLength={12} maxLength={256} required autoComplete="new-password" aria-invalid={mismatch} onChange={() => setMismatch(false)} />{mismatch ? <span className="error" role="alert">Passwords do not match.</span> : null}</div>
+            <div className="field"><label htmlFor={`pw-new-${id}`}>New password</label><PasswordInput fieldLabel="new password" id={`pw-new-${id}`} name="password" minLength={12} maxLength={256} required autoComplete="new-password" onChange={() => setMismatch(false)} /><span className="hint">At least 12 characters.</span></div>
+            <div className="field"><label htmlFor={`pw-confirm-${id}`}>Confirm password</label><PasswordInput fieldLabel="confirm new password" id={`pw-confirm-${id}`} name="confirm" minLength={12} maxLength={256} required autoComplete="new-password" aria-invalid={mismatch} onChange={() => setMismatch(false)} />{mismatch ? <span className="error" role="alert">Passwords do not match.</span> : null}</div>
           </form>
         </Modal>
       ) : null}

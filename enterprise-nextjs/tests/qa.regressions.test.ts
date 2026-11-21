@@ -172,3 +172,10 @@ describe("VEND-AUDIT: vendor audit trail of a non-existent vendor", () => {
     await expect(vendors.vendorAudit(admin, v.id)).resolves.toMatchObject({ page: 1 });
   });
 });
+
+describe("VIEW-BLANK: saved views keep the 'blank' value of multi-value filters", () => {
+  it("category= (blank) survives save and reload; empty free-text params are still dropped", async () => {
+    const { sanitizeParams } = await import("@/server/views/service");
+    expect(sanitizeParams({ category: "", priority: "High", q: "", page: "3" })).toEqual({ category: "", priority: "High" });
+  });
+});

@@ -5,10 +5,12 @@ import { AppShell } from "./app-shell";
 // Navigation and its role filtering live in ./nav-config.ts.
 export function CrmShell({ children, user }: {
   children: React.ReactNode;
-  user: { name: string; role: UserRole; email?: string | null; userId?: string | null };
+  user: { id: string; name: string; role: UserRole; email?: string | null; userId?: string | null; avatarPath?: string | null; avatarUpdatedAt?: Date | null };
 }) {
+  // Versioned URL so a new photo shows immediately while the old one may stay cached (private, 1 day).
+  const avatarUrl = user.avatarPath ? `/api/profile/avatar/${user.id}?v=${user.avatarUpdatedAt?.getTime() ?? 0}` : null;
   return (
-    <AppShell user={{ name: user.name, role: user.role, email: user.email ?? null, userId: user.userId ?? null }}>
+    <AppShell user={{ name: user.name, role: user.role, email: user.email ?? null, userId: user.userId ?? null, avatarUrl }}>
       {children}
     </AppShell>
   );

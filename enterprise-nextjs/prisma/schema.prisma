@@ -104,6 +104,12 @@ model User {
   username            String?               @unique
   email               String?               @unique
   location            String?
+  /// Self-service profile (My profile). All optional; admins keep control of email, username and role.
+  phone               String?
+  designation         String?
+  avatarPath          String?               @map("avatar_path")
+  avatarUpdatedAt     DateTime?             @map("avatar_updated_at")
+  passwordChangedAt   DateTime?             @map("password_changed_at")
   role                UserRole              @default(USER)
   enabled             Boolean               @default(true)
   createdAt           DateTime              @default(now()) @map("created_at")

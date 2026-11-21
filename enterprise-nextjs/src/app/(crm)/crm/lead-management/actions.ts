@@ -102,7 +102,9 @@ export async function deleteLeadsAction(ids: string[]): Promise<ActionResult<{ d
 }
 /** `query` is the URL query string of the current view (the filter is rebuilt and re-authorised on the server). */
 export async function deleteAllFilteredAction(query: string, preset: string): Promise<ActionResult<{ deleted: number }>> {
-  const p: LeadPreset = isLeadPreset(preset) ? preset : "all";
+  // Fail closed: an unrecognised preset must never widen a destructive delete to the "all" scope.
+  if (!isLeadPreset(preset)) return { ok: false, error: "This list cannot be bulk-deleted. Reload the page and try again." };
+  const p: LeadPreset = preset;
   return run((a) => deleteAllFiltered(a, { filter: parseLeadFilter(new URLSearchParams(query)), preset: p }));
 }
 export async function bulkUpdateAction(ids: string[], category: string, location: string): Promise<ActionResult<{ updated: number }>> {

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma/client";
 import { isAdmin, type Actor } from "@/server/actor";
 import { recordAudit } from "@/server/audit/log";
 import { badRequest, conflict, forbidden, notFound } from "@/server/errors";
+import { MULTI_FIELDS } from "@/server/leads/filter-schema";
 
 /**
  * Saved list views: a name plus the list page's URL query parameters (filters, sort, columns, density).
@@ -20,6 +21,7 @@ const MAX_PARAMS_BYTES = 4096;
 const MAX_VIEWS_PER_USER = 50;
 /** Paging is never saved: a view always opens on page 1. */
 const DROPPED_KEYS = new Set(["page", "create", "view-saved"]);
+const BLANK_MEANINGFUL = new Set<string>(MULTI_FIELDS);
 
 const entitySchema = z.enum(VIEW_ENTITIES);
 const paramsSchema = z.record(z.string().max(40), z.union([z.string().max(500), z.array(z.string().max(500)).max(200)]));
@@ -30,7 +32,9 @@ export function sanitizeParams(raw: unknown): ViewParams {
   const out: ViewParams = {};
   for (const [k, v] of Object.entries(parsed.data)) {
     if (DROPPED_KEYS.has(k)) continue;
-    if (Array.isArray(v) ? v.length === 0 : v === "") continue;
+    // For the multi-value list filters "" is a real value ("blank / not set"), so it must survive the save;
+    // dropping it silently widened the view (e.g. "Category: blank + High" reopened as just "High").
+    if (Array.isArray(v) ? v.length === 0 : v === "" && !BLANK_MEANINGFUL.has(k)) continue;
     out[k] = v;
   }
   if (Buffer.byteLength(JSON.stringify(out)) > MAX_PARAMS_BYTES) throw badRequest("This view has too many filters to save.");

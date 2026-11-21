@@ -8,7 +8,7 @@ import { HttpError } from "@/server/errors";
 import { isLeadPreset, parseLeadFilter, type LeadPreset } from "@/server/leads/filter-schema";
 import {
   addAdditionalContact, assignLeads, bulkUpdateLeads, createManualLead, deleteAdditionalContact, deleteAllFiltered, deleteLeads,
-  removeAssignments, transferAssignments, updateLead, type AssignLevel,
+  bulkSetLeadFields, removeAssignments, transferAssignments, updateLead, type AssignLevel,
 } from "@/server/leads/mutations";
 import { checkDuplicate, getLeadDetail } from "@/server/leads/queries";
 import type { DuplicateCheck, LeadDetail } from "@/server/leads/types";
@@ -24,6 +24,8 @@ export type LeadFormValues = {
   followUpDate?: string; callingDate?: string;
   billing: AddressValues; shipping: AddressValues;
   assignedUserId?: string;
+  /** Edit only. "" clears the priority; tags are comma separated. Omitted = unchanged. */
+  priority?: string; tags?: string;
 };
 export type AddressValues = { street: string; city: string; state: string; postalCode: string; country: string };
 
@@ -72,6 +74,8 @@ export async function updateLeadAction(id: string, values: LeadFormValues): Prom
   return run(async (a) =>
     updateLead(a, id, {
       ...toInput(values, a, "update"),
+      ...(values.priority !== undefined ? { priority: (values.priority || null) as never } : {}),
+      ...(values.tags !== undefined ? { tags: values.tags.split(",").map((t) => t.trim()).filter(Boolean) } : {}),
       billingAddress: blankAddress(values.billing) ? null : values.billing,
       shippingAddress: blankAddress(values.shipping) ? null : values.shipping,
     }),
@@ -112,4 +116,12 @@ export async function removeAssignmentsAction(leadIds: string[]): Promise<Action
 }
 export async function transferAssignmentsAction(leadIds: string[], targetUserId: string): Promise<ActionResult<{ leads: number }>> {
   return run((a) => transferAssignments(a, { leadIds, targetUserId }));
+}
+
+/** Bulk status / call status / priority / add tags (admin; server re-checks). */
+export async function bulkSetFieldsAction(ids: string[], v: { status?: string; callStatus?: string; priority?: string; addTags?: string[] }): Promise<ActionResult<{ updated: number; statusChanged: number }>> {
+  return run((a) => bulkSetLeadFields(a, {
+    ids, ...(v.status ? { status: v.status as never } : {}), ...(v.callStatus ? { callStatus: v.callStatus as never } : {}),
+    ...(v.priority ? { priority: v.priority as never } : {}), ...(v.addTags?.length ? { addTags: v.addTags } : {}),
+  }));
 }

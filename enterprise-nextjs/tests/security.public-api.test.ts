@@ -13,6 +13,7 @@ import { POST as careersApply } from "@/app/api/careers/apply/route";
 import { POST as postComment } from "@/app/api/blogs/comments/route";
 import { POST as postBlog } from "@/app/api/blogs/post-blogs/route";
 import { POST as sendEmail } from "@/app/api/send-email/route";
+import { POST as contact } from "@/app/api/contact/route";
 
 const PDF = Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(200, 65)]);
 const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64, 1)]);
@@ -163,5 +164,27 @@ describe("SEC-13 contact form IP hashing", () => {
     const row = await prisma.contactSubmission.findFirstOrThrow();
     expect(row.ipHash).toMatch(/^[a-f0-9]{64}$/);
     expect(row.ipHash).not.toContain("3.3.3.3");
+  });
+});
+
+describe("2026-11-21 endpoint contract sweep (BUG_REGISTER BLOG-1, MKT-1, MKT-2)", () => {
+  const raw = (url: string, body: string, headers: Record<string, string> = {}) => new Request(url, { method: "POST", headers: { "x-forwarded-for": "7.7.7.7", ...headers }, body });
+  it("BLOG-1: post-blogs answers 400, not 500, to a non-multipart body", async () => {
+    asUser(await makeUser({ role: "ADMIN" }));
+    const res = await postBlog(raw("http://app.test/api/blogs/post-blogs", "{not json", { "content-type": "application/json" }));
+    expect(res.status).toBe(400);
+    expect(await prisma.blogPost.count()).toBe(0);
+  });
+  it("MKT-1: send-email rejects a blank or incomplete enquiry and stores nothing", async () => {
+    for (const body of [{}, { name: "A", phone: "9" }, { name: " ", phone: "9", message: "Hi" }, { name: "A", phone: "9", message: "Hi", email: "not-an-email" }]) {
+      expect((await sendEmail(raw("http://app.test/api/send-email", JSON.stringify(body)))).status).toBe(400);
+    }
+    expect(await prisma.contactSubmission.count()).toBe(0);
+    expect((await sendEmail(raw("http://app.test/api/send-email", JSON.stringify({ name: "A", phone: "9", message: "Hi" })))).status).toBe(200);
+  });
+  it("MKT-2: malformed JSON yields 400 on both contact endpoints", async () => {
+    expect((await contact(raw("http://app.test/api/contact", "{not json"))).status).toBe(400);
+    expect((await sendEmail(raw("http://app.test/api/send-email", "{not json"))).status).toBe(400);
+    expect(await prisma.contactSubmission.count()).toBe(0);
   });
 });

@@ -41,7 +41,7 @@ describe("lead filters and pagination", () => {
   });
 
   it("round-trips the filter through URL params (including blank values)", () => {
-    const filter = { q: "x", category: ["", "A"], assigned: "assigned" as const, assignedTo: ["u"], dateType: "followUpDate" as const, from: "2026-01-01", to: "2026-01-31" };
+    const filter = { q: "x", category: ["", "A"], assigned: "assigned" as const, assignedTo: ["12345678-1234-4234-8234-123456789abc"], dateType: "followUpDate" as const, from: "2026-01-01", to: "2026-01-31" };
     expect(parseLeadFilter(filterToParams(filter))).toEqual(filter);
     expect(parseLeadFilter({ assigned: "bogus", from: "nope", status: ["a", "a"] })).toEqual({ status: ["a"] });
   });

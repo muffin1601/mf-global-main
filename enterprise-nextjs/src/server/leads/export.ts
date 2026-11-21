@@ -3,6 +3,7 @@ import { toCsv, toXlsx, type Column } from "@/lib/export/tabular";
 import { istDateString } from "@/lib/time/ist";
 import type { Actor } from "@/server/actor";
 import { badRequest } from "@/server/errors";
+import { recordAudit } from "@/server/audit/log";
 import { EXPORT_ROW_CAP, type LeadFilter, type LeadPreset } from "./filter-schema";
 import { buildLeadWhere, leadOrderBy } from "./where";
 import type { Prisma } from "@/generated/prisma/client";
@@ -60,11 +61,13 @@ export async function exportLeads(actor: Actor, input: LeadExportInput): Promise
   const filter = { ...(input.filter ?? {}) };
   if ((filter.from || filter.to) && !filter.dateType) filter.dateType = "createdAt";
   const where = buildLeadWhere(actor, filter, input.preset ?? "all", input.now);
-  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(input.preset ?? "all"), take: EXPORT_ROW_CAP + 1, include: exportInclude });
+  const rows = await prisma.lead.findMany({ where, orderBy: leadOrderBy(input.preset ?? "all", filter.sort), take: EXPORT_ROW_CAP + 1, include: exportInclude });
   const truncated = rows.length > EXPORT_ROW_CAP;
   if (truncated) rows.pop();
   const stamp = istDateString(input.now ?? new Date());
   const filename = `leads-${stamp}.${input.format}`;
   const body = input.format === "csv" ? toCsv(LEAD_EXPORT_COLUMNS, rows) : await toXlsx("Leads", LEAD_EXPORT_COLUMNS, rows);
+  // Data exports are audited (Enterprise CRM 2.0 §19): who, what scope/filters, how many rows. Never the rows.
+  await recordAudit(actor, "lead.exported", { format: input.format, rows: rows.length, truncated, preset: input.preset ?? "all", filter });
   return { filename, body, contentType: input.format, rows: rows.length, truncated };
 }

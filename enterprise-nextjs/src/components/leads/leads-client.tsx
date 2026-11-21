@@ -7,10 +7,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowRightLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, Eye, ListFilter, Package, Pencil, Plus,
-  Search, SquarePen, Trash2, UserMinus, UserPlus, X,
+  Search, SquarePen, Tags, Trash2, UserMinus, UserPlus, X,
 } from "lucide-react";
 import { deleteAllFilteredAction, deleteLeadsAction, removeAssignmentsAction } from "@/app/(crm)/crm/lead-management/actions";
-import { activeFilterCount, filterToParams, PAGE_SIZES, type LeadFilter, type LeadPreset } from "@/server/leads/filter-schema";
+import { activeFilterCount, filterToParams, PAGE_SIZES, type LeadFilter, type LeadPreset, type LeadSort } from "@/server/leads/filter-schema";
+import type { SavedViewDto } from "@/server/views/service";
 import type { FilterMeta, LeadListResult, LeadRow } from "@/server/leads/types";
 import { WON_STATUS } from "@/lib/crm/constants";
 import { PageHeader } from "@/components/ui/page-header";
@@ -18,6 +19,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyRow } from "@/components/ui/empty-state";
 import { fmtDate } from "./format";
 import { AssignModal, BulkUpdateModal, ConfirmModal, TransferModal } from "./lead-bulk-modals";
+import { BulkFieldsModal } from "./lead-bulk-fields-modal";
+import { SavedViewsMenu } from "./saved-views-menu";
 import { DownloadModal } from "./lead-download-modal";
 import { FilterModal } from "./lead-filter-modal";
 import { AddLeadModal, EditLeadModal, type UserOption } from "./lead-form-modal";
@@ -27,11 +30,11 @@ import styles from "./leads.module.css";
 
 type ModalState =
   | { kind: "view" | "edit" | "deleteOne"; id: string }
-  | { kind: "add" | "filter" | "download" | "products" | "assign" | "transfer" | "bulkUpdate" | "remove" | "deleteSelected" | "deleteFiltered" };
+  | { kind: "add" | "filter" | "download" | "products" | "assign" | "transfer" | "bulkUpdate" | "bulkFields" | "remove" | "deleteSelected" | "deleteFiltered" };
 
 type Props = {
   preset: LeadPreset; title: string; isAdmin: boolean; result: LeadListResult; filter: LeadFilter; meta: FilterMeta; users: UserOption[];
-  today: string; openCreate?: boolean;
+  today: string; openCreate?: boolean; savedViews: SavedViewDto[]; canShareViews: boolean;
 };
 
 const ASSIGNMENT_FILTER_PRESETS: LeadPreset[] = ["all", "assigned", "new", "trending", "won"];
@@ -60,8 +63,18 @@ const VIEW_SETS: { admin?: boolean; items: [LeadPreset, string][] }[] = [
   { items: [["today", "Due today"], ["upcoming", "Upcoming"]] },
 ];
 const FILTER_LABELS: Record<string, string> = {
-  category: "Category", location: "Location", state: "State", dataType: "Data type", fileName: "File", status: "Status", callStatus: "Call status", assignedTo: "Assigned to",
+  category: "Category", location: "Location", state: "State", dataType: "Data type", fileName: "File", status: "Status", callStatus: "Call status",
+  priority: "Priority", tag: "Tag", assignedTo: "Assigned to",
 };
+/** Sort choices offered in the toolbar ("" = the view's default order). Primary + optional tiebreak. */
+const SORT_OPTIONS: [string, string][] = [
+  ["", "Default order"], ["createdAt:desc", "Newest first"], ["createdAt:asc", "Oldest first"], ["updatedAt:desc", "Recently updated"],
+  ["lastActivityAt:desc", "Recent activity"], ["followUpDate:asc", "Follow-up (soonest)"], ["name:asc", "Name A–Z"], ["name:desc", "Name Z–A"],
+  ["company:asc", "Company A–Z"], ["status:asc", "Status"], ["callStatus:asc", "Call status"], ["location:asc", "Location A–Z"],
+];
+const sortKey = (s?: LeadSort) => (s ? `${s.field}:${s.dir}` : "");
+const toSort = (v: string): LeadSort | null => { const [field, dir] = v.split(":"); return field ? { field: field as LeadSort["field"], dir: dir === "asc" ? "asc" : "desc" } : null; };
+const PRIORITY_TONE: Record<string, "danger" | "warning" | "neutral"> = { High: "danger", Medium: "warning", Low: "neutral" };
 const CLOSED = new Set([WON_STATUS, "Lost Lead"]);
 const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
 
@@ -78,7 +91,7 @@ function FollowUp({ row, today }: { row: LeadRow; today: string }) {
   );
 }
 
-export function LeadsClient({ preset, title, isAdmin, result, filter, meta, users, today, openCreate }: Props) {
+export function LeadsClient({ preset, title, isAdmin, result, filter, meta, users, today, openCreate, savedViews, canShareViews }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [modal, setModal] = useState<ModalState | null>(openCreate ? { kind: "add" } : null);
@@ -133,6 +146,7 @@ export function LeadsClient({ preset, title, isAdmin, result, filter, meta, user
         title={title}
         description={<>{DESCRIPTION[preset]} <span style={{ color: "var(--text-2)", fontWeight: 550 }}>{result.total.toLocaleString("en-IN")} {result.total === 1 ? "lead" : "leads"}</span></>}
         actions={<>
+          <SavedViewsMenu entity="leads" views={savedViews} canShare={canShareViews} isAdmin={isAdmin} />
           <button type="button" className="button secondary" onClick={() => setModal({ kind: "products" })}><Package size={15} aria-hidden="true" />Products</button>
           <button type="button" className="button secondary" onClick={() => setModal({ kind: "download" })}><Download size={15} aria-hidden="true" />Export</button>
           <button type="button" className="button" onClick={() => setModal({ kind: "add" })}><Plus size={15} aria-hidden="true" />Add lead</button>
@@ -156,6 +170,20 @@ export function LeadsClient({ preset, title, isAdmin, result, filter, meta, user
           <button type="button" className={`button secondary${filterCount ? ` ${styles.filterOn}` : ""}`} onClick={() => setModal({ kind: "filter" })} aria-haspopup="dialog">
             <ListFilter size={15} aria-hidden="true" />Filters{filterCount ? <span className={styles.count}>{filterCount}</span> : null}
           </button>
+          <label className="sr-only" htmlFor="lead-sort">Sort by</label>
+          <select id="lead-sort" value={sortKey(filter.sort?.[0])} style={{ width: "auto" }}
+            onChange={(e) => { const s = toSort(e.target.value); go({ filter: { ...filter, sort: s ? [s, ...(filter.sort?.slice(1).filter((x) => x.field !== s.field) ?? [])] : undefined } }); }}>
+            {SORT_OPTIONS.map(([v, label]) => <option key={v} value={v}>{v ? `Sort: ${label}` : label}</option>)}
+          </select>
+          {filter.sort?.[0] ? (
+            <>
+              <label className="sr-only" htmlFor="lead-sort-2">Then by</label>
+              <select id="lead-sort-2" value={sortKey(filter.sort[1])} style={{ width: "auto" }}
+                onChange={(e) => { const primary = filter.sort![0]!; const s = toSort(e.target.value); go({ filter: { ...filter, sort: s && s.field !== primary.field ? [primary, s] : [primary] } }); }}>
+                {SORT_OPTIONS.map(([v, label]) => <option key={v} value={v} disabled={v !== "" && v.split(":")[0] === filter.sort![0]!.field}>{v ? `Then: ${label}` : "No tiebreak"}</option>)}
+              </select>
+            </>
+          ) : null}
         </div>
 
         {chips.length || filter.q ? (
@@ -183,6 +211,7 @@ export function LeadsClient({ preset, title, isAdmin, result, filter, meta, user
                 <button type="button" className="button small" onClick={() => setModal({ kind: "assign" })}><UserPlus size={14} aria-hidden="true" />Assign</button>
                 <button type="button" className="button secondary small" onClick={() => setModal({ kind: "transfer" })}><ArrowRightLeft size={14} aria-hidden="true" />Transfer</button>
                 <button type="button" className="button secondary small" onClick={() => setModal({ kind: "remove" })}><UserMinus size={14} aria-hidden="true" />Unassign</button>
+                <button type="button" className="button secondary small" onClick={() => setModal({ kind: "bulkFields" })}><Tags size={14} aria-hidden="true" />Status &amp; tags</button>
                 <button type="button" className="button secondary small" onClick={() => setModal({ kind: "bulkUpdate" })}><SquarePen size={14} aria-hidden="true" />Bulk update</button>
                 <button type="button" className="button secondary small danger" onClick={() => setModal({ kind: "deleteSelected" })}><Trash2 size={14} aria-hidden="true" />Delete</button>
                 <button type="button" className="button ghost small" onClick={() => setSelected(new Set())}>Clear selection</button>
@@ -225,6 +254,13 @@ export function LeadsClient({ preset, title, isAdmin, result, filter, meta, user
                   <td className={styles.leadCell}>
                     <button type="button" className={styles.leadName} onClick={() => setModal({ kind: "view", id: row.id })}>{row.name || "Unnamed lead"}</button>
                     <span className="sub">{[row.company, row.location].filter(Boolean).join(" · ") || "—"}</span>
+                    {row.priority || row.tags.length ? (
+                      <span className="tag-list" style={{ marginTop: 4 }}>
+                        {row.priority ? <StatusBadge value={row.priority} tone={PRIORITY_TONE[row.priority]}>{row.priority}</StatusBadge> : null}
+                        {row.tags.slice(0, 3).map((t) => <StatusBadge key={t} value={t} tone="neutral" dot={false}>#{t}</StatusBadge>)}
+                        {row.tags.length > 3 ? <span className="muted" style={{ fontSize: ".75rem" }}>+{row.tags.length - 3}</span> : null}
+                      </span>
+                    ) : null}
                   </td>
                   <td>
                     <span style={{ fontVariantNumeric: "tabular-nums" }}>{row.phone || row.contact || "—"}</span>
@@ -295,6 +331,7 @@ export function LeadsClient({ preset, title, isAdmin, result, filter, meta, user
       {modal?.kind === "assign" ? <AssignModal leadIds={ids} users={users} onClose={close} onDone={done} /> : null}
       {modal?.kind === "transfer" ? <TransferModal leadIds={ids} users={users} onClose={close} onDone={done} /> : null}
       {modal?.kind === "bulkUpdate" ? <BulkUpdateModal leadIds={ids} onClose={close} onDone={done} /> : null}
+      {modal?.kind === "bulkFields" ? <BulkFieldsModal leadIds={ids} onClose={close} onDone={done} /> : null}
       {modal?.kind === "remove" ? (
         <ConfirmModal title="Remove assignments" confirmLabel="Remove assignments" onClose={close}
           message={`Remove every assignee from ${ids.length} selected lead(s)? They become unassigned.`}

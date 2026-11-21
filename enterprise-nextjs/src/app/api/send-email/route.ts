@@ -9,11 +9,12 @@ import { prisma } from "@/lib/prisma/client";
 // { success: boolean }. The enquiry is also stored in contact_submissions so it
 // is never lost when email delivery is unavailable.
 const schema = z.object({
-  name: z.string().trim().max(120).default(""),
-  email: z.string().trim().max(254).default(""),
-  phone: z.string().trim().max(30).default(""),
+  // name, phone and message mirror the `required` inputs on the ContactUs form; email is optional but must be valid.
+  name: z.string().trim().min(1).max(120),
+  email: z.union([z.email().max(254), z.literal("")]).default(""),
+  phone: z.string().trim().min(1).max(30),
   companyname: z.string().trim().max(160).default(""),
-  message: z.string().trim().max(5000).default(""),
+  message: z.string().trim().min(1).max(5000),
 });
 
 // An unsalted IP hash can be reversed by enumerating IPv4 space, so production refuses to run without a salt.

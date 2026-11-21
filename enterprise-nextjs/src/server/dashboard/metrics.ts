@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma/client";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { WON_STATUS, TRENDING_STATUS } from "@/lib/crm/constants";
-import { istToday, istDayStart, istDayEndExclusive, istDateString } from "@/lib/time/ist";
+import { istToday, istDayStart, istDayEndExclusive, istDateString, istMonthStart } from "@/lib/time/ist";
 import { isAdmin, leadScope, type Actor } from "@/server/actor";
 import { lastNDaysIst, type DateWindow } from "./range";
 
@@ -73,19 +73,43 @@ export async function getStatusBreakdown(actor: Actor) {
   return rows.map((r) => ({ status: r.status, count: r._count._all })).sort((a, b) => b.count - a.count);
 }
 
-/** Leads created per IST day over the last `days` days (zero-filled). */
+/**
+ * Leads created per IST day over the last `days` days (zero-filled). Aggregated in SQL (one row per day,
+ * not per lead). `created_at` is stored as UTC, so +330 minutes gives the Asia/Kolkata calendar day.
+ * Scope matches leadScope(): admin = all leads; user = leads with a canView assignment.
+ */
 export async function getLeadsPerDay(actor: Actor, days = 30, now: Date = new Date()) {
   const { start, end, days: list } = lastNDaysIst(days, now);
-  const rows = await prisma.lead.findMany({
-    where: and(scopeOf(actor), { createdAt: { gte: istDayStart(start), lt: istDayEndExclusive(end) } }),
-    select: { createdAt: true },
-  });
-  const counts = new Map<string, number>(list.map((d) => [d, 0]));
-  for (const r of rows) {
-    const d = istDateString(r.createdAt);
-    counts.set(d, (counts.get(d) ?? 0) + 1);
-  }
+  const scope = isAdmin(actor)
+    ? Prisma.sql`TRUE`
+    : Prisma.sql`EXISTS (SELECT 1 FROM lead_assignments a WHERE a.lead_id = l.id AND a.user_id = ${actor.id}::uuid AND a.can_view)`;
+  const rows = await prisma.$queryRaw<{ day: string; count: number }[]>(Prisma.sql`
+    SELECT to_char((l.created_at + interval '330 minutes')::date, 'YYYY-MM-DD') AS day, count(*)::int AS count
+    FROM leads l
+    WHERE l.created_at >= ${istDayStart(start)} AND l.created_at < ${istDayEndExclusive(end)} AND ${scope}
+    GROUP BY 1`);
+  const counts = new Map(rows.map((r) => [r.day, r.count]));
   return list.map((date) => ({ date, count: counts.get(date) ?? 0 }));
+}
+
+export type QuotationKpis = { count: number; total: number; monthCount: number; monthTotal: number };
+
+/**
+ * Quotation totals. Admin = all quotations; user = quotations they own (same scope as the list).
+ * "This month" = created on or after the 1st of the current Asia/Kolkata month (record creation time,
+ * not the date typed on the quotation). Totals are sums of stored grand totals (₹, incl. tax).
+ */
+export async function getQuotationKpis(actor: Actor, now: Date = new Date()): Promise<QuotationKpis> {
+  const where: Prisma.QuotationWhereInput = isAdmin(actor) ? {} : { userId: actor.id };
+  const monthStart = istDayStart(istMonthStart(istDateString(now)));
+  const [all, month] = await Promise.all([
+    prisma.quotation.aggregate({ where, _count: { _all: true }, _sum: { grandTotal: true } }),
+    prisma.quotation.aggregate({ where: { AND: [where, { createdAt: { gte: monthStart } }] }, _count: { _all: true }, _sum: { grandTotal: true } }),
+  ]);
+  return {
+    count: all._count._all, total: all._sum.grandTotal?.toNumber() ?? 0,
+    monthCount: month._count._all, monthTotal: month._sum.grandTotal?.toNumber() ?? 0,
+  };
 }
 
 export async function getRecentLeads(actor: Actor, take = 8) {

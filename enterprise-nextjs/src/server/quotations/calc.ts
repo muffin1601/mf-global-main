@@ -20,7 +20,16 @@ export const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 const clamp = (v: unknown, min: number, max: number) => Math.min(Math.max(num(v), min), max);
-export const round2 = (v: unknown) => Math.round((num(v) + Number.EPSILON) * 100) / 100;
+/**
+ * Half-up rounding to paise, done in decimal. `Math.round((v + EPSILON) * 100)` fails for v >= 2 because EPSILON is
+ * below one ULP there, and products such as 26.25 * 0.18 land just under the true 4.725 (giving 4.72, not 4.73).
+ * Snapping to 10 dp first removes that binary noise; shifting via the exponent avoids a second multiplication.
+ */
+export const round2 = (v: unknown) => {
+  const n = num(v);
+  const cents = Math.round(Number(`${Math.abs(n).toFixed(10)}e2`));
+  return n < 0 ? -cents / 100 : cents / 100;
+};
 
 export function calculateLineItem(item: ItemInput = {}) {
   const qty = Math.max(0, num(item.qty));

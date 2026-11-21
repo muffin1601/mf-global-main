@@ -16,6 +16,9 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // The isolated E2E stack (scripts/e2e/start-stack.mjs) builds into its own directory so it can run beside
+  // a developer's `next dev`. Unset in every other environment, so the default `.next` is unchanged.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,

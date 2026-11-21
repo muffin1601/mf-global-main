@@ -2,8 +2,11 @@ import ExcelJS from "exceljs";
 
 export type Column<T> = { key: string; header: string; value: (row: T) => unknown; width?: number };
 
-// Neutralise spreadsheet formula injection (=, +, -, @, tab, CR) in text cells.
-export const guardFormula = (value: string) => (/^[=+\-@\t\r]/.test(value) ? `'${value}` : value);
+// Neutralise spreadsheet formula injection (=, +, -, @, tab, CR) in CSV text cells. Values made only of digits,
+// spaces and ( ) . - with an optional leading sign (phone numbers such as "+91 98765 43210", negative amounts)
+// cannot call a function, so they stay intact instead of gaining a visible apostrophe.
+const NUMERIC_LIKE = /^[+-]?[\d\s().-]+$/;
+export const guardFormula = (value: string) => (/^[=+\-@\t\r]/.test(value) && !NUMERIC_LIKE.test(value) ? `'${value}` : value);
 
 function cellText(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -41,7 +44,9 @@ export async function toXlsx<T>(sheetName: string, columns: Column<T>[], rows: I
       Object.fromEntries(
         columns.map((c) => {
           const v = c.value(row);
-          return [c.key, typeof v === "number" || v instanceof Date ? v : guardFormula(cellText(v))];
+          // ExcelJS stores strings as shared-string cells, never formulas, so XLSX needs no apostrophe guard
+          // (adding one corrupted every "+91..." phone number in the workbook).
+          return [c.key, typeof v === "number" || v instanceof Date ? v : cellText(v)];
         }),
       ),
     );

@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import { prisma } from "@/lib/prisma/client";
 import { leadScope, type Actor } from "@/server/actor";
 
@@ -37,7 +38,7 @@ export async function searchQuotationClients(actor: Actor, params: { q?: string;
   const q = (params.q ?? "").trim().slice(0, 100);
   const where: Prisma.LeadWhereInput = {
     ...leadScope(actor),
-    ...(q ? { OR: (["name", "company", "phone", "contact"] as const).map((f) => ({ [f]: { contains: q, mode: "insensitive" as const } })) } : {}),
+    ...(q ? { OR: (["name", "company", "phone", "contact"] as const).map((f) => ({ [f]: { contains: escapeLike(q), mode: "insensitive" as const } })) } : {}),
   };
   const [total, rows, settings] = await Promise.all([
     prisma.lead.count({ where }),

@@ -7,7 +7,7 @@ import { Modal } from "./modal";
 
 type Product = {
   id: string; code: string | null; name: string; type: string | null; color: string | null; dimension: string | null;
-  gstRate: number | string | null; category: string | null; price?: { purchasePrice?: number | string; basicAmount?: number | string; netAmount?: number | string } | null;
+  gstRate: number | string | null; category: { id: string; code: string; name: string } | null; price?: { purchasePrice?: number | string; basicAmount?: number | string; netAmount?: number | string } | null;
 };
 
 /** Product lookup for quoting from the lead page (GET /api/products/search?query=). */
@@ -50,7 +50,7 @@ export function ProductsModal({ onClose }: { onClose: () => void }) {
               {products.map((p) => (
                 <tr key={p.id}>
                   <td>{p.code ?? "—"}</td><td>{p.name}</td><td>{p.type ?? "—"}</td><td>{p.color ?? "—"}</td><td>{p.dimension ?? "—"}</td>
-                  <td>{p.gstRate ?? "—"}</td><td>{p.category ?? "—"}</td><td>{p.price?.netAmount ?? "—"}</td>
+                  <td>{p.gstRate ?? "—"}</td><td>{p.category?.name ?? "—"}</td><td>{p.price?.netAmount ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

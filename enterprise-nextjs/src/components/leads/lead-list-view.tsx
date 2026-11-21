@@ -6,6 +6,8 @@ import { parseLeadFilter, type LeadPreset } from "@/server/leads/filter-schema";
 import { PRESET_META } from "@/server/leads/presets";
 import { getFilterMeta, listLeads, type MetaScope } from "@/server/leads/queries";
 import { todayIst } from "@/lib/time/ist";
+import { can } from "@/lib/permissions";
+import { listSavedViews } from "@/server/views/service";
 import { LeadsClient } from "./leads-client";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -26,17 +28,18 @@ export async function LeadListView({ preset, searchParams }: { preset: LeadPrese
   const metaScope: MetaScope = preset === "unassigned" ? { scope: "unassigned" } : own ? { scope: "assigned", userId: user.id } : { scope: "all" };
   const isAdmin = user.role === "ADMIN";
 
-  const [result, filterMeta, users] = await Promise.all([
+  const [result, filterMeta, users, savedViews] = await Promise.all([
     listLeads(actor, { filter, preset, page, pageSize }),
     getFilterMeta(actor, metaScope),
     isAdmin ? prisma.user.findMany({ where: { enabled: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }) : Promise.resolve([]),
+    listSavedViews(actor, "leads"),
   ]);
 
   return (
     <main className="page">
       <LeadsClient
         preset={preset} title={meta.title} isAdmin={isAdmin} result={result} filter={filter} meta={filterMeta} users={users}
-        today={todayIst()} openCreate={first(sp.create) === "lead"}
+        today={todayIst()} openCreate={first(sp.create) === "lead"} savedViews={savedViews} canShareViews={can(user.role, "views.share")}
       />
     </main>
   );

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3, BriefcaseBusiness, CalendarClock, Clock, FileText, Flame, History, Inbox, LayoutDashboard, LineChart,
+  BarChart3, BriefcaseBusiness, CalendarCheck, CalendarClock, Clock, FileText, Flame, History, Inbox, LayoutDashboard, LineChart,
   ListChecks, Package, PackageSearch, Settings, Sparkles, Tags, Trophy, TrendingUp, Truck, Upload, UserCheck, Users,
 } from "lucide-react";
 
@@ -17,6 +17,7 @@ export const NAV: readonly NavGroup[] = [
   {
     title: "My work",
     items: [
+      { label: "Activities", href: "/crm/activities", icon: CalendarCheck },
       { label: "My leads", href: "/crm/my-leads", icon: BriefcaseBusiness },
       { label: "My trending leads", href: "/crm/my-trending-leads", icon: Flame },
       { label: "My conversions", href: "/crm/conversions", icon: Trophy },

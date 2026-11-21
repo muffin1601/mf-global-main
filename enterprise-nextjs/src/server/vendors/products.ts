@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import { Prisma } from "@/generated/prisma/client";
 import { conflict, notFound } from "@/server/errors";
 import { audit, authorize, failIf, loadVendor, num, pageParams, requireId, type Db, type MaybeActor } from "./common";
@@ -57,7 +58,7 @@ export async function searchProducts(actor: MaybeActor, q: string, limit = 25) {
   authorize(actor, "vendor.view");
   const term = q.trim();
   return prisma.product.findMany({
-    where: { status: "ACTIVE", ...(term ? { OR: [{ name: { contains: term, mode: "insensitive" } }, { code: { contains: term, mode: "insensitive" } }] } : {}) },
+    where: { status: "ACTIVE", ...(term ? { OR: [{ name: { contains: escapeLike(term), mode: "insensitive" } }, { code: { contains: escapeLike(term), mode: "insensitive" } }] } : {}) },
     orderBy: { name: "asc" }, take: Math.min(500, Math.max(1, limit)), select: { id: true, code: true, name: true },
   });
 }

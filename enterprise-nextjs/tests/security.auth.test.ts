@@ -71,6 +71,17 @@ describe("SEC-04 / SEC-09 login hardening", () => {
     await expect(loginAction({}, form(user.email!, "correct-password-1"))).rejects.toThrow("REDIRECT:/crm/entrydashboard");
   });
 
+  it("DB-DEL: after migration 20261120145700 employees cannot sign in, admins can, and re-enabling restores access", async () => {
+    const admin = await makeUser({ role: "ADMIN" });
+    const emp = await makeUser({ role: "USER" });
+    await expect(loginAction({}, form(emp.username!, "correct-password-1"))).rejects.toThrow("REDIRECT:");
+    await prisma.$executeRawUnsafe(readFileSync("prisma/migrations/20261120145700_remove_non_admin_users/migration.sql", "utf8"));
+    expect((await loginAction({}, form(emp.username!, "correct-password-1"))).error).toMatch(/disabled/i);
+    await expect(loginAction({}, form(admin.username!, "correct-password-1"))).rejects.toThrow("REDIRECT:");
+    await prisma.user.update({ where: { id: emp.id }, data: { enabled: true } });
+    await expect(loginAction({}, form(emp.username!, "correct-password-1"))).rejects.toThrow("REDIRECT:");
+  });
+
   it("throttles per IP: the 11th attempt is blocked before Supabase is called", async () => {
     const user = await makeUser();
     for (let i = 0; i < 10; i++) await loginAction({}, form(user.username!, "wrong"));

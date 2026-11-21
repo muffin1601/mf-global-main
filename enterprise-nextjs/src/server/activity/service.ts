@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import type { Prisma } from "@/generated/prisma/client";
 import { isDateString, istDayEndExclusive, istDayStart } from "@/lib/time/ist";
 import { assertAdmin, isAdmin, type Actor } from "@/server/actor";
@@ -8,7 +9,7 @@ export const MAX_ACTION_LENGTH = 100;
 export const MAX_DETAILS_BYTES = 8 * 1024;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export type ActivityQuery = { userId?: string; from?: string; to?: string; q?: string; page?: number; pageSize?: number };
+export type ActivityQuery = { userId?: string; from?: string; to?: string; q?: string; page?: number; pageSize?: number; sortDir?: "asc" | "desc" };
 
 /** Admin-only, paginated, IST-date-filtered activity listing. Handles legacy rows (no user link). */
 export async function listActivity(actor: Actor, input: ActivityQuery = {}) {
@@ -29,14 +30,15 @@ export async function listActivity(actor: Actor, input: ActivityQuery = {}) {
   if (from || to) and.push({ occurredAt: { ...(from ? { gte: istDayStart(from) } : {}), ...(to ? { lt: istDayEndExclusive(to) } : {}) } });
   const text = q?.trim().slice(0, 100);
   if (text) {
-    const c = { contains: text, mode: "insensitive" as const };
+    const c = { contains: escapeLike(text), mode: "insensitive" as const };
     and.push({ OR: [{ action: c }, { actorName: c }, { actorUserCode: c }, { user: { name: c } }, { user: { userId: c } }] });
   }
   const where: Prisma.ActivityLogWhereInput = and.length ? { AND: and } : {};
+  const dir: Prisma.SortOrder = input.sortDir === "asc" ? "asc" : "desc"; // newest first unless asked otherwise
   const [total, rows] = await Promise.all([
     prisma.activityLog.count({ where }),
     prisma.activityLog.findMany({
-      where, orderBy: [{ occurredAt: "desc" }, { id: "desc" }], skip: (page - 1) * pageSize, take: pageSize,
+      where, orderBy: [{ occurredAt: dir }, { id: dir }], skip: (page - 1) * pageSize, take: pageSize,
       include: { user: { select: { id: true, name: true, userId: true, role: true } } },
     }),
   ]);
@@ -82,6 +84,13 @@ export async function recordClientActivity(actor: Actor, input: { action: unknow
     if (!target) throw notFound("User not found.");
     targetId = target.id;
   }
-  const row = await prisma.activityLog.create({ data: { userId: targetId, action, ...(details !== undefined ? { details } : {}) } });
+  // Client-supplied entries live in their own "client." namespace so a browser can never write an entry that looks
+  // like a server audit event ("lead.deleted", "user.created"...). On-behalf entries name who really wrote them.
+  const storedAction = action.startsWith("client.") ? action : `client.${action}`;
+  if (targetId !== actor.id) {
+    const base = details && typeof details === "object" && !Array.isArray(details) ? (details as Prisma.InputJsonObject) : details === undefined ? {} : { value: details };
+    details = { ...base, loggedBy: { id: actor.id, userId: actor.userId, name: actor.name } };
+  }
+  const row = await prisma.activityLog.create({ data: { userId: targetId, action: storedAction, ...(details !== undefined ? { details } : {}) } });
   return { id: row.id };
 }

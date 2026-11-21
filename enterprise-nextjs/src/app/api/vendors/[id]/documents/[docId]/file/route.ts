@@ -23,11 +23,14 @@ export async function GET(request: Request, ctx: Ctx) {
       return NextResponse.redirect(signed.url, { status: 302, headers: { "Cache-Control": "no-store" } });
     }
     const doc = await readDocument(actor, id, docId, { inline });
-    const safeName = doc.fileName.replace(/["\r\n\\]/g, "_");
+    // Header values must be Latin-1: a name such as "GST – cert.pdf" or Hindi text made every download throw (500).
+    // Send an ASCII fallback plus the RFC 5987 UTF-8 form that browsers prefer.
+    const safeName = doc.fileName.replace(/["\r\n\\]/g, "_").replace(/[^\x20-\x7e]/g, "_");
+    const utf8Name = encodeURIComponent(doc.fileName.replace(/[\r\n]/g, ""));
     return new Response(new Uint8Array(doc.body), {
       headers: {
         "Content-Type": doc.mimeType,
-        "Content-Disposition": `${doc.inline ? "inline" : "attachment"}; filename="${safeName}"`,
+        "Content-Disposition": `${doc.inline ? "inline" : "attachment"}; filename="${safeName}"; filename*=UTF-8''${utf8Name}`,
         "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "default-src 'none'; img-src 'self'; object-src 'none'; sandbox",
         "Cache-Control": "private, no-store",

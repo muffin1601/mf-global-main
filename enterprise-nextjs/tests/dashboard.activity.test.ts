@@ -70,18 +70,25 @@ describe("POST /activity/log service", () => {
   it("logs as the caller and stores details", async () => {
     const { id } = await recordClientActivity(actorOf(alice), { action: "download.excel", details: { file: "a.xlsx" } });
     const row = await prisma.activityLog.findUniqueOrThrow({ where: { id } });
-    expect(row).toMatchObject({ userId: alice.id, action: "download.excel", details: { file: "a.xlsx" } });
+    expect(row).toMatchObject({ userId: alice.id, action: "client.download.excel", details: { file: "a.xlsx" } });
+  });
+  it("cannot forge a server audit event: client actions are namespaced", async () => {
+    const { id } = await recordClientActivity(actorOf(alice), { action: "lead.deleted", details: { count: 999 } });
+    expect((await prisma.activityLog.findUniqueOrThrow({ where: { id } })).action).toBe("client.lead.deleted");
+    expect(await prisma.activityLog.count({ where: { action: "lead.deleted", userId: alice.id } })).toBe(0);
   });
   it("lets a user pass their own code or id, never someone else", async () => {
     await recordClientActivity(actorOf(alice), { action: "self", userRef: alice.userId });
     await recordClientActivity(actorOf(alice), { action: "self2", userRef: alice.id });
     await expect(recordClientActivity(actorOf(alice), { action: "spoof", userRef: bob.userId })).rejects.toMatchObject({ status: 403 });
     await expect(recordClientActivity(actorOf(alice), { action: "spoof", userRef: bob.id })).rejects.toMatchObject({ status: 403 });
-    expect(await prisma.activityLog.count({ where: { action: "spoof" } })).toBe(0);
+    expect(await prisma.activityLog.count({ where: { action: { in: ["spoof", "client.spoof"] } } })).toBe(0);
   });
   it("admin may log for another user; unknown user is 404", async () => {
     const { id } = await recordClientActivity(actorOf(admin), { action: "on-behalf", userRef: bob.userId });
-    expect((await prisma.activityLog.findUniqueOrThrow({ where: { id } })).userId).toBe(bob.id);
+    const row = await prisma.activityLog.findUniqueOrThrow({ where: { id } });
+    expect(row.userId).toBe(bob.id);
+    expect(row.details).toMatchObject({ loggedBy: { id: admin.id } });
     await expect(recordClientActivity(actorOf(admin), { action: "x", userRef: "NOPE" })).rejects.toMatchObject({ status: 404 });
   });
   it("validates and limits the payload", async () => {

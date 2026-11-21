@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createLead } from "@/server/leads/ingest";
-import { makeUser, prisma, resetDb } from "./helpers/db";
+import { actorOf, makeUser, prisma, resetDb } from "./helpers/db";
+import { findExistingContacts } from "@/server/imports/service";
+import { updateLead } from "@/server/leads/mutations";
+import { checkDuplicate } from "@/server/leads/queries";
 
 describe("lead ingest core", () => {
   beforeEach(resetDb);
@@ -30,6 +33,23 @@ describe("lead ingest core", () => {
     const results = await Promise.all(Array.from({ length: 8 }, () => createLead({ phone: "9111111111" }, { source: "IMPORT" })));
     expect(results.filter((r) => r.status === "created")).toHaveLength(1);
     expect(await prisma.lead.count({ where: { phone: "9111111111" } })).toBe(1);
+  });
+
+  it("matches formatted legacy contacts in the preview and serializes cross-column submissions", async () => {
+    const admin = actorOf(await makeUser({ role: "ADMIN" }));
+    const legacy = await prisma.lead.create({ data: { contact: "(98111) 22233" } });
+    const other = await prisma.lead.create({ data: { phone: "9012345678" } });
+    expect(await checkDuplicate(admin, { phone: "9811122233", excludeId: legacy.id })).toEqual({ exists: false });
+    const imported = await findExistingContacts(["+91 98111 22233", "09811122233"], []);
+    expect([...imported.phones]).toEqual(["+91 98111 22233", "09811122233"]);
+    await expect(updateLead(admin, other.id, { contact: "98111-22233" })).rejects.toMatchObject({ status: 409 });
+    expect(await checkDuplicate(admin, { phone: "98111-22233" })).toMatchObject({ exists: true });
+    expect(await createLead({ phone: "9811122233" }, { source: "MANUAL" })).toMatchObject({ status: "duplicate" });
+    const results = await Promise.all([
+      createLead({ phone: "98765-44444" }, { source: "MANUAL" }),
+      createLead({ contact: "(98765) 44444" }, { source: "MANUAL" }),
+    ]);
+    expect(results.map(result => result.status).sort()).toEqual(["created", "duplicate"]);
   });
 
   it("stamps createdAt from the database and ignores caller-supplied dates", async () => {

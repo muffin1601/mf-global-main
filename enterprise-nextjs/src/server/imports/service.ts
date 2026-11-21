@@ -6,6 +6,7 @@ import {
   BATCH_SIZE, MAX_IMPORT_ROWS, PREVIEW_CAP, analyzeRows, parseLeadCsv, validateRow,
   type CanonicalRow,
 } from "@/lib/imports/lead-csv";
+import { phoneKey } from "@/server/leads/phone-identity";
 import { createLeadTx } from "@/server/leads/ingest";
 import { isAdmin, type Actor } from "@/server/actor";
 import { badRequest, conflict, forbidden, notFound } from "@/server/errors";
@@ -38,14 +39,12 @@ export async function findExistingContacts(phones: string[], emails: string[]) {
   const uniqueEmails = [...new Set(emails.filter(Boolean).map(lc))];
   for (let i = 0; i < uniquePhones.length; i += 2000) {
     const chunk = uniquePhones.slice(i, i + 2000);
-    const rows = await prisma.lead.findMany({
-      where: { OR: [{ phone: { in: chunk } }, { contact: { in: chunk } }] }, select: { phone: true, contact: true },
-    });
-    const want = new Set(chunk);
-    for (const r of rows) {
-      if (r.phone && want.has(r.phone)) foundPhones.add(r.phone);
-      if (r.contact && want.has(r.contact)) foundPhones.add(r.contact);
-    }
+    const keys = chunk.map(phoneKey);
+    const rows = await prisma.$queryRaw<{ key: string }[]>`
+      SELECT lead_phone_key(phone) AS key FROM leads WHERE lead_phone_key(phone) IN (${Prisma.join(keys)})
+      UNION SELECT lead_phone_key(contact) FROM leads WHERE lead_phone_key(contact) IN (${Prisma.join(keys)})`;
+    const matches = new Set(rows.map(row => row.key));
+    for (const phone of chunk) if (matches.has(phoneKey(phone))) foundPhones.add(phone);
   }
   for (let i = 0; i < uniqueEmails.length; i += 2000) {
     const chunk = uniqueEmails.slice(i, i + 2000);

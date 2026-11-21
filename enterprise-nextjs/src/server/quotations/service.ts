@@ -145,7 +145,8 @@ export async function createQuotation(actor: Actor, raw: unknown): Promise<Quota
   const { input, items, summary, totals } = prepare(raw);
   const settings = await prisma.companySettings.findFirst();
   const inv = input.invoiceDetails ?? {};
-  const prefix = inv.prefix?.trim() || settings?.quotationPrefix || DEFAULT_PREFIX;
+  // Only administrators may open a new numbering series; a user-typed prefix could imitate another branch's series.
+  const prefix = (isAdmin(actor) ? inv.prefix?.trim() : undefined) || settings?.quotationPrefix || DEFAULT_PREFIX;
   const date = inv.date || istToday().date;
   const days = inv.validityDays === undefined || inv.validityDays === null || inv.validityDays === "" ? 30 : Math.max(0, Math.floor(num(inv.validityDays)));
   const invoiceDetails = {

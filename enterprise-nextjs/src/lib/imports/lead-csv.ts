@@ -45,9 +45,11 @@ export const SAMPLE_CSV = [
   "Sunrise Traders,Amit Patel,9123456780,,Ahmedabad,Gujarat,Trading,Requirement for packaging material,Call after 5pm",
 ].join("\r\n");
 
-// Strip control/non-printable (and non-ASCII) chars and trim, as MERN does.
+// Strip control characters and U+FFFD, and trim. Unicode text is KEPT: the MERN rule (drop everything outside
+// printable ASCII) turned "José Müller" into "Jos Mller" and emptied Devanagari names, which then failed the
+// "Contact Person required" check.
 export const cleanInput = (input: unknown): string =>
-  (input == null ? "" : String(input)).replace(/[^\x20-\x7E]/g, "").trim();
+  (input == null ? "" : String(input)).normalize("NFC").replace(/[\u0000-\u001F\u007F-\u009F�]/g, "").trim();
 
 export function normalizePhone(raw: string | undefined): string {
   let digits = (raw ?? "").replace(/\D/g, "");

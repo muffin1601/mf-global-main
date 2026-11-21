@@ -64,7 +64,8 @@ const PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const CIN_RE = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
 const IFSC_RE = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const PINCODE_RE = /^[1-9][0-9]{5}$/;
-const MOBILE_RE = /^[6-9][0-9]{9}$/;
+// 10 digits after removing +91 / leading 0: mobiles start 6-9, landlines (STD code + number) start 2-5.
+const MOBILE_RE = /^[2-9][0-9]{9}$/;
 const UPI_RE = /^[\w.-]{2,256}@[a-zA-Z]{2,64}$/;
 const ACCOUNT_RE = /^[0-9]{9,18}$/;
 

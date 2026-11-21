@@ -1,6 +1,7 @@
 // Product catalogue service. Parity: backend/routes/Products/product.js, models/ProductData.js,
 // services/productCode.js. Writes are admin-only; reads need any signed-in user.
 import type { Prisma } from "@/generated/prisma/client";
+import { escapeLike } from "@/lib/db/like";
 import { prisma } from "@/lib/prisma/client";
 import { badRequest, conflict, notFound } from "@/server/errors";
 import { advisoryLock, isUuid, logActivity, requireActor, requireAdminActor, type MaybeActor } from "./common";
@@ -261,7 +262,7 @@ export type ListProductsInput = {
 };
 
 function textSearch(term: string): Prisma.ProductWhereInput[] {
-  const c = { contains: term, mode: "insensitive" as const };
+  const c = { contains: escapeLike(term), mode: "insensitive" as const };
   const or: Prisma.ProductWhereInput[] = [{ code: c }, { name: c }, { secondaryCode: c }, { type: c }, { color: c }, { dimension: c }];
   const n = Number(term);
   if (Number.isFinite(n) && n >= 0 && n < 1000) or.push({ price: { is: { gstRate: n } } });
@@ -280,7 +281,7 @@ export async function listProducts(actor: MaybeActor, input: ListProductsInput =
   if (input.categoryId) where.categoryId = isUuid(input.categoryId) ? input.categoryId : "00000000-0000-0000-0000-000000000000";
   const query = (input.query ?? "").trim();
   if (query) {
-    where.OR = [...textSearch(query), { description: { contains: query, mode: "insensitive" } }, { category: { is: { name: { contains: query, mode: "insensitive" } } } }];
+    where.OR = [...textSearch(query), { description: { contains: escapeLike(query), mode: "insensitive" } }, { category: { is: { name: { contains: escapeLike(query), mode: "insensitive" } } } }];
   }
   const orderBy: Prisma.ProductOrderByWithRelationInput[] = (() => {
     switch (input.sort) {

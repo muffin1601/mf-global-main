@@ -8,3 +8,7 @@ migration-reports/
 *.log
 .vercel/
 .npm-cache/
+
+# E2E / QA run outputs (screenshots, traces, synthetic ids)
+test-artifacts/
+.next-e2e/
